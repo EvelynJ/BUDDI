@@ -647,7 +647,7 @@ if emission_yn eq 'n' then begin
 ;    ppxf_477, stars_templates, galaxy, noise, velScale, start, sol, output, run,$
     ppxf_v479, stars_templates, galaxy, noise, velScale, start, sol,$
         GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
-        VSYST=dv, ERROR=error, BIAS=Bias;,MDEGREE=6, /PLOT
+        VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
 
     close,50
     openw,50,output+'_kinematics.txt',/APPEND
