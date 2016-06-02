@@ -133,7 +133,7 @@ COMPILE_OPT IDL2, HIDDEN
 ; Plots colored pixels with the same pixels size
 
 PLOT, [MIN(x)-pixelSize,MAX(x)+pixelSize], [MIN(y)-pixelSize,MAX(y)+pixelSize], $
-    /NODATA, /XSTYLE, /YSTYLE, XTITLE='arcsec', YTITLE='arcsec', /ISO, color=fsc_color('black')
+    /NODATA, /XSTYLE, /YSTYLE, XTITLE='arcsec', YTITLE='arcsec', /ISO, color=cgcolor('black')
 x1 = [-0.5, -0.5, +0.5, +0.5, -0.5] * pixelSize
 y1 = [+0.5, -0.5, -0.5, +0.5, +0.5] * pixelSize
 color = bytscl(counts)
@@ -954,13 +954,13 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
   !p.symsize=0.7
   plot,kinematics_sorted[5,*],kinematics_sorted[1,*],psym=sym(1),yrange=[vel_centre-y_range,vel_centre+y_range],ytitle='V!ILOS!N (km/s)',$
       xtitle='distance (arcsec)',xrange=[-25,25],xmargin=[10,3],ytickformat='(i5)',symsize=0.5,/ystyle,/xstyle
-  oplot,kinematics_sorted[5,*],kinematics_sorted[6,*]-130,color=fsc_color('red'),psym=sym(1),symsize=0.5
+  oplot,kinematics_sorted[5,*],kinematics_sorted[6,*]-130,color=cgcolor('red'),psym=sym(1),symsize=0.5
 ;  oplot,[-100,100],[velocity_NED,velocity_NED],linestyle=1
   xyouts,-24,(2*y_range)*0.9+vel_centre-y_range,galaxy_ref, charsize=0.7
   plot,kinematics_sorted[5,*],kinematics_sorted[2,*],psym=sym(1),yrange=[0,max_sigma],ytitle=greek('sigma')+' (km/s)',$
       xtitle='distance (arcsec)',xrange=[-25,25],xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
   xyouts,-24,0.9*(max_sigma),galaxy_ref, charsize=0.7
-  oplot,kinematics_sorted[5,*],kinematics_sorted[7,*],color=fsc_color('red'),psym=sym(1),symsize=0.5
+  oplot,kinematics_sorted[5,*],kinematics_sorted[7,*],color=cgcolor('red'),psym=sym(1),symsize=0.5
 
   plot,kinematics_sorted[5,*],kinematics_sorted[3,*],psym=sym(1),xrange=[-25,25],yrange=[-0.3,0.3],ytitle='h!I3!N',$
       xtitle='distance (arcsec)',xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
@@ -1220,11 +1220,11 @@ if setup.correct_kinematics eq 'y' then begin
   device,file=root+directory+kinematics+galaxy_ref+'_kinematics_corrections.eps',/color,xoffset=0,yoffset=0
     !p.multi=0;[0,2,2]
     pixelSize=1
-    plot,temparray[0,*],temparray[1,*],/nodata,xtitle='x-axis',ytitle='y-axis',color=fsc_color('black'),xrange=[-2,max(temparray[0,*])+2],yrange=[-2,max(temparray[1,*])+2],/xstyle,/ystyle
+    plot,temparray[0,*],temparray[1,*],/nodata,xtitle='x-axis',ytitle='y-axis',color=cgcolor('black'),xrange=[-2,max(temparray[0,*])+2],yrange=[-2,max(temparray[1,*])+2],/xstyle,/ystyle
     for n=0,n_elements(xpix_total)-1,1 do begin
-      if signal[n]/noise[n] ge 5 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=fsc_color('red')
-      if signal[n]/noise[n] lt 5 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=fsc_color('goldenrod')
-      if signal[n] eq 0 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=fsc_color('black')
+      if signal[n]/noise[n] ge 5 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=cgcolor('red')
+      if signal[n]/noise[n] lt 5 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=cgcolor('goldenrod')
+      if signal[n] eq 0 then xyouts,temparray[0,n],temparray[1,n],string(temparray[2,n],format='(I2)'),charsize=0.4,color=cgcolor('black')
 ;      xyouts,temparray[0,*],temparray[1,*],string(temparray[2,*],format='(I2)'),charsize=0.4,color=colour
     endfor
   device,/close

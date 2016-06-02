@@ -1,7 +1,7 @@
 
 
 
-pro result_visualiser,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
+pro result_visualiser_2,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength_in,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -11,8 +11,8 @@ end_wavelength=info[5]
 total_images=final_image-first_image+1
 no_images_final=total_images mod no_slices
 
-wavelength=10^(wavelength)
-;stop
+wavelength_in=10^(wavelength_in)
+
 ; read in datacubes
 fits_read,root+directory+decomp+'decomposed_data/original.fits',original_datacube,h_orig
 fits_read,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h_bestfit
@@ -172,7 +172,13 @@ endif else begin
   comp3_1D=comp3_1D+(0.5*sky)  
 endelse
 
-
+if galaxy_ref eq 'manga-7443-9102' then begin
+  for j=30,n_elements(disk_1d)-1,30 do begin
+    disk_1d[j]=0.5*(disk_1d[j-1]+disk_1d[j+1])
+    bulge_1d[j]=0.5*(bulge_1d[j-1]+bulge_1d[j+1])
+    comp3_1D[j]=0.5*(comp3_1D[j-1]+comp3_1D[j+1])
+  endfor
+endif
 
 ;obtain new bulge spectrum within 3Re
 res2=read_sersic_results_2comp(root+directory+decomp+'binned_images/imgblock.fits', nband, bd=1)
@@ -284,14 +290,14 @@ endfor
 
 
 set_plot,'ps'
-;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_blue_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-end_wavelength=6900
+end_wavelength=7000
 
 
 
@@ -326,6 +332,7 @@ if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datac
 
 ;a=(Redshift+1)*(Redshift+1)
 ;Velocity=3e5*((a-1)/(a+1))
+CaII_new=3934+(3934*Redshift)
 Ha_new=6563+(6563*Redshift)
 Hb_new=4861+(4861*Redshift)
 Hg_new=4341+(4341*Redshift)
@@ -334,6 +341,9 @@ Mgb_new=5177+(5177*Redshift)
 Fe5335_new=5335+(5335*Redshift)
 Fe5270_new=5270+(5270*Redshift)
 Na_new= 5895.92+(5895.92*Redshift)
+CaII2_new= 8542.09+(8542.09*Redshift)
+Pae_new= 9546+(9546*Redshift)
+Paz_new= 9229+(9229*Redshift)
 
 
 ;oplot,[Ha_new,Ha_new],[-5,5],linestyle=1
@@ -352,6 +362,10 @@ e=where(wavelength ge Mgb_new)
 f=where(wavelength ge Fe5335_new)
 g=where(wavelength ge Fe5270_new)
 h=where(wavelength ge Na_new)
+i=where(wavelength ge CaII_new)
+j=where(wavelength ge CaII2_new)
+k=where(wavelength ge Pae_new)
+l=where(wavelength ge Paz_new)
 
 aa=mean((orig_1D[a[0]-30:a[0]+30]/median(orig_1D)))+0.2
 bb=mean((orig_1D[b[0]-30:b[0]+30]/median(orig_1D)))+0.2
@@ -361,6 +375,10 @@ ee=mean((orig_1D[e[0]-30:e[0]+30]/median(orig_1D)))+0.2
 ff=mean((orig_1D[f[0]-30:f[0]+30]/median(orig_1D)))+0.2
 gg=mean((orig_1D[g[0]-30:g[0]+30]/median(orig_1D)))+0.2
 hh=mean((orig_1D[h[0]-30:h[0]+30]/median(orig_1D)))+0.2
+ii=mean((orig_1D[i[0]-30:i[0]+30]/median(orig_1D)))+0.2
+jj=mean((orig_1D[j[0]-30:j[0]+30]/median(orig_1D)))+0.2
+if k[0] ne -1 then kk=mean((orig_1D[k[0]-30:k[0]+30]/median(orig_1D)))+0.2
+if l[0] ne -1 then ll=mean((orig_1D[l[0]-30:l[0]+30]/median(orig_1D)))+0.2
 
 
 xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
@@ -371,12 +389,127 @@ xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
 xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
 xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
 xyouts,Na_new-30,hh,'Na D',charsize=0.9
+xyouts,CaII_new-30,0.95,'Ca II',charsize=0.9
+;xyouts,CaII_new-30,ii,'Ca II',charsize=0.9
+xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
 
 ;!p.multi=0
 device,/close
 
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_red_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_3.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+!P.thick=3
+!p.charthick=3
+!p.charsize=1.0
+!p.multi=0;[0,1,4]
+start_wavelength=6700
+end_wavelength=10000
+
+sample=where(wavelength le end_wavelength)
+
+plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
+    xrange=[start_wavelength-100,end_wavelength+100],$
+    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+
+
+if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(disk_1D/median(orig_1D)),color=cgcolor('blue');/10000;+60
+oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
+oplot,wavelength[sample],(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
+if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
+
+if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+
+xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
+;xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
+;xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
+;xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
+;xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
+;xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
+;xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
+;xyouts,Na_new-30,hh,'Na D',charsize=0.9
+;xyouts,CaII_new-30,ii,'Ca II',charsize=0.9
+xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
+if k[0] ne -1 then xyouts,Pae_new-30,kk,'Pa'+greek('epsilon'),charsize=0.9
+if l[0] ne -1 then xyouts,Paz_new-30,ll,'Pa'+greek('zeta'),charsize=0.9
+
+
+device,/close
 
 
 
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_full_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_3.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+!P.thick=3
+!p.charthick=3
+!p.charsize=1.0
+!p.multi=0;[0,1,4]
+start_wavelength=3700
+end_wavelength=10000
+
+sample=where(wavelength le end_wavelength)
+
+plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
+    xrange=[start_wavelength-100,end_wavelength+100],$
+    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+
+
+if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(disk_1D/median(orig_1D)),color=cgcolor('blue');/10000;+60
+oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
+oplot,wavelength[sample],(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
+if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
+
+if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+
+
+xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
+xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
+xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
+xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
+xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
+xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
+xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
+xyouts,Na_new-30,hh,'Na D',charsize=0.9
+xyouts,CaII_new-30,ii,'Ca II',charsize=0.9
+xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
+if k[0] ne -1 then xyouts,Pae_new-30,kk,'Pa'+greek('epsilon'),charsize=0.9
+if l[0] ne -1 then xyouts,Paz_new-30,ll,'Pa'+greek('zeta'),charsize=0.9
+
+
+device,/close
+
+stop
 end
 
