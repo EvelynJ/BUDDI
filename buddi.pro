@@ -372,7 +372,7 @@ if setup.bin_data eq 'y' then begin
   ; (binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale)
   ; are all generated in *output*
   voronoi_2d_binning, xpix, ypix, signal, noise, targetSN, $
-      binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,directory,galaxy_ref,/PLOT, /QUIET
+      binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,directory,galaxy_ref, /QUIET;,/PLOT
   
   ; Save to a text file the initial coordinates of each pixel together
   ; with the corresponding bin number computed by this procedure.
