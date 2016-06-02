@@ -813,7 +813,8 @@ endif
 
 if setup.plot_kinematics eq 'y' then begin
 ;read in kinematics
-  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,X,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
+;  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,X,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
+  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
   if emission_yn eq 'y' then begin
     readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
     readcol,root+directory+kinematics+galaxy_ref+'_kinematics_gas.txt',format='F,F,F,F,F,X,X',bin_n_gas,vel_in_gas,sigma_in_gas,h3_in_gas,h4_in_gas,comment='#'
