@@ -1646,8 +1646,10 @@ if setup.decompose_binned_images eq 'y' then begin
       
       
       ;user inpiut to determine if polynomials are ok
-      decision='n'
-      READ, decision, PROMPT='Are you happy with your current polynomial fits? [y/n] '
+      decision='0'
+      while decision ne 'y' and decision ne 'n' do $
+        READ, decision, PROMPT='Are you happy with your current polynomial fits? [y/n]: '
+      
       if decision eq 'y' and rep gt 1 then rep=1000 $
       else if decision eq 'n' then begin
         delay='n'
