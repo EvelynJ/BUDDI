@@ -1456,7 +1456,7 @@ if setup.decompose_binned_images eq 'y' then begin
         sky=res.sky_galfit_band
       endif
       
-      if rep eq 1 then begin
+;      if rep eq 1 then begin
         if n_comp eq 1000 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         else if n_comp eq 1100 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
         else if n_comp eq 1101 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
@@ -1491,7 +1491,7 @@ if setup.decompose_binned_images eq 'y' then begin
           q_bulge1=res.Q_GALFIT_BAND_B
         endif
         sky1=res.sky_galfit_band
-      endif  
+;      endif  
 ;      endif
       
 ;      set_plot,'x'
