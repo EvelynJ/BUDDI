@@ -643,12 +643,57 @@ if setup.measure_kinematics eq 'y' then begin
 
 ;      print,start
 ;      stop
-if emission_yn eq 'n' then $
-    ppxf_477, stars_templates, galaxy, noise, velScale, start, sol, output, run,$
+if emission_yn eq 'n' then begin
+;    ppxf_477, stars_templates, galaxy, noise, velScale, start, sol, output, run,$
+    ppxf_v479, stars_templates, galaxy, noise, velScale, start, sol,$
         GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
         VSYST=dv, ERROR=error, BIAS=Bias;,MDEGREE=6, /PLOT
-; stop       
+
+    close,50
+    openw,50,output+'_kinematics.txt',/APPEND
+      
+      
+    if run eq 0 then printf,50, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
+    printf,50, run,sol[0:5,0], FORMAT='(i5,f10.1,4f10.3,A10)'
+    close,50
+
+    set_plot,'ps'
+    !p.multi=0
+    device,file=output+'_kinematics_'+string(run,format='(i4.4)')+'.eps',/color,xoffset=0,yoffset=0
+    mn = min(bestfit[goodPixels], MAX=mx)
+    resid = mn + galaxy - bestfit
+    cgplot, galaxy, XTITLE='pixels', YTITLE='counts', /XSTYLE, /YNOZERO, $
+        YRANGE=[min(resid[goodPixels]),mx], YSTYLE=2, XRANGE=[-0.02,1.02]*s2[1]*s2[0]
+ ;       YRANGE=[-2,mx], YSTYLE=2, XRANGE=[-0.02,1.02]*s2[1]*s2[0]
+    cgplot, bestfit, COLOR='red', THICK=2, /OVERPLOT
+    n = n_elements(goodPixels)
+    cgplot, goodPixels, replicate(mn,n*s2[0]), PSYM=3, COLOR='forest green', /OVERPLOT
+    cgplot, goodPixels, resid[goodPixels], PSYM=4, COLOR='forest green', SYMSIZE=0.3, /OVERPLOT
+    w = where((goodPixels[1:*] - goodPixels) gt 1, m)
+    for j=0,m-1 do begin
+        x = range(goodPixels[w[j]],goodPixels[w[j]+1])
+        cgplot, x, resid[x], COLOR='blue', /OVERPLOT
+    endfor
+    w = (m gt 0) ? [0,w,w+1,n-1] : [0,n-1]  ; Add first and last point
+    for j=0,n_elements(w)-1 do $
+        cgplot, goodPixels[w[[j,j]]], [mn,bestfit[goodPixels[w[j]]]], COLOR='forest green', /OVERPLOT
+
+
+;        cgplot, wave, galaxy, color='black', XTITLE='Observed Wavelength A', $
+;            YTITLE='Relative Flux', /XSTYLE, /YSTYLE, YRANGE=[-2000, 1.0*max(galaxy)];, YRANGE=[-0.1, 2]
+;        cgoplot, wave, bestfit, color='orange'
+;        cgOPlot, wave, galaxy - bestfit, PSYM=4, COLOR='limegreen'
+;        stars = matrix[*, 0:nstars] # weights[0:nstars]
+;        cgoplot, wave, stars, COLOR='red'  ; overplot stellar templates alone
+;        gas = matrix[*, -ngas:*] # weights[-ngas:*]
+;        cgoplot, wave, gas + 0.15, COLOR='blue'  ; overplot emission lines alone
         
+    device,/close
+
+
+
+
+endif      
 ;;moments: 2= Vel and sigma only, 4= Vel, sigma, h3 and h4
 ;;degree: orer of polynomial to fit to continuum
 
