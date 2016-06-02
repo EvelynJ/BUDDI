@@ -1065,8 +1065,10 @@ if setup.correct_kinematics eq 'y' then begin
   x_final=fltarr(n_elements(xpix_total))
   y_final=fltarr(n_elements(xpix_total))
   bins_final=fltarr(n_elements(xpix_total))
+;  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
+;      format='F,X,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
   if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
-      format='F,X,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
+      format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
   if emission_yn eq 'y' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
       format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
   
