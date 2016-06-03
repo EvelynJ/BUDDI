@@ -64,21 +64,21 @@ if keyword_set(binned) then begin
   if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
   if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
 
-;  if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1 else disk_re_polynomial=disk_re_polynomial_in
-;  if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in
-;  if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1 else bulge_re_polynomial=bulge_re_polynomial_in
-;  if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1 else bulge_n_polynomial=bulge_n_polynomial_in
-;  
-;  if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=bulge_n_polynomial_in
-;  if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
-
-  if disk_re_polynomial_in gt 3 then disk_re_polynomial=x1 else disk_re_polynomial=2;disk_re_polynomial_in
-  if disk_n_polynomial_in gt 2 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in;disk_n_polynomial_in
-  if bulge_re_polynomial_in gt 2 then bulge_re_polynomial=x1 else bulge_re_polynomial=2;bulge_re_polynomial_in
-  if bulge_n_polynomial_in gt 2 then bulge_n_polynomial=x1 else bulge_n_polynomial=2;bulge_n_polynomial_in
+  if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1 else disk_re_polynomial=disk_re_polynomial_in
+  if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in
+  if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1 else bulge_re_polynomial=bulge_re_polynomial_in
+  if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1 else bulge_n_polynomial=bulge_n_polynomial_in
   
-  if comp3_re_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=2;bulge_n_polynomial_in
-  if comp3_n_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=2;comp3_n_polynomial_in
+  if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=bulge_n_polynomial_in
+  if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
+
+;  if disk_re_polynomial_in gt 3 then disk_re_polynomial=x1 else disk_re_polynomial=2;disk_re_polynomial_in
+;  if disk_n_polynomial_in gt 2 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in;disk_n_polynomial_in
+;  if bulge_re_polynomial_in gt 2 then bulge_re_polynomial=x1 else bulge_re_polynomial=2;bulge_re_polynomial_in
+;  if bulge_n_polynomial_in gt 2 then bulge_n_polynomial=x1 else bulge_n_polynomial=2;bulge_n_polynomial_in
+;  
+;  if comp3_re_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=2;bulge_n_polynomial_in
+;  if comp3_n_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=2;comp3_n_polynomial_in
   
 
   
@@ -492,7 +492,7 @@ if keyword_set(binned) then begin
       printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
       printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
-      printf, 60, 'G) EXAMPLE.CONSTRAINTS                # File with parameter constraints (ASCII file)' 
+      printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
       printf, 60, 'H) 1    '+string(x_size,format='(I3.3)')+'   1  '+string(y_size,format='(I3.3)')+'    # Image region to fit (xmin xmax ymin ymax)'
       printf, 60, 'I) '+string(x_size,format='(I3.3)')+'    '+string(x_size,format='(I3.3)')+'          # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
@@ -949,7 +949,7 @@ if keyword_set(slices) then begin
     printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
     printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
     printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
-    printf, 60, 'G) EXAMPLE.CONSTRAINTS                # File with parameter constraints (ASCII file)' 
+    printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
     printf, 60, 'H) 1    '+string(x_size,format='(I3.3)')+'   1  '+string(y_size,format='(I3.3)')+'    # Image region to fit (xmin xmax ymin ymax)'
     printf, 60, 'I) '+string(x_size,format='(I3.3)')+'    '+string(x_size,format='(I3.3)')+'          # Size of the convolution box (x y)'
     printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
