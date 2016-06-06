@@ -264,6 +264,11 @@ endif else if sxpar(header_IFU,'VERSDRP2') eq 'v1_3_3  ' then begin
   step=sxpar(header_IFU,'CD3_3')
   wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
   for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)
+endif else if sxpar(header_IFU,'VERSDRP2') eq 0 then begin
+  wavelength0=sxpar(header_IFU,'CRVAL3')
+  step=sxpar(header_IFU,'CD3_3')
+  wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
+  for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)  
 endif
 
 
@@ -1359,9 +1364,10 @@ if setup.decompose_binned_images eq 'y' then begin
   ;if they are happy with those in the input file. If yes, 
   ;repeat with those values and ask again. If no, ask them 
   ;update the input file, then read in the new values
+  
   for rep=1,99,1 do begin
     comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
-    
+      
     ;test if a free fit has already been carried out
     result=file_test(root+directory+decomp+binned_dir+'imgblock_free.fits')
     if result eq 1 and rep eq 1 then rep=2
@@ -1370,12 +1376,13 @@ if setup.decompose_binned_images eq 'y' then begin
       galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,/binned
+          galfitm,rep,/binned,/file
     
     
     if rep ne 1 then begin
       ;if doing constrained fits, allow user to determine whether to use 
       ;results from median fit or free fit as starting parameters
+      
       decision='n'
       print,'For the starting parameters, do you want to use: '
       print,'  a) results from the median fit'
@@ -1389,13 +1396,13 @@ if setup.decompose_binned_images eq 'y' then begin
         galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,/binned
+          galfitm,rep,/binned,/file
       endif
       if decision eq 'b' then begin
         galfitm_multiband,output,binned_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,/binned
+          galfitm,rep,/binned,/header
       endif
     endif
     
@@ -1653,7 +1660,7 @@ if setup.decompose_binned_images eq 'y' then begin
       if decision eq 'y' and rep gt 1 then rep=1000 $
       else if decision eq 'n' then begin
         delay='n'
-        print,delay,'Please update the input file, and type "y" when done.  '
+;        print,delay,'Please update the input file, and type "y" when done.  '
   
         ;;*** Initial estimates for Galfit single Sersic fit
         if setup.disk_type eq 'sersic' or setup.disk_type eq 'Sersic' then disk_type=0 else disk_type=1

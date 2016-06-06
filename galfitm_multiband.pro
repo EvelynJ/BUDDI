@@ -8,7 +8,11 @@
 ; 
 ; 
 ;
-pro galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial_in,disk_mag_polynomial_in,disk_n_polynomial_in,bulge_re_polynomial_in,bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,BINNED=binned,SLICES=slices
+pro galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,$
+  estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,$
+  disk_re_polynomial_in,disk_mag_polynomial_in,disk_n_polynomial_in,bulge_re_polynomial_in,$
+  bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,BINNED=binned,$
+  SLICES=slices,FILE=file,HEADER=header
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -31,7 +35,8 @@ comp3_mag_polynomial_in=comp3_poly[1]
 comp3_n_polynomial_in=comp3_poly[2]
 
 if keyword_set(binned) then begin
-  input='header'    ;'header' or input 'file'
+  if keyword_set(file) then input='file'    ;'header' or input 'file'
+  if keyword_set(header) then input='header'    ;'header' or input 'file'
   ;sometimes GalfitM cannot manage a good fit to the median image, 
   ;generally resulting in a sersic index of 20. This value is too 
   ;far wrong for Galfitm to constrain it when fitting the binned 
@@ -40,25 +45,29 @@ if keyword_set(binned) then begin
   x1=no_bins
   nband=1;info[2]
   
-  if n_comp eq 1000 then res=read_sersic_results_2comp(output+median_dir+'imgblock_single.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+'imgblock_single.fits', nband, bd=0) $
-  else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+'imgblock_single.fits', nband, bd=0) $
+  if median_dir eq binned_dir then imgblock='imgblock_free' $
+    else if median_dir ne binned_dir and n_comp eq 1000 then imgblock='imgblock_single' $
+    else imgblock='imgblock_double'
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+'imgblock_double.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+'imgblock_double.fits', nband, bd=0) $
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+'imgblock_double.fits', nband, bd=1) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+'imgblock_double.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+'imgblock_double.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+'imgblock_double.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+'imgblock_double.fits', nband, bd=0) 
+  if n_comp eq 1000 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  
+  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=0) 
 
   if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1 else disk_mag_polynomial=disk_mag_polynomial_in
   if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
