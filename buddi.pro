@@ -1399,6 +1399,20 @@ if setup.decompose_binned_images eq 'y' then begin
           galfitm,rep,/binned,/file
       endif
       if decision eq 'b' then begin
+      
+        disk_re_polynomial=setup.disk_re_polynomial
+        disk_mag_polynomial=setup.disk_mag_polynomial
+        disk_n_polynomial=setup.disk_n_polynomial
+        if n_comp ge 1100 or n_comp eq 1010 or n_comp eq 1011 then begin
+          bulge_re_polynomial=setup.bulge_re_polynomial
+          bulge_mag_polynomial=setup.bulge_mag_polynomial
+          bulge_n_polynomial=setup.bulge_n_polynomial
+        endif else begin 
+          bulge_re_polynomial=99
+          bulge_mag_polynomial=99
+          bulge_n_polynomial=99
+        endelse
+        
         galfitm_multiband,output,binned_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
