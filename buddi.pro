@@ -145,12 +145,11 @@ END
 ;##############################################################
 ;##############################################################
 ;##############################################################
-pro BUDDI
+pro BUDDI, input_file
 
 ;***read in necessary information
-input_file='IFU_wrapper_input.txt'
+;input_file='IFU_wrapper_input.txt'
 read_input, input_file, setup
-
 
 
 ;*** Set up directory structure for all output files
