@@ -382,7 +382,7 @@ if setup.bin_data eq 'y' then begin
   ; with the corresponding bin number computed by this procedure.
   ; binNum uniquely specifies the bins and for this reason it is the only
   ; number required for any subsequent calculation on the bins.
-  astrolib
+;commented  astrolib
   forprint, xpix, ypix, binNum, TEXTOUT=root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt', $
       COMMENT='          X"              Y"           BIN_NUM'
   
