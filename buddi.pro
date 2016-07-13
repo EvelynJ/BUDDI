@@ -957,9 +957,10 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
   device,file=root+directory+kinematics+galaxy_ref+'_kinematics.eps',xoffset=0,yoffset=0
   !p.multi=[0,2,2]
   !p.symsize=0.7
+;  -130 for 
   plot,kinematics_sorted[5,*],kinematics_sorted[1,*],psym=sym(1),yrange=[vel_centre-y_range,vel_centre+y_range],ytitle='V!ILOS!N (km/s)',$
       xtitle='distance (arcsec)',xrange=[-25,25],xmargin=[10,3],ytickformat='(i5)',symsize=0.5,/ystyle,/xstyle
-  oplot,kinematics_sorted[5,*],kinematics_sorted[6,*]-130,color=cgcolor('red'),psym=sym(1),symsize=0.5
+  oplot,kinematics_sorted[5,*],kinematics_sorted[6,*],color=cgcolor('red'),psym=sym(1),symsize=0.5
 ;  oplot,[-100,100],[velocity_NED,velocity_NED],linestyle=1
   xyouts,-24,(2*y_range)*0.9+vel_centre-y_range,galaxy_ref, charsize=0.7
   plot,kinematics_sorted[5,*],kinematics_sorted[2,*],psym=sym(1),yrange=[0,max_sigma],ytitle=greek('sigma')+' (km/s)',$
@@ -1399,7 +1400,7 @@ if setup.decompose_binned_images eq 'y' then begin
           galfitm,rep,/binned,/file
       endif
       if decision eq 'b' then begin
-      
+        read_input, input_file, setup
         disk_re_polynomial=setup.disk_re_polynomial
         disk_mag_polynomial=setup.disk_mag_polynomial
         disk_n_polynomial=setup.disk_n_polynomial
@@ -1412,6 +1413,7 @@ if setup.decompose_binned_images eq 'y' then begin
           bulge_mag_polynomial=99
           bulge_n_polynomial=99
         endelse
+
         
         galfitm_multiband,output,binned_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
