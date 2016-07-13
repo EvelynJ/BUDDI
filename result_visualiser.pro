@@ -1,9 +1,8 @@
-
-
-
+ 
+ 
 pro result_visualiser,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 first_image=info[0]
-final_image=info[1]
+final_image=info[1] 
 no_bins=info[2]
 images_per_bin=info[3]
 start_wavelength=info[4]
@@ -249,7 +248,7 @@ if n_comp eq 1110 or n_comp eq 1111 then al_legend,['Integrated spectrum from da
 
 
 
-print,'now doing second plot'
+print,'now doing second plot. Watch out for it!!!!!!!!'
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
@@ -433,7 +432,7 @@ device,file=root+directory+decomp+'decomposed_data/Residual_sky.eps',/landscape;
 !p.charsize=1.0 
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-end_wavelength=10300 
+end_wavelength=10300  
 
 plot,wavelength,resid_sky_1D/median(orig_1D),$
     xrange=[start_wavelength-100,end_wavelength+100],$
