@@ -108,7 +108,7 @@ if keyword_set(binned) then begin
       temp=abs(ugriz-sxpar(h,'WAVELENG'))
       m=where(temp eq min(temp))
       psf_temp=PSF_files[m]
-      
+
       file='image_'+string(n,format='(I4.4)')+'.fits'
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
@@ -256,14 +256,14 @@ if keyword_set(binned) then begin
       endif
       
        if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          x_comp3=string(estimates_comp3[1],format='(F05.2)')
-          y_comp3=string(estimates_comp3[2],format='(F05.2)')
-          mag_comp3=string(estimates_comp3[3],format='(F05.2)')
+          x_comp3=string(x,format='(F05.2)')
+          y_comp3=string(y,format='(F05.2)')
+          mag_comp3=string(estimates_comp3[1],format='(F05.2)')
           if comp3_type eq 'sersic' then begin
-            Re_comp3=string(estimates_comp3[4],format='(F06.2)')
-            n_comp3=string(estimates_comp3[5],format='(F06.2)')
-            q_comp3=string(estimates_comp3[6],format='(F04.2)')
-            pa_comp3=string(estimates_comp3[7],format='(F06.2)') 
+            Re_comp3=string(estimates_comp3[2],format='(F06.2)')
+            n_comp3=string(estimates_comp3[3],format='(F06.2)')
+            q_comp3=string(estimates_comp3[4],format='(F04.2)')
+            pa_comp3=string(estimates_comp3[5],format='(F06.2)') 
           endif             
        endif
        if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
@@ -312,14 +312,14 @@ if keyword_set(binned) then begin
             pa_B+=','+string(estimates_bulge[5],format='(F06.2)')
         endif 
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          x_comp3+=','+string(estimates_comp3[1],format='(F05.2)')
-          y_comp3+=','+string(estimates_comp3[2],format='(F05.2)')
-          mag_comp3+=','+string(estimates_comp3[3],format='(F05.2)')
+          x_comp3+=','+string(x,format='(F05.2)')
+          y_comp3+=','+string(y,format='(F05.2)')
+          mag_comp3+=','+string(estimates_comp3[1],format='(F05.2)')
           if comp3_type eq 'sersic' then begin
-            Re_comp3+=','+string(estimates_comp3[4],format='(F06.2)')
-            n_comp3+=','+string(estimates_comp3[5],format='(F06.2)')
-            q_comp3+=','+string(estimates_comp3[6],format='(F04.2)')
-            pa_comp3+=','+string(estimates_comp3[7],format='(F06.2)')  
+            Re_comp3+=','+string(estimates_comp3[2],format='(F06.2)')
+            n_comp3+=','+string(estimates_comp3[3],format='(F06.2)')
+            q_comp3+=','+string(estimates_comp3[4],format='(F04.2)')
+            pa_comp3+=','+string(estimates_comp3[5],format='(F06.2)')  
           endif            
         endif
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
@@ -411,12 +411,12 @@ if keyword_set(binned) then begin
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
       printf, 60, ' 3) '+mag_D+'        '+string(no_bins)+' band  #  Integrated magnitude' 
       printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial)+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I2.2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial)+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+Q_D+'        1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+PA_D+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
-     
+     print,disk_n_polynomial
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
@@ -440,7 +440,9 @@ if keyword_set(binned) then begin
         printf, 60, ' '
         printf, 60, ' '
       endif 
+      
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+        
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
@@ -586,12 +588,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(x1+1)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins,format='(I3.3)')+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp3+'   0 band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp3+'             0 band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        0 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 4) '+Re_comp3+'   '+string(no_bins,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp3+'             '+string(no_bins,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
