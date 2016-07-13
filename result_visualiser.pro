@@ -387,7 +387,7 @@ set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
 device,file=root+directory+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
-!p.charthick=3
+!p.charthick=3 
 !p.charsize=1.0
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
