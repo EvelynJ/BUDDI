@@ -249,7 +249,7 @@ if n_comp eq 1110 or n_comp eq 1111 then al_legend,['Integrated spectrum from da
 
 
 
-
+print,'now doing second plot'
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
