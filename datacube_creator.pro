@@ -69,7 +69,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
 
           if n_comp ge 1100 then begin
             fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
-            bulge_datacube[*,*,j]=bulge_in 
+            bulge_datacube[*,*,j]=bulge_in
           endif
           
           
