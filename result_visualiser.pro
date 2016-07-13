@@ -166,13 +166,20 @@ endfor
 
 if n_comp eq 1000 or n_comp eq 1001 then disk_1d=disk_1d+sky $
 else if n_comp eq 1100 or n_comp eq 1101 then begin
+  disk_1D_orig=disk_1D
+  bulge_1D_orig=bulge_1D
   disk_1D=disk_1d+(0.5*sky)
   bulge_1D=bulge_1D+(0.5*sky)
 endif else if n_comp eq 1111  or n_comp eq 1110 then begin
+  disk_1D_orig=disk_1D
+  bulge_1D_orig=bulge_1D
+  comp3_1D_orig=comp3_1D
   disk_1D=disk_1d+(0.333*sky)
   bulge_1D=bulge_1D+(0.333*sky)
   comp3_1D=comp3_1D+(0.333*sky)  
 endif else begin
+  disk_1D_orig=disk_1D
+  comp3_1D_orig=comp3_1D
   disk_1D=disk_1d+(0.5*sky)
   comp3_1D=comp3_1D+(0.5*sky)  
 endelse
@@ -202,7 +209,7 @@ endfor
 ;plot results for comparison
 set_plot,'ps'
 device,file=root+directory+decomp+'decomposed_data/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
-!P.thick=3
+!P.thick=2
 !p.charthick=3
 !p.charsize=1.3
 !p.multi=0;[0,1,4]
@@ -211,7 +218,7 @@ device,file=root+directory+decomp+'decomposed_data/Spectra_integrated.eps',/land
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
-    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    /xstyle,/ystyle,xthick=2,ythick=2,$;ytickinterval=30,$
    ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux',title=galaxy_ref
 
@@ -219,6 +226,41 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
 
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D/median(orig_1D)),color=cgcolor('blue');/10000;+90
 oplot,wavelength,(disk_1D/median(orig_1D)),color=cgcolor('red');/10000;+60
+oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
+oplot,wavelength,((bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
+if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength,(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
+
+if n_comp eq 1000 or n_comp eq 1001 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1010 or n_comp eq 1011 then al_legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1110 or n_comp eq 1111 then al_legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('skyblue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+
+
+
+
+
+
+plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
+    xrange=[start_wavelength-100,end_wavelength+100],$
+    /xstyle,/ystyle,xthick=2,ythick=2,$;ytickinterval=30,$
+   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux',title=galaxy_ref
+
+
+
+if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+90
+oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 oplot,wavelength,(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
@@ -388,7 +430,7 @@ set_plot,'ps'
 device,file=root+directory+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3 
 !p.charthick=3 
-!p.charsize=1.0
+!p.charsize=1.0 
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
 end_wavelength=10300 
