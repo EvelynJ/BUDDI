@@ -29,7 +29,8 @@ comp3_datacube=fltarr(side1,side2,total_images)
 comp4_datacube=fltarr(side1,side2,total_images)
 original_datacube=fltarr(side1,side2,total_images)
 bestfit_datacube=fltarr(side1,side2,total_images)
-residual_datacube=fltarr(side1,side2,total_images)
+residual_datacube=fltarr(side1,side2,total_images)    ;residuals after subtracting model from original
+residual_sky_datacube=fltarr(side1,side2,total_images)  ;residual sky level fitted as component 1
 
 galfit_or_galfitm='galfitm'
 
@@ -62,7 +63,10 @@ if galfit_or_galfitm eq 'galfitm' then begin
           ;print,'COMPONENT_2_sersic _'+string(m,format='(I3.3)')
           fits_read,subcomps,disk_in,header_in,EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
           disk_datacube[*,*,j]=disk_in
-          
+
+          fits_read,subcomps,sky_in,header_in,EXTNAME='COMPONENT_1_sky _'+string(m,format='(I3.3)')
+          residual_sky_datacube[*,*,j]=sky_in
+
           if n_comp ge 1100 then begin
             fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
             bulge_datacube[*,*,j]=bulge_in
@@ -115,6 +119,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
           bulge_datacube[*,*,j]=-99
           comp3_datacube[*,*,j]=-99
           comp4_datacube[*,*,j]=-99
+          residual_sky_datacube[*,*,j]=-99
           
           original_datacube[*,*,j]=-99
           bestfit_datacube[*,*,j]=-99
@@ -143,6 +148,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
   fits_write,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h
   
   fits_write,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h
+  fits_write,root+directory+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h
   if n_comp ge 1100 then fits_write,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
   if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+directory+decomp+'decomposed_data/comp3.fits',comp3_datacube,h
   if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+directory+decomp+'decomposed_data/comp4.fits',comp4_datacube,h
