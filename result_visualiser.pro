@@ -19,6 +19,7 @@ fits_read,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,
 fits_read,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h_resid
 
 fits_read,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h_disk
+fits_read,root+directory+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h_sky
 if n_comp ge 1100 then fits_read,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h_bulge
   if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+directory+decomp+'decomposed_data/comp3.fits',comp3_datacube,h_comp3
   if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+directory+decomp+'decomposed_data/comp4.fits',comp4_datacube,h_comp4
@@ -32,6 +33,7 @@ orig_1D=fltarr(npix)
 bestfit_1D=fltarr(npix)
 resid_1D=fltarr(npix)
 sky=fltarr(npix)
+resid_sky_1D=fltarr(npix)
 
 bulge_Re=fltarr(npix)
 disk_Re=fltarr(npix)
@@ -72,6 +74,8 @@ if result eq 1 then begin
         orig_1D+=original_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         bestfit_1D+=bestfit_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         resid_1D+=residual_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
+        resid_sky_1D+=residual_sky_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
+        
         ;print,original_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         ;print,bulge_datacube[Xpix[n],Ypix[n],*]
       endif
@@ -83,6 +87,7 @@ endif else begin
     orig_1D[aaa]=total(original_datacube[*,*,aaa])
     bestfit_1D[aaa]=total(bestfit_datacube[*,*,aaa])
     resid_1D[aaa]=total(residual_datacube[*,*,aaa])
+    resid_sky_1D[aaa]=total(residual_sky_datacube[*,*,aaa])
     if n_comp ge 1100  then bulge_1D[aaa]=total(bulge_datacube[*,*,aaa])
   endfor
 endelse
@@ -278,6 +283,7 @@ print,bd
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
     if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h
+    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/residual_sky_1D.fits',resid_sky_1D,h
 
 endfor
 
@@ -291,7 +297,7 @@ device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_2.eps',/la
 !p.charsize=1.0
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-end_wavelength=6900
+end_wavelength=10300;6900
 
 
 
@@ -376,6 +382,35 @@ xyouts,Na_new-30,hh,'Na D',charsize=0.9
 device,/close
 
 
+
+set_plot,'ps'
+;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+device,file=root+directory+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+!P.thick=3
+!p.charthick=3
+!p.charsize=1.0
+!p.multi=0;[0,1,4]
+;start_wavelength=4600
+end_wavelength=10300 
+
+plot,wavelength,resid_sky_1D/median(orig_1D),$
+    xrange=[start_wavelength-100,end_wavelength+100],$
+    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+
+
+xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
+xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
+xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
+xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
+xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
+xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
+xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
+xyouts,Na_new-30,hh,'Na D',charsize=0.9
+
+;!p.multi=0
+device,/close
 
 
 end
