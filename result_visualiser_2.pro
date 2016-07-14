@@ -353,9 +353,9 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,1.8],$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
 
 resid_smooth=fltarr(n_elements(resid_1D))
-for m=10,n_elements(resid_1D)-11,1 do resid_smooth[m]=median(resid_1D[m-10:m+10])
-resid_smooth[0:9]=resid_smooth[10]
-resid_smooth[-10:-1]=resid_smooth[-11]
+for m=40,n_elements(resid_1D)-41,1 do resid_smooth[m]=median(resid_1D[m-40:m+40])
+resid_smooth[0:39]=resid_smooth[40]
+resid_smooth[-40:-1]=resid_smooth[-41]
 
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
 oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
