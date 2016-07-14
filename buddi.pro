@@ -1774,7 +1774,7 @@ if setup.create_decomposed_cubes eq 'y' then datacube_creator,root,directory,dec
 ;7a. Use datacubes to create !D bulge and disc spectra, and ps file to visualise results.
 ;
 
-if setup.visualise_results eq 'y' then result_visualiser,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
+if setup.visualise_results eq 'y' then result_visualiser_2,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
 
 
 
