@@ -1377,7 +1377,7 @@ if setup.decompose_binned_images eq 'y' then begin
       galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
           y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,/binned,/file
+          galfitm,rep,/binned,/header;file
     
     
     if rep ne 1 then begin
