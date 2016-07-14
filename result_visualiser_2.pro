@@ -367,17 +367,17 @@ oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength,(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
-if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
 ;a=(Redshift+1)*(Redshift+1)
 ;Velocity=3e5*((a-1)/(a+1))
@@ -473,17 +473,17 @@ oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/1000
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
-if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
 
 xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
@@ -532,17 +532,17 @@ oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/1000
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
-if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1000 or n_comp eq 1001 then legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1100 or n_comp eq 1101 then legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1010 or n_comp eq 1011 then legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residual sky','Residuals'],linestyle=[0,0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('skyblue'),cgcolor('blue'),cgcolor('grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
 
 xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
