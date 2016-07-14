@@ -605,12 +605,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(x1+1)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins,format='(I3.3)')+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp4+'   0 band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp4+'             0 band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp4+'        0 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp4+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp4+'        1 band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp4+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
