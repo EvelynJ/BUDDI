@@ -504,7 +504,7 @@ device,/close
 
 
 
-device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_full_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_full_'+galaxy_ref+'.eps',xsize=35,ysize=10,/portrait;,/landscape
 ;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_3.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
@@ -515,7 +515,7 @@ end_wavelength=10000
 
 sample=where(wavelength le end_wavelength)
 
-plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
+plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.9],$
     xrange=[start_wavelength-100,end_wavelength+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
    ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
