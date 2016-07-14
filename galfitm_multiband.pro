@@ -103,7 +103,7 @@ if keyword_set(binned) then begin
   y_size=sxpar(h,'NAXIS2')
 
 
-  if input eq 'header' then begin
+  if input eq 'header' and rep ne 1 then begin
       ;determine the psf file to be used first.
       temp=abs(ugriz-sxpar(h,'WAVELENG'))
       m=where(temp eq min(temp))
@@ -221,6 +221,129 @@ if keyword_set(binned) then begin
             n_comp4+=','+string(median(res.N_galfit_band_comp4),format='(F06.2)')
             q_comp4+=','+string(median(res.Q_galfit_band_comp4),format='(F04.2)')
             pa_comp4+=','+string(median(res.PA_galfit_band_comp4),format='(F06.2)') 
+          endif
+        endif
+          
+      endfor  
+      
+    endif else if input eq 'header' and rep eq 1 then begin
+      ;determine the psf file to be used first.
+      temp=abs(ugriz-sxpar(h,'WAVELENG'))
+      m=where(temp eq min(temp))
+      psf_temp=PSF_files[m]
+
+      file='image_'+string(n,format='(I4.4)')+'.fits'
+      band=string(n,format='(I3.3)')
+      wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
+      psf=psf_temp
+      ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
+      badpix='badpix.pl'
+      magzpt='15.0'
+      sky=string((res.SKY_GALFIT_BAND),format='(F08.4)')
+      sky_grad='0.0'
+      x_D=string((res.X_GALFIT_BAND_D),format='(F05.2)')
+      y_D=string((res.Y_GALFIT_BAND_D),format='(F05.2)')
+      mag_D=string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
+      Re_D=string((res.RE_GALFIT_BAND_D),format='(F06.2)')
+      n_D=string((res.N_GALFIT_BAND_D),format='(F06.2)')
+      q_D=string((res.Q_GALFIT_BAND_D),format='(F04.2)')
+      pa_D=string((res.PA_GALFIT_BAND_D),format='(F06.2)')
+      
+      if n_comp ge 1100 then begin
+        x_B=string((res.X_GALFIT_BAND_B),format='(F05.2)')
+        y_B=string((res.Y_GALFIT_BAND_B),format='(F05.2)')
+        mag_B=string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
+        Re_B=string((res.RE_GALFIT_BAND_B),format='(F06.2)')
+        n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
+        q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
+        pa_B=string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+      endif
+      
+      
+      if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin        
+        x_comp3=string((res.x_galfit_band_comp3),format='(F05.2)')
+        y_comp3=string((res.y_galfit_band_comp3),format='(F05.2)')
+        mag_comp3=string((res.mag_galfit_band_comp3),format='(F05.2)')
+        if comp3_type eq 'sersic' then begin
+            Re_comp3=string((res.RE_galfit_band_comp3),format='(F06.2)')
+            n_comp3=string((res.N_galfit_band_comp3),format='(F06.2)')
+            q_comp3=string((res.Q_galfit_band_comp3),format='(F04.2)')
+            pa_comp3=string((res.PA_galfit_band_comp3),format='(F06.2)')
+        endif  
+      endif
+      if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+        x_comp4=string((res.x_galfit_band_comp4),format='(F05.2)')
+        y_comp4=string((res.y_galfit_band_comp4),format='(F05.2)')
+        mag_comp4=string((res.mag_galfit_band_comp4),format='(F05.2)')
+        if comp4_type eq 'sersic' then begin
+            Re_comp4=string((res.RE_galfit_band_comp4),format='(F06.2)')
+            n_comp4=string((res.N_galfit_band_comp4),format='(F06.2)')
+            q_comp4=string((res.Q_galfit_band_comp4),format='(F04.2)')
+            pa_comp4=string((res.PA_galfit_band_comp4),format='(F06.2)')
+        endif  
+      endif
+
+
+      for n=1,no_bins-1,1 do begin
+        temp=abs(ugriz-sxpar(h,'WAVELENG'))
+        m=where(temp eq min(temp))
+        psf_temp=PSF_files[m]
+        
+        
+        
+        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
+        file+=',image_'+string(n,format='(I4.4)')+'.fits'
+        band+=','+string(n,format='(I3.3)')
+        wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
+        ;print,n,sxpar(h,'WAVELENG')
+        psf+=','+psf_temp
+;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
+        ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
+        badpix+=',badpix.pl'
+        magzpt+=',15.0'
+        sky+=','+string((res.SKY_GALFIT_BAND),format='(F08.4)')
+        sky_grad+=',0.0'
+        x_D+=','+string((res.X_GALFIT_BAND_D),format='(F05.2)')
+        y_D+=','+string((res.Y_GALFIT_BAND_D),format='(F05.2)')
+        mag_D+=','+string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
+        Re_D+=','+string((res.RE_GALFIT_BAND_D),format='(F06.2)')
+        n_D+=','+string((res.N_GALFIT_BAND_D),format='(F05.2)')
+        q_D+=','+string((res.Q_GALFIT_BAND_D),format='(F04.2)')
+        pa_D+=','+string((res.PA_GALFIT_BAND_D),format='(F06.2)')
+        
+        ;insert parameters for bulge
+        if n_comp ge 1100 then begin
+          x_B+=','+string((res.X_GALFIT_BAND_B),format='(F05.2)')
+          y_B+=','+string((res.Y_GALFIT_BAND_B),format='(F05.2)')
+          mag_B+=','+string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
+          Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F06.2)')
+          n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
+          q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
+          pa_B+=','+string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+        endif
+        
+        ;insert parameters for 3rd galaxy component
+        if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+          mag_comp3+=','+string((res.mag_galfit_band_comp3),format='(F05.2)')
+          x_comp3+=','+string((res.x_galfit_band_comp3),format='(F05.2)')
+          y_comp3+=','+string((res.y_galfit_band_comp3),format='(F05.2)')
+          if comp3_type eq 'sersic' then begin
+            Re_comp3+=','+string((res.RE_galfit_band_comp3),format='(F06.2)')
+            n_comp3+=','+string((res.N_galfit_band_comp3),format='(F06.2)')
+            q_comp3+=','+string((res.Q_galfit_band_comp3),format='(F04.2)')
+            pa_comp3+=','+string((res.PA_galfit_band_comp3),format='(F06.2)') 
+          endif
+        endif
+        ;insert parameters for 4th component
+        if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+          mag_comp4+=','+string((res.mag_galfit_band_comp4),format='(F05.2)')
+          x_comp4+=','+string((res.x_galfit_band_comp4),format='(F05.2)')
+          y_comp4+=','+string((res.y_galfit_band_comp4),format='(F05.2)')
+          if comp4_type eq 'sersic' then begin
+            Re_comp4+=','+string((res.RE_galfit_band_comp4),format='(F06.2)')
+            n_comp4+=','+string((res.N_galfit_band_comp4),format='(F06.2)')
+            q_comp4+=','+string((res.Q_galfit_band_comp4),format='(F04.2)')
+            pa_comp4+=','+string((res.PA_galfit_band_comp4),format='(F06.2)') 
           endif
         endif
           
