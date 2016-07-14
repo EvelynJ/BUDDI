@@ -335,7 +335,7 @@ endfor
 
 
 set_plot,'ps'
-device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_blue_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_blue_'+galaxy_ref+'.eps',xsize=19.5,ysize=11,/portrait;,/landscape
 ;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
@@ -346,7 +346,7 @@ end_wavelength=7000
 
 
 
-plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,1.8],$
+plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,1.9],$
     xrange=[start_wavelength-100,end_wavelength+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
    ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
@@ -358,12 +358,13 @@ resid_smooth[0:39]=resid_smooth[40]
 resid_smooth[-40:-1]=resid_smooth[-41]
 
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength,(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
+oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
 oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 oplot,wavelength,((disk_1D_orig+bulge_1D_orig+resid_smooth)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
-oplot,wavelength,(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
-oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength,(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
@@ -445,7 +446,7 @@ xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
 ;!p.multi=0
 device,/close
 
-device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_red_'+galaxy_ref+'.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D_red_'+galaxy_ref+'.eps',xsize=19.5,ysize=11,/portrait;,/landscape
 ;device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_3.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
@@ -456,7 +457,7 @@ end_wavelength=10000
 
 sample=where(wavelength le end_wavelength)
 
-plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
+plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.9],$
     xrange=[start_wavelength-100,end_wavelength+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
    ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
@@ -464,12 +465,13 @@ plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
 
 
 if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
+oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
 oplot,wavelength[sample],(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
 oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig+resid_smooth)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
-oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
-oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
@@ -523,12 +525,13 @@ plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.9],$
 
 
 if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
+oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
 oplot,wavelength[sample],(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
 oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig+resid_smooth)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
-oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
-oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
 
