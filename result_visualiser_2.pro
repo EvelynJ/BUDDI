@@ -19,6 +19,7 @@ fits_read,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,
 fits_read,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h_resid
 
 fits_read,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h_disk
+fits_read,root+directory+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h_sky
 if n_comp ge 1100 then fits_read,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h_bulge
   if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+directory+decomp+'decomposed_data/comp3.fits',comp3_datacube,h_comp3
   if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+directory+decomp+'decomposed_data/comp4.fits',comp4_datacube,h_comp4
@@ -32,6 +33,7 @@ orig_1D=fltarr(npix)
 bestfit_1D=fltarr(npix)
 resid_1D=fltarr(npix)
 sky=fltarr(npix)
+resid_sky_1D=fltarr(npix)
 
 bulge_Re=fltarr(npix)
 disk_Re=fltarr(npix)
@@ -72,6 +74,7 @@ if result eq 1 then begin
         orig_1D+=original_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         bestfit_1D+=bestfit_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         resid_1D+=residual_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
+        resid_sky_1D+=residual_sky_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         ;print,original_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         ;print,bulge_datacube[Xpix[n],Ypix[n],*]
       endif
@@ -83,6 +86,7 @@ endif else begin
     orig_1D[aaa]=total(original_datacube[*,*,aaa])
     bestfit_1D[aaa]=total(bestfit_datacube[*,*,aaa])
     resid_1D[aaa]=total(residual_datacube[*,*,aaa])
+    resid_sky_1D[aaa]=total(residual_sky_datacube[*,*,aaa])
     if n_comp ge 1100  then bulge_1D[aaa]=total(bulge_datacube[*,*,aaa])
   endfor
 endelse
@@ -161,13 +165,20 @@ endfor
 
 if n_comp eq 1000 or n_comp eq 1001 then disk_1d=disk_1d+sky $
 else if n_comp eq 1100 or n_comp eq 1101 then begin
+  disk_1D_orig=disk_1D
+  bulge_1D_orig=bulge_1D
   disk_1D=disk_1d+(0.5*sky)
   bulge_1D=bulge_1D+(0.5*sky)
 endif else if n_comp eq 1111  or n_comp eq 1110 then begin
+  disk_1D_orig=disk_1D
+  bulge_1D_orig=bulge_1D
+  comp3_1D_orig=comp3_1D
   disk_1D=disk_1d+(0.333*sky)
   bulge_1D=bulge_1D+(0.333*sky)
   comp3_1D=comp3_1D+(0.333*sky)  
 endif else begin
+  disk_1D_orig=disk_1D
+  comp3_1D_orig=comp3_1D
   disk_1D=disk_1d+(0.5*sky)
   comp3_1D=comp3_1D+(0.5*sky)  
 endelse
@@ -241,6 +252,39 @@ if n_comp eq 1110 or n_comp eq 1111 then legend,['Integrated spectrum from datac
 
 
 
+
+
+plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
+    xrange=[start_wavelength-100,end_wavelength+100],$
+    /xstyle,/ystyle,xthick=2,ythick=2,$;ytickinterval=30,$
+   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux',title=galaxy_ref
+
+
+
+if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+90
+oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+60
+oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
+oplot,wavelength,((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+
+if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength,(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
+
+if n_comp eq 1000 or n_comp eq 1001 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Residuals'],linestyle=[0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1010 or n_comp eq 1011 then al_legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('skyblue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+if n_comp eq 1110 or n_comp eq 1111 then al_legend,['Integrated spectrum from datacube','Centre + Bulge + Disc','Bulge','Centre','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('skyblue'),cgcolor('red'),cgcolor('olive')],charsize=1.2,box=0,/left,/top
+
+
+
 if n_comp ge 1100 then print,'bulge',bulge_1D[100]
 print,'disk',disk_1D[100]
 print,'original',orig_1D[100]
@@ -284,6 +328,7 @@ print,bd
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
     if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h
+    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/residual_sky_1D.fits',resid_sky_1D,h
 
 endfor
 
@@ -309,11 +354,12 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,1.8],$
 
 
 
-if n_comp ge 1100 then oplot,wavelength,(bulge_1D/median(orig_1D)),color=cgcolor('red');/10000;+90
-oplot,wavelength,(disk_1D/median(orig_1D)),color=cgcolor('blue');/10000;+60
+if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength,(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength,((disk_1D_orig+bulge_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength,(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
 oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength,(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
@@ -414,11 +460,12 @@ plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
 
 
-if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D/median(orig_1D)),color=cgcolor('red');/10000;+90
-oplot,wavelength[sample],(disk_1D/median(orig_1D)),color=cgcolor('blue');/10000;+60
+if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength[sample],(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
 oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')
@@ -472,11 +519,12 @@ plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.8],$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
 
 
-if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D/median(orig_1D)),color=cgcolor('red');/10000;+90
-oplot,wavelength[sample],(disk_1D/median(orig_1D)),color=cgcolor('blue');/10000;+60
+if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
+oplot,wavelength[sample],(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength[sample],(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
+oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('grey');/10000,color=cgcolor('green')
 oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
 if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then oplot,wavelength[sample],(comp3_1D/median(orig_1D)),color=cgcolor('skyblue')

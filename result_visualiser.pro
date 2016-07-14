@@ -213,7 +213,7 @@ device,file=root+directory+decomp+'decomposed_data/Spectra_integrated.eps',/land
 !p.charsize=1.3
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-;end_wavelength=7000
+end_wavelength=10000;7000
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
@@ -248,7 +248,6 @@ if n_comp eq 1110 or n_comp eq 1111 then al_legend,['Integrated spectrum from da
 
 
 
-print,'now doing second plot. Watch out for it!!!!!!!!'
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
@@ -261,7 +260,7 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+90
 oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength,(bestfit_1D/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength,((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
 oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
