@@ -107,12 +107,12 @@ if keyword_set(binned) then begin
       ;determine the psf file to be used first.
       temp=abs(ugriz-sxpar(h,'WAVELENG'))
       m=where(temp eq min(temp))
-      psf_temp=PSF_files[m]
+      ;psf_temp=PSF_files[m]
 
       file='image_'+string(n,format='(I4.4)')+'.fits'
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
-      psf=psf_temp
+      psf='PSF/'+string(n,format='(I4.4)')+'.fits';psf_temp
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
       magzpt='15.0'
@@ -173,7 +173,7 @@ if keyword_set(binned) then begin
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
         ;print,n,sxpar(h,'WAVELENG')
-        psf+=','+psf_temp
+        psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
@@ -235,7 +235,7 @@ if keyword_set(binned) then begin
       file='image_'+string(n,format='(I4.4)')+'.fits'
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
-      psf=psf_temp
+      psf='PSF/'+string(n,format='(I4.4)')+'.fits'
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
       magzpt='15.0'
@@ -296,7 +296,7 @@ if keyword_set(binned) then begin
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
         ;print,n,sxpar(h,'WAVELENG')
-        psf+=','+psf_temp
+        psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
@@ -354,7 +354,7 @@ if keyword_set(binned) then begin
       file='image_'+string(n,format='(I4.4)')+'.fits'
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
-      psf='Gpsf.fits'
+      psf='PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
       magzpt='15.0'
@@ -410,7 +410,7 @@ if keyword_set(binned) then begin
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
         ;print,n,sxpar(h,'WAVELENG')
-        psf+=',Gpsf.fits'
+        psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
@@ -929,7 +929,7 @@ if keyword_set(slices) then begin
     band=string(n,format='(I3.3)')
     ;wavelength=string(sxpar(h,'WAVELENG'),format='(F08.3)')
 ;    psf='psf/'+string(x0,format='(I4.4)')+'.fits'
-    psf=psf_temp;'psf.fits'
+    psf='PSF/'+string(n,format='(I4.4)')+'.fits'
     badpix='badpix.fits'
     magzpt='15.0'
     ;sky=string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
@@ -1017,7 +1017,7 @@ if keyword_set(slices) then begin
       file+=',image_'+string(x2,format='(I4.4)')+'.fits'
       band+=','+string(n,format='(I3.3)')
       ;wavelength=wavelength+','+string(sxpar(h,'WAVELENG'),format='(F08.3)')
-      psf+=','+PSF_files;psf.fits'
+      psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf+=',psf/'+string(x2,format='(I4.4)')+'.fits'
       badpix+=',badpix.fits'
       magzpt+=',15.0'
