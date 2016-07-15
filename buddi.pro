@@ -1273,7 +1273,7 @@ endif
 
 if setup.bin_datacube eq 'y' then begin
     output=root+directory
-    bin_datacube,corrected_IFU, no_bins, output,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,/galaxy,/PSF,/MANGA
+    bin_datacube,corrected_IFU, no_bins, root,directory,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,/galaxy,/PSF,/MANGA
 endif
 
 ;2a. Download and decompose an sdss image of the galaxy
