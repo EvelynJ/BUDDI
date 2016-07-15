@@ -14,10 +14,11 @@
 ; the header
 ; 
 
-pro bin_datacube, datacube, no_bins, directory,decomp,binned_dir,slices_dir,median_dir,$
+pro bin_datacube, datacube, no_bins, root,dir,decomp,binned_dir,slices_dir,median_dir,$
                   galaxy_ref,file,start_wavelength, end_wavelength, wavelength_arr, binned_wavelengths,$
                   x_centre,y_centre,GALAXY=galaxy,PSF=psf,MANGA=manga,CALIFA=califa
 
+directory=root+dir
 no_bins-=3   
 ; set number of binned images to 50 as default=> 48 binned images 
 ; (including one bin going past the upper wavelength limit since 
@@ -175,7 +176,7 @@ endif
 ;
 ;read in PSF extensions for each filter
 
-;fits_read,directory+file+'.fits',input_u,header_u,extname='UPSF'
+fits_read,directory+file+'.fits',input_u,header_u,extname='UPSF'
 fits_read,directory+file+'.fits',input_g,header_g,extname='GPSF'
 fits_read,directory+file+'.fits',input_r,header_r,extname='RPSF'
 fits_read,directory+file+'.fits',input_i,header_i,extname='IPSF'
@@ -186,13 +187,79 @@ sxaddpar,h,'EXPTIME',1
 sxaddpar,h,'GAIN',1
 x_side=sxpar(header_g,'NAXIS1')
 y_side=sxpar(header_g,'NAXIS2')
+ugriz_wave[3543,4770,6231,7635,9134]
 
-;print out PSF files for median, binned and slices directories
+;for each image slice, use the wavelength anf the filter transmission curves 
+;to determine the fraction of light from each filter and coadd them in the 
+;correct proportions.
+;
+readcol,root+'u.dat',format='F,X,F,X,X',wave_u,transmission_u
+readcol,root+'g.dat',format='F,X,F,X,X',wave_g,transmission_g
+readcol,root+'r.dat',format='F,X,F,X,X',wave_r,transmission_r
+readcol,root+'i.dat',format='F,X,F,X,X',wave_i,transmission_i
+readcol,root+'z.dat',format='F,X,F,X,X',wave_z,transmission_z
+
+for j=0,no_bins,1 do begin
+  wave=wavelength_arr[j]
+  total_light=0
+  if wave ge wave_u[0] and wave le wave_u[-1] then $
+    total_u=linear_interpolate(wave,wave_u,transmission_u)
+  if wave ge wave_g[0] and wave le wave_g[-1] then $
+    total_g=linear_interpolate(wave,wave_g,transmission_g)
+  if wave ge wave_r[0] and wave le wave_r[-1] then $
+    total_r=linear_interpolate(wave,wave_r,transmission_r)
+  if wave ge wave_i[0] and wave le wave_i[-1] then $
+    total_i=linear_interpolate(wave,wave_i,transmission_i)
+  if wave ge wave_z[0] and wave le wave_z[-1] then $
+    total_z=linear_interpolate(wave,wave_z,transmission_z)
+  total_light=total_u+total_g+total_r+total_i+total_z
+  
+  psf_out=((total_u/total_light)*input_u)+((total_g/total_light)*input_g)+$
+    ((total_r/total_light)*input_r)+((total_i/total_light)*input_i)+$
+    ((total_z/total_light)*input_z)
+  
+  sxaddpar,header_u,'Wavelength',wave
+  result = FILE_TEST(directory+decomp+slices_dir+'PSF/', /DIRECTORY) 
+  if result eq 0 then file_mkdir,directory+decomp+slices_dir+'PSF/'
+  fits_write,directory+decomp+slices_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
+endfor
+
+
+;PSF for binned images
+for j=0,images-1,1 do begin
+  h = headfits(directory+decomp+binned_dir+name+string(j+1,format='(i4.4)')+'.fits',format='(i4.4)')+'.fits')
+  wave=sxpar(h,'WAVELENG')
+  
+  total_light=0
+  if wave ge wave_u[0] and wave le wave_u[-1] then $
+    total_u=linear_interpolate(wave,wave_u,transmission_u)
+  if wave ge wave_g[0] and wave le wave_g[-1] then $
+    total_g=linear_interpolate(wave,wave_g,transmission_g)
+  if wave ge wave_r[0] and wave le wave_r[-1] then $
+    total_r=linear_interpolate(wave,wave_r,transmission_r)
+  if wave ge wave_i[0] and wave le wave_i[-1] then $
+    total_i=linear_interpolate(wave,wave_i,transmission_i)
+  if wave ge wave_z[0] and wave le wave_z[-1] then $
+    total_z=linear_interpolate(wave,wave_z,transmission_z)
+  total_light=total_u+total_g+total_r+total_i+total_z
+  
+  psf_out=((total_u/total_light)*input_u)+((total_g/total_light)*input_g)+$
+    ((total_r/total_light)*input_r)+((total_i/total_light)*input_i)+$
+    ((total_z/total_light)*input_z)
+  
+  sxaddpar,header_u,'Wavelength',wave
+  result = FILE_TEST(directory+decomp+binned_dir+'PSF/', /DIRECTORY) 
+  if result eq 0 then file_mkdir,directory+decomp+binned_dir+'PSF/'
+  fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
+endfor
+
+
+;
 ;fits_write,directory+decomp+slices_dir+'Upsf.fits',input_u,h;header_IFU
-fits_write,directory+decomp+slices_dir+'Gpsf.fits',input_g,h;header_IFU
-fits_write,directory+decomp+slices_dir+'Rpsf.fits',input_r,h;header_IFU
-fits_write,directory+decomp+slices_dir+'Ipsf.fits',input_i,h;header_IFU
-fits_write,directory+decomp+slices_dir+'Zpsf.fits',input_z,h;header_IFU
+;fits_write,directory+decomp+slices_dir+'Gpsf.fits',input_g,h;header_IFU
+;fits_write,directory+decomp+slices_dir+'Rpsf.fits',input_r,h;header_IFU
+;fits_write,directory+decomp+slices_dir+'Ipsf.fits',input_i,h;header_IFU
+;fits_write,directory+decomp+slices_dir+'Zpsf.fits',input_z,h;header_IFU
 
 ;fits_write,directory+decomp+binned_dir+'Upsf.fits',input_u,h;header_IFU
 fits_write,directory+decomp+binned_dir+'Gpsf.fits',input_g,h;header_IFU
@@ -213,94 +280,4 @@ if result eq 0 then file_mkdir,directory+decomp+median_dir
 fits_write,directory+decomp+median_dir+'psf.fits',combined_psf,h;header_IFU
 
 
-
-;if keyword_set(psf) and keyword_set(manga) then begin
-;  name='psf_'
-;  h = headfits(directory+galaxy_ref+'-LOGCUBE.fits')
-;  x_scale=abs(sxpar(header1,'CD1_1')*3600)
-;  FWHM_filters=[sxpar(h,'UFWHM'),sxpar(h,'GFWHM'),sxpar(h,'RFWHM'),sxpar(h,'IFWHM'),sxpar(h,'ZFWHM')]/x_scale
-;  wavelength_filters=[3543,4770,6231,7625,9134]
-;  x_side=sxpar(h,'NAXIS1')
-;  y_side=sxpar(h,'NAXIS2')
-;  wavelength0=sxpar(header1,'CRVAL3')
-;  step=sxpar(header1,'CD3_3')
-;  
-;  no_images=final_image-first_image+1
-;  FWHM_int=fltarr(no_images)
-;  wavelength=fltarr(no_images)
-;  for n=0,no_images-1,1 do wavelength[n]=10^(alog10(wavelength1)+(n*step))
-;  
-;  FWHM_int=INTERPOL(FWHM_filters,wavelength_filters, wavelength)
-;;  FWHM_int=linear_interpolate(wavelength,wavelength_filters,FWHM_filters)
-;  ; yy = interpol(y, x, xx)
-;  
-;  result = FILE_TEST(directory+decomp+slices_dir+'psf/', /DIRECTORY) 
-;  if result eq 0 then file_mkdir,directory+decomp+slices_dir+'psf/'
-;  
-;  ;Make PSF images for each image slice within range
-;  for m=first_image,final_image,1 do begin
-;      binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;      binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM_int,/NORMALIZE)
-;      fits_write,directory+decomp+slices_dir+'psf/'+string(m,format='(i4.4)')+'.fits', binned_image, h
-;  endfor
-;
-;  ;Make PSF images for median image
-;  binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;  median_wavelength=0.5*(wavelength1+wavelength2)
-;  FWHM_median=INTERPOL(FWHM_filters,wavelength_filters, median_wavelength)
-;  binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM_median,/NORMALIZE)
-;  result = FILE_TEST(directory+decomp+median_dir, /DIRECTORY) 
-;  if result eq 0 then file_mkdir,directory+decomp+median_dir
-;  fits_write,directory+decomp+median_dir+'psf.fits', binned_image, h
-;
-; ;Make PSF images for each binned image
-;  binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;  FWHM_median=INTERPOL(FWHM_filters,wavelength_filters, binned_wavelengths)
-;  for m=0,no_bins+2,1 do begin
-;      binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM_median[m],/NORMALIZE)
-;      fits_write,directory+decomp+binned_dir+'psf_'+string(m,format='(i4.4)')+'.fits', binned_image, h
-;  endfor
-;
-;
-;
-;endif else if keyword_set(psf) and keyword_set(califa) then begin
-;
-;
-;  name='psf_'
-;  h = headfits(directory+file+'.fits')
-;  x_scale=abs(sxpar(header1,'CD1_1')*3600)
-;  FWHM=2.39
-;  x_side=sxpar(h,'NAXIS1')
-;  y_side=sxpar(h,'NAXIS2')
-;
-;  no_images=final_image-first_image+1
-;  FWHM_int=fltarr(no_images)
-;
-;  
-;  result = FILE_TEST(directory+decomp+slices_dir+'psf/', /DIRECTORY) 
-;  if result eq 0 then file_mkdir,directory+decomp+slices_dir+'psf/'
-;  
-;  ;Make PSF images for each image slice within range
-;  for m=first_image,final_image,1 do begin
-;      binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;      binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM,/NORMALIZE)
-;      fits_write,directory+decomp+slices_dir+'psf/'+string(m,format='(i4.4)')+'.fits', binned_image, h
-;  endfor
-;
-;  ;Make PSF images for median image
-;  binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;  binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM,/NORMALIZE)
-;  result = FILE_TEST(directory+decomp+median_dir, /DIRECTORY) 
-;  if result eq 0 then file_mkdir,directory+decomp+median_dir
-;  fits_write,directory+decomp+median_dir+'psf.fits', binned_image, h
-;
-; ;Make PSF images for each binned image
-;  binned_image=fltarr(37,37)        ;odd number to ensure PSF is centred ok for Galfitm
-;  for m=0,no_bins+2,1 do begin
-;      binned_image=psf_gaussian(NPIXEL=[37,37],FWHM=FWHM,/NORMALIZE)
-;      fits_write,directory+decomp+binned_dir+'psf_'+string(m,format='(i4.4)')+'.fits', binned_image, h
-;  endfor
-;  
-;  
-;endif
 end
