@@ -176,7 +176,7 @@ endif
 ;
 ;read in PSF extensions for each filter
 
-fits_read,directory+file+'.fits',input_u,header_u,extname='UPSF'
+;fits_read,directory+file+'.fits',input_u,header_u,extname='UPSF'
 fits_read,directory+file+'.fits',input_g,header_g,extname='GPSF'
 fits_read,directory+file+'.fits',input_r,header_r,extname='RPSF'
 fits_read,directory+file+'.fits',input_i,header_i,extname='IPSF'
@@ -187,23 +187,23 @@ sxaddpar,h,'EXPTIME',1
 sxaddpar,h,'GAIN',1
 x_side=sxpar(header_g,'NAXIS1')
 y_side=sxpar(header_g,'NAXIS2')
-ugriz_wave[3543,4770,6231,7635,9134]
+ugriz_wave=[3543,4770,6231,7635,9134]
 
 ;for each image slice, use the wavelength anf the filter transmission curves 
 ;to determine the fraction of light from each filter and coadd them in the 
 ;correct proportions.
 ;
-readcol,root+'u.dat',format='F,X,F,X,X',wave_u,transmission_u
+;readcol,root+'u.dat',format='F,X,F,X,X',wave_u,transmission_u
 readcol,root+'g.dat',format='F,X,F,X,X',wave_g,transmission_g
 readcol,root+'r.dat',format='F,X,F,X,X',wave_r,transmission_r
 readcol,root+'i.dat',format='F,X,F,X,X',wave_i,transmission_i
 readcol,root+'z.dat',format='F,X,F,X,X',wave_z,transmission_z
 
-for j=0,no_bins,1 do begin
+for j=0,no_bins+2,1 do begin
   wave=wavelength_arr[j]
   total_light=0
-  if wave ge wave_u[0] and wave le wave_u[-1] then $
-    total_u=linear_interpolate(wave,wave_u,transmission_u)
+;  if wave ge wave_u[0] and wave le wave_u[-1] then $
+;    total_u=linear_interpolate(wave,wave_u,transmission_u)
   if wave ge wave_g[0] and wave le wave_g[-1] then $
     total_g=linear_interpolate(wave,wave_g,transmission_g)
   if wave ge wave_r[0] and wave le wave_r[-1] then $
@@ -214,11 +214,10 @@ for j=0,no_bins,1 do begin
     total_z=linear_interpolate(wave,wave_z,transmission_z)
   total_light=total_u+total_g+total_r+total_i+total_z
   
-  psf_out=((total_u/total_light)*input_u)+((total_g/total_light)*input_g)+$
-    ((total_r/total_light)*input_r)+((total_i/total_light)*input_i)+$
-    ((total_z/total_light)*input_z)
+  psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
+    ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
   
-  sxaddpar,header_u,'Wavelength',wave
+  sxaddpar,header_g,'Wavelength',wave
   result = FILE_TEST(directory+decomp+slices_dir+'PSF/', /DIRECTORY) 
   if result eq 0 then file_mkdir,directory+decomp+slices_dir+'PSF/'
   fits_write,directory+decomp+slices_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
@@ -227,12 +226,12 @@ endfor
 
 ;PSF for binned images
 for j=0,images-1,1 do begin
-  h = headfits(directory+decomp+binned_dir+name+string(j+1,format='(i4.4)')+'.fits',format='(i4.4)')+'.fits')
+  h = headfits(directory+decomp+binned_dir+name+string(j+1,format='(i4.4)')+'.fits')
   wave=sxpar(h,'WAVELENG')
   
   total_light=0
-  if wave ge wave_u[0] and wave le wave_u[-1] then $
-    total_u=linear_interpolate(wave,wave_u,transmission_u)
+;  if wave ge wave_u[0] and wave le wave_u[-1] then $
+;    total_u=linear_interpolate(wave,wave_u,transmission_u)
   if wave ge wave_g[0] and wave le wave_g[-1] then $
     total_g=linear_interpolate(wave,wave_g,transmission_g)
   if wave ge wave_r[0] and wave le wave_r[-1] then $
@@ -243,11 +242,10 @@ for j=0,images-1,1 do begin
     total_z=linear_interpolate(wave,wave_z,transmission_z)
   total_light=total_u+total_g+total_r+total_i+total_z
   
-  psf_out=((total_u/total_light)*input_u)+((total_g/total_light)*input_g)+$
-    ((total_r/total_light)*input_r)+((total_i/total_light)*input_i)+$
-    ((total_z/total_light)*input_z)
+  psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
+    ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
   
-  sxaddpar,header_u,'Wavelength',wave
+  sxaddpar,header_g,'Wavelength',wave
   result = FILE_TEST(directory+decomp+binned_dir+'PSF/', /DIRECTORY) 
   if result eq 0 then file_mkdir,directory+decomp+binned_dir+'PSF/'
   fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
