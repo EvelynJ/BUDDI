@@ -199,20 +199,24 @@ readcol,root+'r.dat',format='F,X,F,X,X',wave_r,transmission_r
 readcol,root+'i.dat',format='F,X,F,X,X',wave_i,transmission_i
 readcol,root+'z.dat',format='F,X,F,X,X',wave_z,transmission_z
 
-for j=0,no_bins+2,1 do begin
+for j=0,images-1,1 do begin
   wave=wavelength_arr[j]
   total_light=0
 ;  if wave ge wave_u[0] and wave le wave_u[-1] then $
 ;    total_u=linear_interpolate(wave,wave_u,transmission_u)
   if wave ge wave_g[0] and wave le wave_g[-1] then $
-    total_g=linear_interpolate(wave,wave_g,transmission_g)
+    total_g=linear_interpolate(wave,wave_g,transmission_g)$
+    else total_g=0
   if wave ge wave_r[0] and wave le wave_r[-1] then $
-    total_r=linear_interpolate(wave,wave_r,transmission_r)
+    total_r=linear_interpolate(wave,wave_r,transmission_r)$
+    else total_r=0
   if wave ge wave_i[0] and wave le wave_i[-1] then $
-    total_i=linear_interpolate(wave,wave_i,transmission_i)
+    total_i=linear_interpolate(wave,wave_i,transmission_i)$
+    else total_i=0
   if wave ge wave_z[0] and wave le wave_z[-1] then $
-    total_z=linear_interpolate(wave,wave_z,transmission_z)
-  total_light=total_u+total_g+total_r+total_i+total_z
+    total_z=linear_interpolate(wave,wave_z,transmission_z)$
+    else total_z=0
+  total_light=total_g+total_r+total_i+total_z
   
   psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
     ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
@@ -225,23 +229,28 @@ endfor
 
 
 ;PSF for binned images
-for j=0,images-1,1 do begin
-  h = headfits(directory+decomp+binned_dir+name+string(j+1,format='(i4.4)')+'.fits')
+for j=0,no_bins+2,1 do begin
+  h = headfits(directory+decomp+binned_dir+name+string(j,format='(i4.4)')+'.fits')
   wave=sxpar(h,'WAVELENG')
   
   total_light=0
 ;  if wave ge wave_u[0] and wave le wave_u[-1] then $
 ;    total_u=linear_interpolate(wave,wave_u,transmission_u)
   if wave ge wave_g[0] and wave le wave_g[-1] then $
-    total_g=linear_interpolate(wave,wave_g,transmission_g)
+    total_g=linear_interpolate(wave,wave_g,transmission_g)$
+    else total_g=0
   if wave ge wave_r[0] and wave le wave_r[-1] then $
-    total_r=linear_interpolate(wave,wave_r,transmission_r)
+    total_r=linear_interpolate(wave,wave_r,transmission_r)$
+    else total_r=0
   if wave ge wave_i[0] and wave le wave_i[-1] then $
-    total_i=linear_interpolate(wave,wave_i,transmission_i)
+    total_i=linear_interpolate(wave,wave_i,transmission_i)$
+    else total_i=0
   if wave ge wave_z[0] and wave le wave_z[-1] then $
-    total_z=linear_interpolate(wave,wave_z,transmission_z)
-  total_light=total_u+total_g+total_r+total_i+total_z
+    total_z=linear_interpolate(wave,wave_z,transmission_z)$
+    else total_z=0
+  total_light=total_g+total_r+total_i+total_z
   
+  psf_out=fltarr(x_side,y_side)
   psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
     ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
   
@@ -250,7 +259,7 @@ for j=0,images-1,1 do begin
   if result eq 0 then file_mkdir,directory+decomp+binned_dir+'PSF/'
   fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
 endfor
-
+stop
 
 ;
 ;fits_write,directory+decomp+slices_dir+'Upsf.fits',input_u,h;header_IFU
