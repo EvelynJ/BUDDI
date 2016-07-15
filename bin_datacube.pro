@@ -251,8 +251,8 @@ for j=0,no_bins+2,1 do begin
   total_light=total_g+total_r+total_i+total_z
   
   psf_out=fltarr(x_side,y_side)
-  psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
-    ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
+  psf_out[*,*]=((total_g/total_light)*input_g[*,*])+((total_r/total_light)*input_r[*,*])+$
+    ((total_i/total_light)*input_i[*,*])+((total_z/total_light)*input_z[*,*])
   
   sxaddpar,header_g,'Wavelength',wave
   result = FILE_TEST(directory+decomp+binned_dir+'PSF/', /DIRECTORY) 
