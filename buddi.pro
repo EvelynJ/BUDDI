@@ -1331,7 +1331,7 @@ if setup.decompose_median_image eq 'y' then begin
     print,'*Now running Galfitm on single image with a single Sersic fit*'
     galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
                         y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,$
-                        estimates_comp4,n_comp,disk_n_polynomial,/median,/single
+                        estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,/median,/single
     CD,root+directory+decomp+median_dir
     if n_comp eq 1000 then spawn,galfitm+' galfitm_single.feedme' 
 
@@ -1343,7 +1343,7 @@ if setup.decompose_median_image eq 'y' then begin
     if nfiles1 gt 0 then spawn,'rm '+output+median_dir+'imgblock_double.galfit.*'
     galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
                         y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,$
-                        estimates_comp4,n_comp,disk_n_polynomial,/median,/double
+                        estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,/median,/double
     CD,root+directory+decomp+median_dir
     spawn,galfitm+' galfitm_double.feedme' 
   endif
