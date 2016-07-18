@@ -218,8 +218,12 @@ for j=0,images-1,1 do begin
     else total_z=0
   total_light=total_g+total_r+total_i+total_z
   
-  psf_out=((total_g/total_light)*input_g)+((total_r/total_light)*input_r)+$
-    ((total_i/total_light)*input_i)+((total_z/total_light)*input_z)
+  psf_out=fltarr(x_side,y_side)
+  for x=0,x_side-1,1 do begin
+    for y=0,y_side-1,1 do psf_out[x,y]=((total_g/total_light)*input_g[x,y])+$
+      ((total_r/total_light)*input_r[x,y])+((total_i/total_light)*input_i[x,y])+$
+      ((total_z/total_light)*input_z[x,y])
+  endfor
   
   sxaddpar,header_g,'Wavelength',wave
   result = FILE_TEST(directory+decomp+slices_dir+'PSF/', /DIRECTORY) 
@@ -251,15 +255,18 @@ for j=0,no_bins+2,1 do begin
   total_light=total_g+total_r+total_i+total_z
   
   psf_out=fltarr(x_side,y_side)
-  psf_out[*,*]=((total_g/total_light)*input_g[*,*])+((total_r/total_light)*input_r[*,*])+$
-    ((total_i/total_light)*input_i[*,*])+((total_z/total_light)*input_z[*,*])
+  for x=0,x_side-1,1 do begin
+    for y=0,y_side-1,1 do psf_out[x,y]=((total_g/total_light)*input_g[x,y])+$
+      ((total_r/total_light)*input_r[x,y])+((total_i/total_light)*input_i[x,y])+$
+      ((total_z/total_light)*input_z[x,y])
+  endfor
   
   sxaddpar,header_g,'Wavelength',wave
   result = FILE_TEST(directory+decomp+binned_dir+'PSF/', /DIRECTORY) 
   if result eq 0 then file_mkdir,directory+decomp+binned_dir+'PSF/'
   fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_out, header_u
 endfor
-stop
+
 
 ;
 ;fits_write,directory+decomp+slices_dir+'Upsf.fits',input_u,h;header_IFU
