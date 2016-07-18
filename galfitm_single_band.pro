@@ -8,7 +8,11 @@
 ;  SINGLE keyword- to be used for single Sersic fit
 ;  DOUBLE keyword- to be used for double Sersic fit
 ;
-pro Galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,disc_n_poly,MEDIAN=median, SLICES=slices, SINGLE=single,DOUBLE=double
+pro Galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
+  y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
+  n_comp,disc_n_poly,bulge_n_poly,MEDIAN=median, SLICES=slices, SINGLE=single,$
+  DOUBLE=double
+  
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -20,6 +24,7 @@ y_centre+=1
 
 ;identify whether disc n is allowed to vary
 if disc_n_poly ne 0 then disc_n_poly=1
+if bulge_n_poly ne 0 then bulge_n_poly=1
 
 
 if keyword_set(single) then s_d='single'
@@ -186,7 +191,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_bulge[1])+'   1 band  #  Integrated magnitude' 
       printf, 60, ' 4) '+string(estimates_bulge[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+string(estimates_bulge[3])+'   1 band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 5) '+string(estimates_bulge[3])+'   '+string(disc_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+string(estimates_bulge[4])+'   1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+string(estimates_bulge[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
