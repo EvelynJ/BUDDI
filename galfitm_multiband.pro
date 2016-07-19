@@ -929,7 +929,7 @@ if keyword_set(slices) then begin
     band=string(n,format='(I3.3)')
     ;wavelength=string(sxpar(h,'WAVELENG'),format='(F08.3)')
 ;    psf='psf/'+string(x0,format='(I4.4)')+'.fits'
-    psf='PSF/'+string(n,format='(I4.4)')+'.fits'
+    psf='PSF/'+string(x0,format='(I4.4)')+'.fits'
     badpix='badpix.fits'
     magzpt='15.0'
     ;sky=string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
@@ -1017,7 +1017,7 @@ if keyword_set(slices) then begin
       file+=',image_'+string(x2,format='(I4.4)')+'.fits'
       band+=','+string(n,format='(I3.3)')
       ;wavelength=wavelength+','+string(sxpar(h,'WAVELENG'),format='(F08.3)')
-      psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
+      psf+=',PSF/'+string(x2,format='(I4.4)')+'.fits'
 ;      psf+=',psf/'+string(x2,format='(I4.4)')+'.fits'
       badpix+=',badpix.fits'
       magzpt+=',15.0'
