@@ -10,6 +10,7 @@
 
 pro badpixelmask, directory, galaxy_ref, badpix, binned_dir, median_dir, slices_dir
 fits_read,directory+galaxy_ref+'_smoothed_kinematics.fits', spec_in, header1
+;fits_read,directory+decomp+median_dir+galaxy_ref+'_median_image.fits', spec_in, header1
 side1=sxpar(header1,'NAXIS1')
 side2=sxpar(header1,'NAXIS2')
 images=sxpar(header1,'NAXIS3')
@@ -20,6 +21,7 @@ openw,57,directory+median_dir+'badpix.pl'
 badpix=fltarr(side1,side2)
 
 image_slice=spec_in[*,*,fix(images/2)]
+
 ;Pick a random image slics, and identify bad pixels 
 ;as those with a pixel value of 0.0
 for x=0,side1-1,1 do begin
@@ -30,6 +32,14 @@ for x=0,side1-1,1 do begin
         printf,56,x+1,y+1
         printf,57,x+1,y+1
         badpix[x,y]=1
+        
+    endif 
+    if x eq 0 or y eq 0 then begin
+        printf,55,x+1,y+1
+        printf,56,x+1,y+1
+        printf,57,x+1,y+1
+        badpix[x,y]=1
+        
     endif 
   endfor
 endfor
