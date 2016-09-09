@@ -51,11 +51,13 @@ if keyword_set(galaxy) then begin
 
   ;create wavelength array and identify elements within wavelength range
   final_image=images-1
-  first_image=images-1
+  first_image=0;images-1
   
   ;read in header again with headfits. this produces a header without 
   ;extensions, which galfit and galfitm can read with no problems
-  h = headfits(directory+file+'.fits')
+  fits_read,directory+file+'.fits',temp_input,h
+;  h = headfits(directory+file+'.fits')
+  
   for n=0,images-1,1 do begin
     next_wavelength=wavelength_arr[n]+step
     previous_wavelength=wavelength_arr[n]-step
@@ -76,9 +78,16 @@ if keyword_set(galaxy) then begin
       sxaddpar,h,'CD3_3',step
       sxaddpar,h,'CDELT3',step
     endif
-    if n ge first_image and n le final_image then fits_write,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',spec_in[*,*,n], h
+    
+    if n ge first_image and n le final_image then begin
+      fits_write,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',spec_in[*,*,n], h
+    endif
 ;    wavelength_selected
   endfor
+
+
+
+
 
 
   ;co-add slices to make binned images with better S/N. 
@@ -97,7 +106,9 @@ if keyword_set(galaxy) then begin
   
   ;print first image slice
   binned_image=spec_in[*,*,first_image-1]
-  h = headfits(directory+decomp+slices_dir+name+string(first_image,format='(i4.4)')+'.fits')
+  
+  fits_read,directory+decomp+slices_dir+name+string(first_image,format='(i4.4)')+'.fits',temp_input,h
+;  h = headfits(directory+decomp+slices_dir+name+string(first_image,format='(i4.4)')+'.fits')
   ;sxaddpar,h,'Wavelength',wavelength[first_image-1]
   wavelength=sxpar(h,'WAVELENG')
   sxaddpar,h,'Wavelength',wavelength
@@ -127,7 +138,8 @@ if keyword_set(galaxy) then begin
       if odd_even ne 0 then element=first_image+run*((bins_no_images+1)/2)
       ;h = headfits(directory+galaxy_ref+'-LOGCUBE.fits')
       ;sxaddpar,h,'Wavelength',wavelength[element]
-      h = headfits(directory+decomp+slices_dir+name+string(0.5*(a+b),format='(i4.4)')+'.fits')
+      fits_read,directory+decomp+slices_dir+name+string(0.5*(a+b),format='(i4.4)')+'.fits',crap,h
+;      h = headfits(directory+decomp+slices_dir+name+string(0.5*(a+b),format='(i4.4)')+'.fits')
       wavelength=sxpar(h,'WAVELENG')
       sxaddpar,h,'Wavelength',wavelength
       binned_wavelengths[run+1]=wavelength
@@ -137,7 +149,8 @@ if keyword_set(galaxy) then begin
 
   ;finally print last image slice
   binned_image=spec_in[*,*,final_image]
-  h = headfits(directory+decomp+slices_dir+name+string(final_image,format='(i4.4)')+'.fits')
+  fits_read,directory+decomp+slices_dir+name+string(final_image,format='(i4.4)')+'.fits',crap,h
+;  h = headfits(directory+decomp+slices_dir+name+string(final_image,format='(i4.4)')+'.fits')
   wavelength=sxpar(h,'WAVELENG')
   sxaddpar,h,'Wavelength',wavelength
   binned_wavelengths[run+1]=wavelength
@@ -176,7 +189,10 @@ endif
 ;
 ;read in PSF extensions for each filter
 
-;fits_read,directory+file+'.fits',input_u,header_u,extname='UPSF'
+;fits_read,'/Users/ejohnsto/Manga/7443-12701_ss/manga-7443-12701-LOGCUBE.fits',input_g,header_g,extname='GPSF'
+;fits_read,'/Users/ejohnsto/Manga/7443-12701_ss/manga-7443-12701-LOGCUBE.fits',input_r,header_r,extname='RPSF'
+;fits_read,'/Users/ejohnsto/Manga/7443-12701_ss/manga-7443-12701-LOGCUBE.fits',input_i,header_i,extname='IPSF'
+;fits_read,'/Users/ejohnsto/Manga/7443-12701_ss/manga-7443-12701-LOGCUBE.fits',input_z,header_z,extname='ZPSF'
 fits_read,directory+file+'.fits',input_g,header_g,extname='GPSF'
 fits_read,directory+file+'.fits',input_r,header_r,extname='RPSF'
 fits_read,directory+file+'.fits',input_i,header_i,extname='IPSF'

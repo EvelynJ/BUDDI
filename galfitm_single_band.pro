@@ -191,7 +191,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_bulge[1])+'   1 band  #  Integrated magnitude' 
       printf, 60, ' 4) '+string(estimates_bulge[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+string(estimates_bulge[3])+'   '+string(disc_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 5) '+string(estimates_bulge[3])+'   '+string(bulge_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+string(estimates_bulge[4])+'   1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+string(estimates_bulge[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 

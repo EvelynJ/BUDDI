@@ -55,7 +55,6 @@ if galfit_or_galfitm eq 'galfitm' then begin
       result=file_test(root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
       
       if result eq 1 then begin
-        
         fits_open,root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits',subcomps
         fits_open,root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits',imgblock
         if n ne nfiles-1 then no_images=no_slices else no_images=x1
@@ -131,6 +130,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
   endfor
   
   h_temp = headfits(root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+;  fits_read,root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
   wavelength0=sxpar(h_temp,'WAVELENG')  ;linear
   step=sxpar(h,'CD3_3')                 ;log
   print,'***',wavelength0,step
@@ -192,7 +192,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       
   endfor
   
-  h_temp = headfits(root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+  fits_Read,root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempy,h_temp
+;  h_temp = headfits(root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
   wavelength0=sxpar(h_temp,'WAVELENG')
   sxaddpar,h,'CRVAL3',alog10(wavelength0)
   

@@ -98,7 +98,8 @@ if keyword_set(binned) then begin
   
   ;make string arrays for each galfitm input parameter
   n=0
-  h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
+  fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',crap,h
+;  h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
   x_size=sxpar(h,'NAXIS1')
   y_size=sxpar(h,'NAXIS2')
 
@@ -167,8 +168,8 @@ if keyword_set(binned) then begin
         psf_temp=PSF_files[m]
         
         
-        
-        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
+        fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',crap,h
+;        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
         file+=',image_'+string(n,format='(I4.4)')+'.fits'
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
@@ -290,8 +291,8 @@ if keyword_set(binned) then begin
         psf_temp=PSF_files[m]
         
         
-        
-        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
+        fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',crap,h
+;        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
         file+=',image_'+string(n,format='(I4.4)')+'.fits'
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
@@ -405,7 +406,8 @@ if keyword_set(binned) then begin
 
     
       for n=1,no_bins-1,1 do begin
-        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
+        fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',crap,h
+;        h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
         file+=',image_'+string(n,format='(I4.4)')+'.fits'
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
@@ -465,7 +467,7 @@ if keyword_set(binned) then begin
     endif else begin
         Message,'Please select an input method for the Galfitm constraints'
     endelse
-      
+     
 
     if rep ne 1 then begin
       close,60
@@ -786,7 +788,8 @@ if keyword_set(slices) then begin
   openw,70,output+slices_dir+'run_galfitm.sh'
   
   n=0
-  h_first=headfits(output+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+  fits_read,output+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',crap,h_first
+;  h_first=headfits(output+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
   x_size=sxpar(h_first,'NAXIS1')
   y_size=sxpar(h_first,'NAXIS2')
   
@@ -819,13 +822,16 @@ if keyword_set(slices) then begin
 ;      h_temp=headfits(output+binned_dir+'image_'+string(bin,format='(I4.4)')+'.fits')
 ;      wavelength_binned[bin]=sxpar(h_temp,'WAVELENG')
 ;  endfor
-  h_temp=headfits(output+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')
+  fits_read,output+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits',crap,h_temp
+;  h_temp=headfits(output+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')
   wave1=sxpar(h_temp,'WAVELENG')
-  h_temp=headfits(output+binned_dir+'image_'+string(no_bins-1,format='(I4.4)')+'.fits')
+  fits_read,output+binned_dir+'image_'+string(no_bins-1,format='(I4.4)')+'.fits',crap,h_temp  
+;  h_temp=headfits(output+binned_dir+'image_'+string(no_bins-1,format='(I4.4)')+'.fits')
   wave2=sxpar(h_temp,'WAVELENG')
   wavelength_slices = fltarr(total_images)
   for bin=first_image,final_image,1 do begin
-      h_temp=headfits(output+slices_dir+'image_'+string(bin,format='(I4.4)')+'.fits')
+      fits_read,output+slices_dir+'image_'+string(bin,format='(I4.4)')+'.fits',crap,h_temp
+;      h_temp=headfits(output+slices_dir+'image_'+string(bin,format='(I4.4)')+'.fits')
       wavelength_slices[bin-first_image]=sxpar(h_temp,'WAVELENG')
   endfor
   
@@ -835,7 +841,8 @@ if keyword_set(slices) then begin
   
   wavelength_binned=fltarr(no_bins)
   for m=0,no_bins-1,1 do begin
-    h=headfits(output+binned_dir+'image_'+string(m,format='(I4.4)')+'.fits')
+    fits_read,output+binned_dir+'image_'+string(m,format='(I4.4)')+'.fits',crap,h
+;    h=headfits(output+binned_dir+'image_'+string(m,format='(I4.4)')+'.fits')
     wavelength_binned[m]=sxpar(h,'WAVELENG')
   endfor
   
@@ -924,7 +931,8 @@ if keyword_set(slices) then begin
     
     n=0
     x0=first_image+(loop*no_images)
-    h=headfits(output+slices_dir+'image_'+string(x0,format='(I4.4)')+'.fits')
+    fits_read,output+slices_dir+'image_'+string(x0,format='(I4.4)')+'.fits',crap,h
+;    h=headfits(output+slices_dir+'image_'+string(x0,format='(I4.4)')+'.fits')
     file='image_'+string(x0,format='(I4.4)')+'.fits'
     band=string(n,format='(I3.3)')
     ;wavelength=string(sxpar(h,'WAVELENG'),format='(F08.3)')
@@ -1012,8 +1020,9 @@ if keyword_set(slices) then begin
       temp=abs(ugriz-(wavelength_slices[x0-first_image+n]))
       m=where(temp eq min(temp))
       psf_temp=PSF_files[m]
-    
-      h=headfits(output+slices_dir+'image_'+string(x2,format='(I4.4)')+'.fits')
+      
+      fits_read,output+slices_dir+'image_'+string(x2,format='(I4.4)')+'.fits',crap,h
+;      h=headfits(output+slices_dir+'image_'+string(x2,format='(I4.4)')+'.fits')
       file+=',image_'+string(x2,format='(I4.4)')+'.fits'
       band+=','+string(n,format='(I3.3)')
       ;wavelength=wavelength+','+string(sxpar(h,'WAVELENG'),format='(F08.3)')

@@ -183,13 +183,13 @@ endif else begin
   comp3_1D=comp3_1D+(0.5*sky)  
 endelse
 
-if galaxy_ref eq 'manga-7443-9102' then begin
-  for j=30,n_elements(disk_1d)-1,30 do begin
-    disk_1d[j]=0.5*(disk_1d[j-1]+disk_1d[j+1])
-    bulge_1d[j]=0.5*(bulge_1d[j-1]+bulge_1d[j+1])
-    comp3_1D[j]=0.5*(comp3_1D[j-1]+comp3_1D[j+1])
-  endfor
-endif
+;if galaxy_ref eq 'manga-7443-9102' then begin
+;  for j=30,n_elements(disk_1d)-1,30 do begin
+;    disk_1d[j]=0.5*(disk_1d[j-1]+disk_1d[j+1])
+;    bulge_1d[j]=0.5*(bulge_1d[j-1]+bulge_1d[j+1])
+;    comp3_1D[j]=0.5*(comp3_1D[j-1]+comp3_1D[j+1])
+;  endfor
+;endif
 
 ;obtain new bulge spectrum within 3Re
 res2=read_sersic_results_2comp(root+directory+decomp+'binned_images/imgblock.fits', nband, bd=1)
@@ -322,9 +322,9 @@ for bd=1,xx,1 do begin
     sxdelpar,h,'CUNIT3'
     sxdelpar,h,'CUNIT2'
 print,bd
-    if bd eq 3 then fits_write,root+directory+decomp+'decomposed_data/comp3_1D.fits',comp3_1D,h
-    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_1D.fits',disk_1D,h
-    if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D.fits',bulge_1D,h
+    if bd eq 3 then fits_write,root+directory+decomp+'decomposed_data/comp3_1D.fits',comp3_1D_orig,h
+    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_1D.fits',disk_1D_orig,h
+    if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D.fits',bulge_1D_orig,h
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
     if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
     if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h

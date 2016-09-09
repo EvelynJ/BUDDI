@@ -250,6 +250,8 @@ c = 299792.458d ; speed of light in km/s
 
 ;calculate wavelength solution. Note- MPL3 produced list CRVAL3 and CD3_3 
 ;in log units, while MPL4 lists them in linear units but still uses the log scale
+;fits_read,root+directory+file+'.fits',input_IFU,header_IFU
+
 fits_read,root+directory+file+'.fits',input_IFU,header_IFU
 
 if sxpar(header_IFU,'VERSDRP2') eq 'v1_5_0  ' then begin
@@ -328,9 +330,7 @@ if setup.bin_data eq 'y' then begin
       IFU_fnu[column,row,*]=flam2fnu(spec_xy,wavelength)
       IFU_maggies[column,row,*]=fnu2maggies(IFU_fnu[column,row,*])
       datacube[column,row,*]=maggies2cts(IFU_maggies[column,row,*],exptime,zp)
-      
-;      IFU_mags[column,row,*]=flux2mag(spec_xy,ABwave=wavelength)
-;      datacube_2[column,row,*]=mags2cts(IFU_maggies[column,row,*],exptime,zp)
+
     endfor
   endfor
 
@@ -1273,7 +1273,7 @@ endif
 
 if setup.bin_datacube eq 'y' then begin
     output=root+directory
-    bin_datacube,corrected_IFU, no_bins, root,directory,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,/galaxy,/PSF,/MANGA
+    bin_datacube_test,corrected_IFU, no_bins, root,directory,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,/galaxy,/PSF,/MANGA
 endif
 
 ;2a. Download and decompose an sdss image of the galaxy
@@ -1303,8 +1303,13 @@ if setup.decompose_median_image eq 'y' then begin
   
   result = FILE_TEST(root+directory+decomp+median_dir, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+directory+decomp+median_dir
-  h = headfits(root+directory+galaxy_ref+'-LOGCUBE.fits');,exten='FLUX')
-  fits_write, root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,h
+  ;h = headfits(root+directory+galaxy_ref+'-LOGCUBE.fits');,exten='FLUX')
+
+  fits_read,root+directory+file+'.fits',crap,h
+
+;  fits_write, root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,h
+  spawn,'cp /Users/ejohnsto/Manga/7443-9102_ss/IFU_decomp/median_image/manga-7443-9102_median_image.fits '+root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits'
+  modfits,root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image
   scale=[abs(sxpar(h,'CD1_1')*3600),abs(sxpar(h,'CD2_2')*3600)]
   
   ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
