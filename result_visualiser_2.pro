@@ -360,7 +360,7 @@ resid_smooth[-40:-1]=resid_smooth[-41]
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
 oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength,((disk_1D_orig+bulge_1D_orig+resid_smooth)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength,((disk_1D_orig+bulge_1D_orig+resid_sky_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
 oplot,wavelength,(resid_sky_1D/median(orig_1D)),color=cgcolor('dark grey');/10000,color=cgcolor('green')
 oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
@@ -467,7 +467,7 @@ plot,wavelength[sample],disk_1D[sample],/NODATA,yrange=[-0.1,1.9],$
 if n_comp ge 1100 then oplot,wavelength[sample],(bulge_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+90
 oplot,wavelength[sample],(disk_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+60
 oplot,wavelength[sample],(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig+resid_smooth)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+oplot,wavelength[sample],((bulge_1D_orig+disk_1D_orig+resid_sky_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
 oplot,wavelength[sample],(resid_sky_1D/median(orig_1D)),color=cgcolor('dark grey');/10000,color=cgcolor('green')
 oplot,wavelength[sample],(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')

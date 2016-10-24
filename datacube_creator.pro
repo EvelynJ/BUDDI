@@ -45,7 +45,6 @@ if galfit_or_galfitm eq 'galfitm' then begin
 ;  result = file_search(root+directory+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles1)
   
   nfiles=nfiles_feedme
-  
   for n=0,nfiles-1,1 do begin
       ;For bulge and disc, read in the fits file, the try to select every 
       ;third image (change when I include the PSF fit) after the first
