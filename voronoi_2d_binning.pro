@@ -524,7 +524,7 @@ FOR j=0, N_ELEMENTS(counts)-1 DO POLYFILL, x[j]+x1, y[j]+y1, COLOR=color[j]
 END
 ;----------------------------------------------------------------------
 PRO voronoi_2d_binning, x, y, signal, noise, targetSN, $
-    class, xNode, yNode, xBar, yBar, sn, area, scale, root,directory,galaxy_ref,$
+    class, xNode, yNode, xBar, yBar, sn, area, scale, root,galaxy_ref,$
     NO_CVT=no_cvt, PIXSIZE=pixelSize, PLOT=plot, QUIET=quiet, WVT=wvt
 COMPILE_OPT IDL2
 ON_ERROR, 2
@@ -588,7 +588,7 @@ if keyword_set(plot) then begin
 endif
 
 set_plot,'ps'
-device,file=root+directory+galaxy_ref+'_voronoi_2d_binning_output.ps',xoffset=0,yoffset=0,/color;,xsize=20,ysize=18
+device,file=root+galaxy_ref+'_voronoi_2d_binning_output.ps',xoffset=0,yoffset=0,/color;,xsize=20,ysize=18
     !p.multi=[0,1,2]
     rnd = sort(randomu(seed,n_elements(xnode))) ; Randomize bin colors
     bin2d_display_pixels, x, y, rnd[class], pixelSize

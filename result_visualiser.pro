@@ -1,6 +1,6 @@
  
  
-pro result_visualiser,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
+pro result_visualiser,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 first_image=info[0]
 final_image=info[1] 
 no_bins=info[2]
@@ -13,15 +13,15 @@ no_images_final=total_images mod no_slices
 wavelength=10^(wavelength)
 ;stop
 ; read in datacubes
-fits_read,root+directory+decomp+'decomposed_data/original.fits',original_datacube,h_orig
-fits_read,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h_bestfit
-fits_read,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h_resid
+fits_read,root+decomp+'decomposed_data/original.fits',original_datacube,h_orig
+fits_read,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h_bestfit
+fits_read,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h_resid
 
-fits_read,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h_disk
-fits_read,root+directory+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h_sky
-if n_comp ge 1100 then fits_read,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h_bulge
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+directory+decomp+'decomposed_data/comp3.fits',comp3_datacube,h_comp3
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+directory+decomp+'decomposed_data/comp4.fits',comp4_datacube,h_comp4
+fits_read,root+decomp+'decomposed_data/disk.fits',disk_datacube,h_disk
+fits_read,root+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h_sky
+if n_comp ge 1100 then fits_read,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h_bulge
+  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+decomp+'decomposed_data/comp3.fits',comp3_datacube,h_comp3
+  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+decomp+'decomposed_data/comp4.fits',comp4_datacube,h_comp4
 
 npix=sxpar(h_disk,'NAXIS3')
 bulge_1D=fltarr(npix)
@@ -40,11 +40,11 @@ wavelength=fltarr(npix)
 for n=0,npix-1,1 do wavelength[n]=10^(sxpar(h_disk,'CRVAL3')+n*sxpar(h_disk,'CD3_3'))
 
 ;read in S/N values to identify good pixels for measuring flux
-;readcol,root+directory+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#'
-result=file_test(root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt')
+;readcol,root+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#'
+result=file_test(root+galaxy_ref+'_voronoi_2d_binning_output.txt')
 
 if result eq 1 then begin
-  readcol,root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',Xpix,Ypix,BINpix,comment='#'
+  readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',Xpix,Ypix,BINpix,comment='#'
   
   
   ;calculate integrated bulge and disc flux
@@ -107,10 +107,10 @@ endelse
 ;  wavelength_log=alog(wavelength)
 ;endif
 
-temp = file_search(root+directory+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles)
+temp = file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles)
 
 for n=0,nfiles-1,1 do begin
-  result=file_test(root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits')
+  result=file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits')
   if n ne nfiles-1 then nbands=no_slices else nbands=no_images_final   
   a=n*no_slices
   b=a+nbands-1
@@ -124,25 +124,25 @@ for n=0,nfiles-1,1 do begin
     
     
 
-  if n_comp eq 1000 then res=read_sersic_results_2comp(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  if n_comp eq 1000 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) 
+  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) 
 
 
     exptime=sxpar(h_disk,'EXPTIME')
@@ -155,7 +155,7 @@ for n=0,nfiles-1,1 do begin
 ;      bulge_1D[a:b]=10^((res.mag_galfit_band_b[0:nbands-1]-15)/(-2.5))*exptime
       bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
     endif
-;    res=read_sersic_results(root+directory+decomp+slices_dir+'models/subcomps_'+string(n,format='(I4.4)')+'.fits', nband, bd=1)
+;    res=read_sersic_results(root+decomp+slices_dir+'models/subcomps_'+string(n,format='(I4.4)')+'.fits', nband, bd=1)
     
 ;    bulge_1D[n-first_image]=10^((res.mag_galfit_band_b-15)/(-2.5))*exptime
 ;    disk_1D[n-first_image]=10^((res.mag_galfit_band_d-15)/(-2.5))*exptime
@@ -186,13 +186,13 @@ endelse
 
 
 ;obtain new bulge spectrum within 3Re
-res2=read_sersic_results_2comp(root+directory+decomp+'binned_images/imgblock.fits', nband, bd=1)
-readcol,root+directory+decomp+slices_dir+'info.txt',format='X,F',info
+res2=read_sersic_results_2comp(root+decomp+'binned_images/imgblock.fits', nband, bd=1)
+readcol,root+decomp+slices_dir+'info.txt',format='X,F',info
 PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
 no_slices=info[2]
-h_temp=headfits(root+directory+decomp+'binned_images/image_'+string(0,format='(I4.4)')+'.fits')
+h_temp=headfits(root+decomp+'binned_images/image_'+string(0,format='(I4.4)')+'.fits')
 wave1=sxpar(h_temp,'WAVELENG')
-h_temp=headfits(root+directory+decomp+'binned_images/image_'+string(no_slices-1,format='(I4.4)')+'.fits')
+h_temp=headfits(root+decomp+'binned_images/image_'+string(no_slices-1,format='(I4.4)')+'.fits')
 wave2=sxpar(h_temp,'WAVELENG')
 wavelength_Re=5500
 Re_b=chebeval(wavelength_Re,res2.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
@@ -207,7 +207,7 @@ endfor
 ;print,bulge_1D
 ;plot results for comparison
 set_plot,'ps'
-device,file=root+directory+decomp+'decomposed_data/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+'decomposed_data/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=2
 !p.charthick=3
 !p.charsize=1.3
@@ -317,13 +317,13 @@ for bd=1,xx,1 do begin
     sxdelpar,h,'CUNIT3'
     sxdelpar,h,'CUNIT2'
 print,bd
-    if bd eq 3 then fits_write,root+directory+decomp+'decomposed_data/comp3_1D.fits',comp3_1D,h
-    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_1D.fits',disk_1D,h
-    if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D.fits',bulge_1D,h
-    if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
-    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
-    if bd eq 1 then fits_write,root+directory+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h
-    if bd eq 2 then fits_write,root+directory+decomp+'decomposed_data/residual_sky_1D.fits',resid_sky_1D,h
+    if bd eq 3 then fits_write,root+decomp+'decomposed_data/comp3_1D.fits',comp3_1D,h
+    if bd eq 2 then fits_write,root+decomp+'decomposed_data/disk_1D.fits',disk_1D,h
+    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_1D.fits',bulge_1D,h
+    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
+    if bd eq 2 then fits_write,root+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
+    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h
+    if bd eq 2 then fits_write,root+decomp+'decomposed_data/residual_sky_1D.fits',resid_sky_1D,h
 
 endfor
 
@@ -331,7 +331,7 @@ endfor
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+directory+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0
@@ -425,7 +425,7 @@ device,/close
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+directory+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3 
 !p.charthick=3 
 !p.charsize=1.0 

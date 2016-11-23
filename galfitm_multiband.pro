@@ -6,10 +6,10 @@
 ;  BINNED keyword- to be used with the binned images
 ;  SLICES keyword- to be used with individual image slices
 ; 
-; 
+; scale
 ;
-pro galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,$
-  estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,$
+pro galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,scale,$
+  magzpt_in,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,$
   disk_re_polynomial_in,disk_mag_polynomial_in,disk_n_polynomial_in,bulge_re_polynomial_in,$
   bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,BINNED=binned,$
   SLICES=slices,FILE=file,HEADER=header
@@ -81,16 +81,7 @@ if keyword_set(binned) then begin
   if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=bulge_n_polynomial_in
   if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
 
-;  if disk_re_polynomial_in gt 3 then disk_re_polynomial=x1 else disk_re_polynomial=2;disk_re_polynomial_in
-;  if disk_n_polynomial_in gt 2 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in;disk_n_polynomial_in
-;  if bulge_re_polynomial_in gt 2 then bulge_re_polynomial=x1 else bulge_re_polynomial=2;bulge_re_polynomial_in
-;  if bulge_n_polynomial_in gt 2 then bulge_n_polynomial=x1 else bulge_n_polynomial=2;bulge_n_polynomial_in
-;  
-;  if comp3_re_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=2;bulge_n_polynomial_in
-;  if comp3_n_polynomial_in gt 2 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=2;comp3_n_polynomial_in
-  
 
-  
   
   
 ;  test= file_search(output+binned_dir+'imgblock*',COUNT=nfiles1)
@@ -114,10 +105,9 @@ if keyword_set(binned) then begin
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits';psf_temp
-      ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
-      magzpt='15.0'
-      sky=string(median(res.SKY_GALFIT_BAND),format='(F08.4)')
+      magzpt=string(magzpt_in,format='(F4.1)')
+      sky=string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
       x_D=string(median(res.X_GALFIT_BAND_D),format='(F05.2)')
       y_D=string(median(res.Y_GALFIT_BAND_D),format='(F05.2)')
@@ -178,8 +168,8 @@ if keyword_set(binned) then begin
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
-        magzpt+=',15.0'
-        sky+=','+string(median(res.SKY_GALFIT_BAND),format='(F08.4)')
+        magzpt+=','+string(magzpt_in,format='(F4.1)')
+        sky+=','+string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string(median(res.X_GALFIT_BAND_D),format='(F05.2)')
         y_D+=','+string(median(res.Y_GALFIT_BAND_D),format='(F05.2)')
@@ -239,8 +229,8 @@ if keyword_set(binned) then begin
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
-      magzpt='15.0'
-      sky=string((res.SKY_GALFIT_BAND),format='(F08.4)')
+      magzpt=string(magzpt_in,format='(F4.1)')
+      sky=string((res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
       x_D=string((res.X_GALFIT_BAND_D),format='(F05.2)')
       y_D=string((res.Y_GALFIT_BAND_D),format='(F05.2)')
@@ -301,8 +291,8 @@ if keyword_set(binned) then begin
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
-        magzpt+=',15.0'
-        sky+=','+string((res.SKY_GALFIT_BAND),format='(F08.4)')
+        magzpt+=','+string(magzpt_in,format='(F4.1)')
+        sky+=','+string((res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string((res.X_GALFIT_BAND_D),format='(F05.2)')
         y_D+=','+string((res.Y_GALFIT_BAND_D),format='(F05.2)')
@@ -358,8 +348,8 @@ if keyword_set(binned) then begin
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix.pl'
-      magzpt='15.0'
-      sky=string(0,format='(F08.4)')
+      magzpt=string(magzpt_in,format='(F4.1)')
+      sky=string(0,format='(F010.0)')
       sky_grad='0.0'
       x_D=string(x,format='(F05.2)')
       y_D=string(y,format='(F05.2)')
@@ -416,8 +406,8 @@ if keyword_set(binned) then begin
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
         ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
         badpix+=',badpix.pl'
-        magzpt+=',15.0'
-        sky+=','+string(0,format='(F08.4)')
+        magzpt+=','string(magzpt_in,format='(F4.1)')
+        sky+=','+string(0,format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string(x,format='(F05.2)')
         y_D+=','+string(y,format='(F05.2)')
@@ -488,7 +478,7 @@ if keyword_set(binned) then begin
       printf, 60, 'H) 1    '+string(x_size,format='(I3.3)')+'   1  '+string(y_size,format='(I3.3)')+'    # Image region to fit (xmin xmax ymin ymax)'
       printf, 60, 'I) '+string(x_size,format='(I3.3)')+'    '+string(x_size,format='(I3.3)')+'      # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
-      printf, 60, 'K) 1  1        # Plate scale (dx dy)    [arcsec per pixel]'
+      printf, 60, 'K) '+string(scale[0],format='(F4.2)')+'    '+string(scale[1],format='(F4.2)')+'        # Plate scale (dx dy)    [arcsec per pixel]'
       printf, 60, 'O) regular             # Display type (regular, curses, both)'
       printf, 60, 'P) 0                   # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps'
      
@@ -634,7 +624,7 @@ if keyword_set(binned) then begin
       printf, 60, 'H) 1    '+string(x_size,format='(I3.3)')+'   1  '+string(y_size,format='(I3.3)')+'    # Image region to fit (xmin xmax ymin ymax)'
       printf, 60, 'I) '+string(x_size,format='(I3.3)')+'    '+string(x_size,format='(I3.3)')+'          # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
-      printf, 60, 'K) 1  1        # Plate scale (dx dy)    [arcsec per pixel]'
+      printf, 60, 'K) '+string(scale[0],format='(F4.2)')+'    '+string(scale[1],format='(F4.2)')+'        # Plate scale (dx dy)    [arcsec per pixel]'
       printf, 60, 'O) regular             # Display type (regular, curses, both)'
       printf, 60, 'P) 0                   # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps'
      
@@ -942,7 +932,7 @@ if keyword_set(slices) then begin
     magzpt='15.0'
     ;sky=string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
     resistant_mean, res.SKY_GALFIT_BAND,3,mean_sky
-    sky=string(mean_sky,format='(F07.2)')
+    sky=string(mean_sky,format='(F010.0)')
     sky_grad='0.0'
 ;    mag_B=string(res.MAG_GALFIT_BAND_B[loop],format='(F05.2)')
 ;    mag_D=string(res.MAG_GALFIT_BAND_D[loop],format='(F05.2)')
@@ -1031,7 +1021,7 @@ if keyword_set(slices) then begin
       badpix+=',badpix.fits'
       magzpt+=',15.0'
 ;      sky=sky+','+string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
-      sky+=','+string(mean_sky,format='(F07.2)')
+      sky+=','+string(mean_sky,format='(F010.0)')
       sky_grad+=',0.0'
 ;      mag_B+=','+string(res.MAG_GALFIT_BAND_B[loop],format='(F05.2)')
 ;      mag_D+=','+string(res.MAG_GALFIT_BAND_D[loop],format='(F05.2)')

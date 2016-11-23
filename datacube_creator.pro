@@ -1,7 +1,7 @@
 
 
 
-pro datacube_creator,root,directory,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,comp3_type,comp4_type,no_slices,wavelength,MANGA=manga,CALIFA=califa
+pro datacube_creator,root,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,comp3_type,comp4_type,no_slices,wavelength,MANGA=manga,CALIFA=califa
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -14,14 +14,14 @@ total_images=final_image-first_image+1
 x1=(total_images mod no_slices)     ;total number of images in the last feedme file
 
 
-;fits_read,root+directory+kinematics+file+'_counts.fits',temp_input,h
-fits_read,root+directory+decomp+galaxy_ref+'_smoothed_kinematics.fits',temp_input,h
+;fits_read,root+kinematics+file+'_counts.fits',temp_input,h
+fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',temp_input,h
 side1=sxpar(h,'NAXIS1')
 side2=sxpar(h,'NAXIS2')
 images=sxpar(h,'NAXIS3')
 
-result = FILE_TEST(root+directory+decomp+'decomposed_data/', /DIRECTORY) 
-if result eq 0 then file_mkdir,root+directory+decomp+'decomposed_data/'
+result = FILE_TEST(root+decomp+'decomposed_data/', /DIRECTORY) 
+if result eq 0 then file_mkdir,root+decomp+'decomposed_data/'
 
 bulge_datacube=fltarr(side1,side2,total_images)
 disk_datacube=fltarr(side1,side2,total_images)
@@ -40,9 +40,9 @@ if galfit_or_galfitm eq 'galfitm' then begin
   
   
   j=0
-  result_subcomps = file_search(root+directory+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles_subcomps)
-  result_feedme = file_search(root+directory+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles_feedme)
-;  result = file_search(root+directory+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles1)
+  result_subcomps = file_search(root+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles_subcomps)
+  result_feedme = file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles_feedme)
+;  result = file_search(root+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles1)
   
   nfiles=nfiles_feedme
   for n=0,nfiles-1,1 do begin
@@ -50,12 +50,12 @@ if galfit_or_galfitm eq 'galfitm' then begin
       ;third image (change when I include the PSF fit) after the first
       ;50 to go into the bulge or disc arrays. 
       
-      tempy=file_search(root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits',COUNT=nfiles_subcomps)
-      result=file_test(root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
+      tempy=file_search(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits',COUNT=nfiles_subcomps)
+      result=file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
       
       if result eq 1 then begin
-        fits_open,root+directory+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits',subcomps
-        fits_open,root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits',imgblock
+        fits_open,root+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits',subcomps
+        fits_open,root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits',imgblock
         if n ne nfiles-1 then no_images=no_slices else no_images=x1
         for m=0,no_images-1,1 do begin
           ;print,'COMPONENT_2_sersic _'+string(m,format='(I3.3)')
@@ -128,8 +128,8 @@ if galfit_or_galfitm eq 'galfitm' then begin
       endelse 
   endfor
   
-  h_temp = headfits(root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
-;  fits_read,root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
+  h_temp = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+;  fits_read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
   wavelength0=sxpar(h_temp,'WAVELENG')  ;linear
   step=sxpar(h,'CD3_3')                 ;log
   print,'***',wavelength0,step
@@ -142,15 +142,15 @@ if galfit_or_galfitm eq 'galfitm' then begin
     sxaddpar,h,'CRVAL3',alog(wavelength0)
     sxaddpar,h,'CD3_3',step
   endif
-  fits_write,root+directory+decomp+'decomposed_data/original.fits',original_datacube,h
-  fits_write,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
-  fits_write,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h
+  fits_write,root+decomp+'decomposed_data/original.fits',original_datacube,h
+  fits_write,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
+  fits_write,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h
   
-  fits_write,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h
-  fits_write,root+directory+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h
-  if n_comp ge 1100 then fits_write,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+directory+decomp+'decomposed_data/comp3.fits',comp3_datacube,h
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+directory+decomp+'decomposed_data/comp4.fits',comp4_datacube,h
+  fits_write,root+decomp+'decomposed_data/disk.fits',disk_datacube,h
+  fits_write,root+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h
+  if n_comp ge 1100 then fits_write,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
+  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+decomp+'decomposed_data/comp3.fits',comp3_datacube,h
+  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+decomp+'decomposed_data/comp4.fits',comp4_datacube,h
 
 
 
@@ -159,8 +159,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
   
   
   j=0
-;  result = file_search(root+directory+decomp+slices_dir+'galfit*.feedme',COUNT=nfiles)
-  result = file_search(root+directory+decomp+slices_dir+'imgblock*_fit.fits',COUNT=nfiles)
+;  result = file_search(root+decomp+slices_dir+'galfit*.feedme',COUNT=nfiles)
+  result = file_search(root+decomp+slices_dir+'imgblock*_fit.fits',COUNT=nfiles)
   
   
   
@@ -171,7 +171,7 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       if n eq 0 then a=0 else a=1
       if n eq nfiles-1 then z=x1 else z=no_images
       
-      fits_open,root+directory+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'.fits',imgblock
+      fits_open,root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'.fits',imgblock
       print,'loop, run ',n
       
       for m=a,z,1 do begin
@@ -191,19 +191,19 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       
   endfor
   
-  fits_Read,root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempy,h_temp
-;  h_temp = headfits(root+directory+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+  fits_Read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempy,h_temp
+;  h_temp = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
   wavelength0=sxpar(h_temp,'WAVELENG')
   sxaddpar,h,'CRVAL3',alog10(wavelength0)
   
-  fits_write,root+directory+decomp+'decomposed_data/original.fits',original_datacube,h
-  fits_write,root+directory+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
-  fits_write,root+directory+decomp+'decomposed_data/residuals.fits',residual_datacube,h
+  fits_write,root+decomp+'decomposed_data/original.fits',original_datacube,h
+  fits_write,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
+  fits_write,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h
   
 
 
   j=0
-  result = file_search(root+directory+decomp+slices_dir+'models/subcomps*.feedme',COUNT=nfiles)
+  result = file_search(root+decomp+slices_dir+'models/subcomps*.feedme',COUNT=nfiles)
     
     for n=0,nfiles-1,1 do begin
       ;For bulge and disc, read in the fits file, the try to select every 
@@ -212,7 +212,7 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       if n eq 0 then a=0 else a=1
       if n eq nfiles-1 then z=x1 else z=no_images
       
-      fits_open,root+directory+decomp+slices_dir+'models/subcomps_'+string(n+first_image,format='(I4.4)')+'.fits',subcomps
+      fits_open,root+decomp+slices_dir+'models/subcomps_'+string(n+first_image,format='(I4.4)')+'.fits',subcomps
       print,'loop2, run ',n
       
       
@@ -228,8 +228,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
   endfor  
   
   
-  fits_write,root+directory+decomp+'decomposed_data/disk.fits',disk_datacube,h
-  if n_comp eq 110 or n_comp eq 111 then fits_write,root+directory+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
+  fits_write,root+decomp+'decomposed_data/disk.fits',disk_datacube,h
+  if n_comp eq 110 or n_comp eq 111 then fits_write,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
 
 
 

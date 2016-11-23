@@ -7,59 +7,19 @@
 ; any part can be run independently, assumign that all 
 ; previous parts have completed successfully.
 ; 
-; v1.0  May 2015: Code ready for ecomposing galaxies. Development 
+; v0.1  May 2015: Code ready for ecomposing galaxies. Development 
 ;                 paused to focus on tests of the idea
-; v1.1  Jan 2016: updated to give the option of measuring kinematics 
+; v0.2  Jan 2016: updated to give the option of measuring kinematics 
 ;                 with or without gas emission included. it is faster 
 ;                 without gas emission, but if there is significant 
 ;                 emission present then this must be measured and removed.
+; v1.0  Nov 2016: starting to get BUDDI ready for public release
 ; 
 
-FUNCTION flam2fnu, flam, lam    ;[erg s-1 cm-2 A-1], [angstroem]
-   return, flam/299792458./1e10*lam^2. ;[erg s-1 Hz-1 cm-2]
-END
-FUNCTION fnu2maggies, fnu
-   return, 3631e23*fnu
-END
-FUNCTION maggies2cts, maggies, expt, zp
-;zp: zeropoint is a positive number
-;   montagezp = 23.682
-   return, maggies * expt / 10^(-0.4*zp)
-;   return, maggies * expt / 10^(-0.4*(zp-montagezp))
-END
-
-
-FUNCTION mags2maggies, mags
-   return, 10^(-0.4*mags)
-END
-FUNCTION mags2cts, mags, expt, zp
-;zp: zeropoint is a positive number
-   return, maggies2cts(mags2maggies(mags), expt, zp)
-END
 
 ;===============================================================
 
-FUNCTION cts2mags, cts, expt, zp
-;zp: zeropoint is a positive number
-   return, maggies2mags(cts2maggies(cts, expt, zp))
-END
-FUNCTION cts2maggies, cts, expt, zp
-;zp: zeropoint is a positive number
-   return, cts / expt * 10^(-0.4*zp)
-END
-FUNCTION maggies2fnu, maggies
-   return, 3631e-23*maggies     ;[erg s-1 Hz-1 cm-2]
-END
-FUNCTION fnu2flam, fnu, lam     ;[erg s-1 Hz-1 cm-2], [angstroem]
-   return, 299792458.*1e10/lam^2.*fnu ;[erg s-1 cm-2 A-1]
-END
-FUNCTION maggies2mags, maggies
-   return, -2.5*alog10(maggies)
-END
-
-;===============================================================
-
-function S_N_calculator,x,y,cont_array,root,directory,galaxy_ref,x_centre,y_centre,xy,limit
+function S_N_calculator,x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit
 ;*** Calculate S/N for each spaxel. Using the cont_wavelength and cont_range, 
 ;*** the Signal is calculated as the mean flux value within the defined wavelength 
 ;*** range, while the nise is the standard deviation in that same range. This 
@@ -70,22 +30,22 @@ function S_N_calculator,x,y,cont_array,root,directory,galaxy_ref,x_centre,y_cent
 
 S_N_array=fltarr(x,y)
 close,01
-openw,01,root+directory+galaxy_ref+'_S_N_array.txt'
-printf,01,'#################################################################'
-printf,01,'#          Xpix           Ypix           Signal          noise'
-printf,01,'#################################################################'
+openw,01,root+galaxy_ref+'_S_N_array.txt'
+printf,01,'##########################################################################'
+printf,01,'#          Xpix           Ypix               Signal              noise'
+printf,01,'##########################################################################'
 
 close,11
-openw,11,root+directory+galaxy_ref+'_pixel_array_full.txt'
-printf,11,'#################################################################'
+openw,11,root+galaxy_ref+'_pixel_array_full.txt'
+printf,11,'##########################################################################'
 printf,11,'#          Xpix           Ypix     '
-printf,11,'#################################################################'
+printf,11,'##########################################################################'
 
 close,21
-openw,21,root+directory+galaxy_ref+'_S_N_array_full.txt'
-printf,21,'#################################################################'
-printf,21,'#          Xpix           Ypix           Signal          noise'
-printf,21,'#################################################################'
+openw,21,root+galaxy_ref+'_S_N_array_full.txt'
+printf,21,'##########################################################################'
+printf,21,'#          Xpix           Ypix               Signal              noise'
+printf,21,'##########################################################################'
 
 off=4
 if xy[0] ne -100 and xy[1] ne -100 then background_source='y' else background_source='n'
@@ -109,9 +69,9 @@ for column=0,x-1,1 do begin
     S_N_array[column,row]=S_N
     
     
-    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f16.8)'
+    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.2)'
     if S_N gt 0 then printf,11,column-x_centre,row-y_centre,format='(2f16.5)'
-    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f16.8)'
+    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.2)'
     
   endfor
 endfor
@@ -155,7 +115,6 @@ read_input, input_file, setup
 
 ;*** Set up directory structure for all output files
 root=setup.root
-directory=setup.directory
 galaxy_ref=setup.galaxy_ref
 file=setup.file
 kinematics=setup.kinematics
@@ -168,7 +127,6 @@ stellib_dir=setup.stellib_dir
 
 
 ;*** Define software versions
-galfit=setup.galfit   ;version of Galfitm to use
 galfitm=setup.galfitm
 
 ;*** Provide basic information for the datacube
@@ -180,8 +138,6 @@ targetSN=setup.targetSN               ;target S/N value for binning
 Redshift=setup.Redshift               ;value from NED after doing an position search
 PA=setup.PA                     ;kinematic Position Angle of galaxy (from NED)
 central_wavelength=setup.central_wavelength     ;central wavelength of spectrum for kinematics corrections
-loglin=setup.loglin
-emission_yn=setup.emission_yn
 
 
 ;*** Set wavelength range for decomposition
@@ -211,6 +167,8 @@ estimates_disk=[disk_type,setup.disk_mag,setup.disk_re,setup.disk_n,setup.disk_q
 disk_re_polynomial=setup.disk_re_polynomial
 disk_mag_polynomial=setup.disk_mag_polynomial
 disk_n_polynomial=setup.disk_n_polynomial
+magzpt=setup.magzpt
+
 if n_comp ge 1100 or n_comp eq 1010 or n_comp eq 1011 then begin
   if setup.bulge_type eq 'sersic' or setup.bulge_type eq 'Sersic' then bulge_type=0 else bulge_type=1
   estimates_bulge=[bulge_type,setup.bulge_mag,setup.bulge_re,setup.bulge_n,setup.bulge_q,setup.bulge_pa] 
@@ -243,112 +201,55 @@ if setup.comp4_type eq 'sersic' or setup.comp4_type eq 'Sersic' then comp4_type=
 if n_comp eq 1111 or n_comp eq 1101 or n_comp eq 1001 or n_comp eq 1011 then estimates_comp4=[comp4_type,setup.comp4_x,setup.comp4_y,setup.comp4_mag,setup.comp4_re,setup.comp4_n,setup.comp4_q,setup.comp4_pa] $
 else estimates_comp4=0 
 
-;if the_bias_value_is_knwn eq 'n' then Bias=0.0
-;if the_bias_value_is_knwn eq 'y' then Bias=0.3
 bias=0.0
 c = 299792.458d ; speed of light in km/s
 
-;calculate wavelength solution. Note- MPL3 produced list CRVAL3 and CD3_3 
-;in log units, while MPL4 lists them in linear units but still uses the log scale
-;fits_read,root+directory+file+'.fits',input_IFU,header_IFU
+;calculate wavelength solution. Datacube should already be log10 binned, 
+;with the first wavelength value and the step size listed int he input file
+;
 
-fits_read,root+directory+file+'.fits',input_IFU,header_IFU
+fits_read,root+file+'.fits',input_IFU,header_IFU
 
-if sxpar(header_IFU,'VERSDRP2') eq 'v1_5_0  ' then begin
-  wavelength0_lin=sxpar(header_IFU,'CRVAL3')
-  wavelength0=alog10(wavelength0_lin)
-  step_lin=sxpar(header_IFU,'CD3_3')
-  step=alog10(wavelength0_lin+step_lin)-wavelength0
-  wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
-  for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)
-endif else if sxpar(header_IFU,'VERSDRP2') eq 'v1_3_3  ' then begin
-  wavelength0=sxpar(header_IFU,'CRVAL3')
-  step=sxpar(header_IFU,'CD3_3')
-  wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
-  for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)
-endif else if sxpar(header_IFU,'VERSDRP2') eq 0 then begin
-  wavelength0=sxpar(header_IFU,'CRVAL3')
-  step=sxpar(header_IFU,'CD3_3')
-  wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
-  for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)  
-endif
+wavelength=fltarr(sxpar(header_IFU,'NAXIS3'))
+wavelength0=setup.wave0
+step=setup.step
+for m=0,sxpar(header_IFU,'NAXIS3')-1,1 do wavelength[m]=wavelength0+(m*step)
+
 
 
 if setup.bin_data eq 'y' then begin
   ;========================================================
   ; *** Read in basic information about IFU data cube
-  fits_read,root+directory+file+'.fits',input_IFU,header_IFU
+  fits_read,root+file+'.fits',input_IFU,header_IFU
   x=sxpar(header_IFU,'NAXIS1')
   y=sxpar(header_IFU,'NAXIS2')
   z=sxpar(header_IFU,'NAXIS3')
-  wavelength0=sxpar(header_IFU,'CRVAL3')
-  step=sxpar(header_IFU,'CD3_3')
+  wavelength0=setup.wave0;sxpar(header_IFU,'CRVAL3')
+  step=setup.step;sxpar(header_IFU,'CD3_3')
   
   
   ;========================================================
   ; *** identify the elements in the array corresponding to the region over 
   ; *** which to measure the S/N of each spaxel
-  if loglin eq 'log10' then begin
-    cont_wavelength_log=alog10(cont_wavelength)
-    cont_low_wavelength_log=alog10(cont_wavelength-cont_range/2)
-    cont_high_wavelength_log=alog10(cont_wavelength+cont_range/2)
-  endif else if loglin eq 'log' then begin
-    cont_wavelength_log=alog(cont_wavelength)
-    cont_low_wavelength_log=alog(cont_wavelength-cont_range/2)
-    cont_high_wavelength_log=alog(cont_wavelength+cont_range/2)
-  endif else if loglin eq 'linear' then begin
-    cont_wavelength_log=(cont_wavelength)
-    cont_low_wavelength_log=(cont_wavelength-cont_range/2)
-    cont_high_wavelength_log=(cont_wavelength+cont_range/2)
-  endif 
   
+  cont_wavelength_log=alog10(cont_wavelength)
+  cont_low_wavelength_log=alog10(cont_wavelength-cont_range/2)
+  cont_high_wavelength_log=alog10(cont_wavelength+cont_range/2)
+   
   sample=where(wavelength ge cont_low_wavelength_log and wavelength le cont_high_wavelength_log)
   
   
   
 
-  ;========================================================
-  ; *** Convert datacube flux units from 1e-17 erg/s/cm^2/Ang/pixel into counts.
-  ; *** Need to first convert flux into eV then into counts using the energy of one photon
-  ;1erg = 6.24e11 eV
-;  datacube=flux_conversion(input_IFU,header_IFU,step,wavelength,x,y,z)
-  
-  exptime=sxpar(header_IFU,'exptime')/sxpar(header_IFU,'nexp')
-  wave_bands=[3543,4770,6231,7625,9134]
-  zp_bands=[23.2680,24.2500,23.9270,23.6130,21.8650]
-  zp=linear_interpolate(wavelength,wave_bands,zp_bands)
-  
-  
-  datacube=fltarr(x,y,z)
-  datacube_2=fltarr(x,y,z)
-  IFU_fnu=fltarr(x,y,z)
-  IFU_maggies=fltarr(x,y,z)
-  IFU_mags=fltarr(x,y,z)
-  for column=0,x-1,1 do begin
-    for row=0,y-1,1 do begin
-      spec_xy=input_IFU[column,row,*]*1e-17
-      IFU_fnu[column,row,*]=flam2fnu(spec_xy,wavelength)
-      IFU_maggies[column,row,*]=fnu2maggies(IFU_fnu[column,row,*])
-      datacube[column,row,*]=maggies2cts(IFU_maggies[column,row,*],exptime,zp)
-
-    endfor
-  endfor
 
 
 
   
   
-  result = FILE_TEST(root+directory+kinematics,/DIRECTORY) 
-  if result eq 0 then spawn,'mkdir '+root+directory+kinematics
+  result = FILE_TEST(root+kinematics,/DIRECTORY) 
+  if result eq 0 then spawn,'mkdir '+root+kinematics
   
-  wave0=sxpar(header_IFU,'CRVAL3')
-  step0=sxpar(header_IFU,'CD3_3')
-  sxaddpar,header_IFU,'CRVAL3',alog10(wave0),'Central wavelength of first pixel'
-  sxaddpar,header_IFU,'CD3_3',alog10(wave0+step0)-alog10(wave0),'Dispersion per pixel'
-  sxaddpar,header_IFU,'CDELT_3',alog10(wave0+step0)-alog10(wave0),'Dispersion per pixel'
-  
-  fits_write,root+directory+kinematics+file+'_counts.fits',datacube,header_IFU
-  
+  datacube=input_IFU
   
   ;========================================================
   ; *** Calculate S/N for each element in the array
@@ -358,12 +259,12 @@ if setup.bin_data eq 'y' then begin
   ;mask regions covered by backgorund/foreground object
   if setup.n_comp eq 1001 or setup.n_comp eq 1101 or setup.n_comp eq 1111 or setup.n_comp eq 1011 then xy=[setup.comp4_x,setup.comp4_y] else xy=[-100,-100]
   
-  S_N_array=S_N_calculator(x,y,cont_array,root,directory,galaxy_ref,x_centre,y_centre,xy,limit)
+  S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
   
   
   ;========================================================
   ; *** Apply voronoi binning to the image
-  readcol,root+directory+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#'
+  readcol,root+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#',/SILENT
   
   ; Load a colortable and open a graphic window
 ;  set_plot,'x'
@@ -377,14 +278,14 @@ if setup.bin_data eq 'y' then begin
   ; (binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale)
   ; are all generated in *output*
   voronoi_2d_binning, xpix, ypix, signal, noise, targetSN, $
-      binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,directory,galaxy_ref, /QUIET;,/PLOT
+      binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,galaxy_ref, /QUIET;,/PLOT
   
   ; Save to a text file the initial coordinates of each pixel together
   ; with the corresponding bin number computed by this procedure.
   ; binNum uniquely specifies the bins and for this reason it is the only
   ; number required for any subsequent calculation on the bins.
   astrolib
-  forprint, xpix, ypix, binNum, TEXTOUT=root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt', $
+  forprint, xpix, ypix, binNum, TEXTOUT=root+galaxy_ref+'_voronoi_2d_binning_output.txt', $
       COMMENT='          X"              Y"           BIN_NUM'
   
   ; Print out fits file with binned spectra
@@ -394,7 +295,7 @@ if setup.bin_data eq 'y' then begin
    
   
   close,03
-  openw,03,root+directory+galaxy_ref+'_bin_centers.txt'
+  openw,03,root+galaxy_ref+'_bin_centers.txt'
   printf,03,'#################################################################'
   printf,03,'#       Bin       Xcentre        Ycentre '
   printf,03,'#################################################################'
@@ -419,12 +320,6 @@ if setup.bin_data eq 'y' then begin
   close,03
   
   
-;      flux_log10=binned_spec[*,run]
-;    logRange=[wavelength[0],wavelength[z-1]]
-;    wavelength_temp=wavelength
-;    log10_rebin_invert,logRange, flux_log10, flux_linear, wave_linear
-;    lamRange=[wave_linear[0],wave_linear[z-1]]
-;    log_rebin, lamRange, flux_linear, flux,wavelength, VELSCALE=velScale
   
   sxaddpar,header_IFU,'CRVAL1',sxpar(header_IFU,'CRVAL3')
   sxaddpar,header_IFU,'CD1_1',sxpar(header_IFU,'CD3_3')
@@ -432,13 +327,15 @@ if setup.bin_data eq 'y' then begin
   sxaddpar,header_IFU,'CRVAL2',n_elements(binned_spec[*,0])
   sxaddpar,header_IFU,'CD2_2',1
   sxaddpar,header_IFU,'CDELT2',1
-  
-  fits_write,root+directory+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU
-  ;fits_write,root+directory+kinematics+galaxy_ref+'binned_spectra0.fits',binned_spec[*,0],header_IFU
+  sxdelpar,header_IFU,'CRVAL3' 
+  sxdelpar,header_IFU,'CDELT3' 
+  sxdelpar,header_IFU,'CD3_3'
+   
+  fits_write,root+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU
   
 
 endif else begin
-  fits_read,root+directory+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU
+  fits_read,root+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU
   z=sxpar(header_IFU,'NAXIS1')
   n_bins=sxpar(header_IFU,'NAXIS2')
   
@@ -465,19 +362,13 @@ if setup.measure_kinematics eq 'y' then begin
   a=(Redshift+1)*(Redshift+1)
   Velocity=c*((a-1)/(a+1))
   
-  output=root+directory+kinematics+galaxy_ref
+  output=root+kinematics+galaxy_ref
   result = FILE_TEST(output+'_kinematics.txt') 
   if result eq 1 then begin
     spawn,'mv '+output+'_kinematics.txt '+output+'_old_kinematics.txt'
     spawn,'mv '+output+'_kinematics_gas.txt '+output+'_old_kinematics_gas.txt'
     spawn,'mv '+output+'_emission_info.txt '+output+'_old_emission_info.txt'
   endif
-;  close,50
-;  openw,50,output+'_kinematics.txt',/APPEND
-;  close,70
-;  openw,70,output+'_kinematics_gas.txt',/APPEND
-;  close,60
-;  openw,60,output+'_emission_info.txt',/APPEND
 
   
   ;read in first spectrum to get velocisty scale
@@ -587,7 +478,7 @@ if setup.measure_kinematics eq 'y' then begin
     flux=binned_spec[*,run]
   
     ;sample = where(wavelength gt alog10(start_wavelength) and wavelength lt alog10(end_wavelength))
-    galaxy = flux[sample];/median(flux[sample])  ; normalize spectrum to avoid numerical issues
+    galaxy = flux[sample]/median(flux[sample])  ; normalize spectrum to avoid numerical issues
     wave = 10^wavelength[sample]
     noise = galaxy*0 + 1           ; Assume constant noise per pixel here
     mult_factor=median(flux[sample])
@@ -641,15 +532,11 @@ if setup.measure_kinematics eq 'y' then begin
     start = [Velocity, 2*velScale] ; (km/s), starting guess for [V,sigma]
 ;    start = [central_vel, central_sigma] ; (km/s), starting guess for [V,sigma]
 
-    output=root+directory+kinematics+galaxy_ref
+    output=root+kinematics+galaxy_ref
 
 
 ;;;;Original verison of code, no gas measurements  
 
-;      print,start
-;      stop
-if emission_yn eq 'n' then begin
-;    ppxf_477, stars_templates, galaxy, noise, velScale, start, sol, output, run,$
     ppxf_v479, stars_templates, galaxy, noise, velScale, start, sol,$
         GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
         VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
@@ -685,7 +572,7 @@ if emission_yn eq 'n' then begin
 
 
     cgplot, wave, galaxy, color='black', XTITLE='Observed Wavelength A', $
-        YTITLE='Relative Flux', /XSTYLE, /YSTYLE, YRANGE=[-2000, 1.0*max(galaxy)];, YRANGE=[-0.1, 2]
+        YTITLE='Relative Flux', /XSTYLE, /YSTYLE, YRANGE=[-1, 1.2*max(galaxy)];, YRANGE=[-0.1, 2]
     cgoplot, wave, bestfit, color='orange'
     cgOPlot, wave, galaxy - bestfit, PSYM=4, COLOR='limegreen'
 
@@ -694,100 +581,12 @@ if emission_yn eq 'n' then begin
 
 
 
-endif      
+      
 ;;moments: 2= Vel and sigma only, 4= Vel, sigma, h3 and h4
 ;;degree: orer of polynomial to fit to continuum
 
 
-;#########################################
-;;;;new version, with gas measurements
-; Construct a set of Gaussian emission line templates
-;
-    if emission_yn eq 'y' then begin
-      gas_templates = ppxf_emission_lines(logLam2, FWHM_gal, LINE_NAMES=line_names, LINE_WAVE=line_wave)
-      ngas = (size(gas_templates,/DIM))[1] ; number of gass emission line templates
 
-; Combines the stellar and gaseous templates into a single array
-; during the PPXF fit they will be assigned a different kinematic
-; COMPONENT value
-;
-      s1 = size(stars_templates,/DIM)
-      reg_dim = s1[1:*]
-      nstars = product(reg_dim) ; number of SSP stellar templates
-      
-      templates = [[stars_templates], [gas_templates]]
-      component = [replicate(0,nstars), replicate(1,ngas)]
-      moments = [2, 2] ; fit (V,sig) for the stars and (V,sig) for the gas
-;      moments = [4, 2] ; fit (V,sig,h3,h4) for the stars and (V,sig) for the gas
-      start = [[start], [start]] ; adopt the same starting value for both gas and stars
-      goodpixels=indgen(n_elements(galaxy))
-      
-
-      ppxf_v479, templates, galaxy, noise, velScale, start, sol, $
-          GOODPIXELS=goodPixels, MOMENTS=moments, DEGREE=-1, MDEGREE=3, $
-          VSYST=dv, ERROR=error,REGUL=regul, WEIGHTS=weights, REG_DIM=reg_dim, $
-          COMPONENT=component, MATRIX=matrix, BESTFIT=bestfit
-      
-      
-      close,50
-      openw,50,output+'_kinematics.txt',/APPEND
-      close,70
-      openw,70,output+'_kinematics_gas.txt',/APPEND
-      close,60
-      openw,60,output+'_emission_info.txt',/APPEND
-      
-      
-      if run eq 0 then printf,50, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
-      printf,50, run,sol[0:5,0], FORMAT='(i5,f10.1,4f10.3,A10)'
-      ;printf,50,' '
-      if run eq 0 then printf,70, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
-      printf,70, run,sol[0:5,1], FORMAT='(i5,f10.1,4f10.3,A10)'
-      
-      w = where(component eq 1)  ; Extract weights of gas emissions only
-      printf,60, '#++++++++++++++++++++++++++++++'
-      printf,60, '#'+string(run)
-      printf,60, FORMAT='("#Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
-      printf,60, '#Emission lines peak intensity:'
-      for j=0, ngas-1 do $
-          printf,60, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
-      printf,60, '#------------------------------'
-      printf,60,' '
-
-      w = where(component eq 1)  ; Extract weights of gas emissions only
-      print, '#++++++++++++++++++++++++++++++'
-      print, '#'+string(run)
-      print, FORMAT='("#Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
-      print, '#Emission lines peak intensity:'
-      for j=0, ngas-1 do $
-          print, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
-      print, '#------------------------------'
-      print,' '
-
-
-      set_plot,'ps'
-      !p.multi=0;[0,1,2]
-      device,file=output+'_kinematics_'+string(run,format='(i4.4)')+'.eps',/color,xoffset=0,yoffset=0
-          cgplot, wave, galaxy, color='black', XTITLE='Observed Wavelength A', $
-              YTITLE='Relative Flux', /XSTYLE, /YSTYLE, YRANGE=[-2000, 1.0*max(galaxy)];, YRANGE=[-0.1, 2]
-          cgoplot, wave, bestfit, color='orange'
-          cgOPlot, wave, galaxy - bestfit, PSYM=4, COLOR='limegreen'
-          stars = matrix[*, 0:nstars] # weights[0:nstars]
-          cgoplot, wave, stars, COLOR='red'  ; overplot stellar templates alone
-          gas = matrix[*, -ngas:*] # weights[-ngas:*]
-          cgoplot, wave, gas + 0.15, COLOR='blue'  ; overplot emission lines alone
-          
-      device,/close
-      mkhdr,h,gas
-      sxaddpar,h,'CRVAL1',alog10(wave[0])
-      sxaddpar,h,'CDELT1',(alog10(wave[100])-alog10(wave[0]))/100
-      sxaddpar,h,'CD1_1',(alog10(wave[100])-alog10(wave[0]))/100
-      ;fits_write,output+'_emission_'+string(run,format='(i4.4)')+'.fits',gas*mult_factor,h
-      fits_write,output+'_emission_'+string(run,format='(i4.4)')+'.fits',gas,h
-      close,50
-      close,60
-      close,70  
-      
-    endif
 
 
 ;#########################################
@@ -818,17 +617,12 @@ endif
 
 if setup.plot_kinematics eq 'y' then begin
 ;read in kinematics
-;  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,X,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
-  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
-  if emission_yn eq 'y' then begin
-    readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',format='F,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#'
-    readcol,root+directory+kinematics+galaxy_ref+'_kinematics_gas.txt',format='F,F,F,F,F,X,X',bin_n_gas,vel_in_gas,sigma_in_gas,h3_in_gas,h4_in_gas,comment='#'
-  endif
-;read in positions of each bin on the ccd image
-  readcol,root+directory+galaxy_ref+'_bin_centers.txt',format='F,F,F',bin_n_in,xbar,ybar
+  readcol,root+kinematics+galaxy_ref+'_kinematics.txt',format='F,F,F,F,F,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#',/SILENT
+  ;read in positions of each bin on the ccd image
+  readcol,root+galaxy_ref+'_bin_centers.txt',format='F,F,F',bin_n_in,xbar,ybar,/silent
   
 ;read in pixel scale in x and y directions from file header
-  fits_read,root+directory+kinematics+file+'_counts.fits',input_IFU,header_IFU
+  fits_read,root+file+'.fits',input_IFU,header_IFU
   x_scale=abs(sxpar(header_IFU,'CD1_1')*3600)      ;*3600 to convert to arcsec
   y_scale=abs(sxpar(header_IFU,'CD2_2')*3600)
   
@@ -886,10 +680,6 @@ kinematics_temp1[2,*]=sigma_in
 kinematics_temp1[3,*]=h3_in
 kinematics_temp1[4,*]=h4_in
 kinematics_temp1[5,*]=radius
-if emission_yn eq 'y' then begin
-  kinematics_temp1[6,*]=vel_in_gas
-  kinematics_temp1[7,*]=sigma_in_gas
-endif
 
 sort_by=1   ;use 1 to sort by line-of-sight velocity
 kinematics_temp2=colsort(kinematics_temp1,sort_by)
@@ -954,19 +744,17 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
   set_plot,'ps'
   !p.multi=0
   loadct,0
-  device,file=root+directory+kinematics+galaxy_ref+'_kinematics.eps',xoffset=0,yoffset=0
+  device,file=root+kinematics+galaxy_ref+'_kinematics.eps',xoffset=0,yoffset=0
   !p.multi=[0,2,2]
   !p.symsize=0.7
 ;  -130 for 
   plot,kinematics_sorted[5,*],kinematics_sorted[1,*],psym=sym(1),yrange=[vel_centre-y_range,vel_centre+y_range],ytitle='V!ILOS!N (km/s)',$
       xtitle='distance (arcsec)',xrange=[-25,25],xmargin=[10,3],ytickformat='(i5)',symsize=0.5,/ystyle,/xstyle
-  oplot,kinematics_sorted[5,*],kinematics_sorted[6,*],color=cgcolor('red'),psym=sym(1),symsize=0.5
 ;  oplot,[-100,100],[velocity_NED,velocity_NED],linestyle=1
   xyouts,-24,(2*y_range)*0.9+vel_centre-y_range,galaxy_ref, charsize=0.7
   plot,kinematics_sorted[5,*],kinematics_sorted[2,*],psym=sym(1),yrange=[0,max_sigma],ytitle=greek('sigma')+' (km/s)',$
       xtitle='distance (arcsec)',xrange=[-25,25],xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
   xyouts,-24,0.9*(max_sigma),galaxy_ref, charsize=0.7
-  oplot,kinematics_sorted[5,*],kinematics_sorted[7,*],color=cgcolor('red'),psym=sym(1),symsize=0.5
 
   plot,kinematics_sorted[5,*],kinematics_sorted[3,*],psym=sym(1),xrange=[-25,25],yrange=[-0.3,0.3],ytitle='h!I3!N',$
       xtitle='distance (arcsec)',xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
@@ -980,7 +768,7 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
 
 ; *** Plot kinematics maps
 ; need to first create new kinematics arrays for each pixel
-  readcol,root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',x_in,y_in,bin_new,comment='#'
+  readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',x_in,y_in,bin_new,comment='#',/SILENT
   vel_new=fltarr(n_elements(x_in))
   sigma_new=fltarr(n_elements(x_in))
   h3_new=fltarr(n_elements(x_in))
@@ -1010,7 +798,7 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
 
   set_plot,'ps'
   cgloadct,33 
-  device,file=root+directory+kinematics+galaxy_ref+'_kinematics_maps.eps',/color,xoffset=0,yoffset=0
+  device,file=root+kinematics+galaxy_ref+'_kinematics_maps.eps',/color,xoffset=0,yoffset=0
     !p.multi=[0,2,2]
     pixelSize=1
     bin2d_display_pixels, x_new[0:count-1], y_new[0:count-1], vel_new[0:count-1], pixelSize
@@ -1045,16 +833,16 @@ if setup.correct_kinematics eq 'y' then begin
 
     
   ;read in positions of each bin on the ccd image
-  readcol,root+directory+galaxy_ref+'_bin_centers.txt',format='F,F,F',$
-    bin_n_in,xbar,ybar
+  readcol,root+galaxy_ref+'_bin_centers.txt',format='F,F,F',$
+    bin_n_in,xbar,ybar,/silent
 
   ;read in list of binned pixels in full size array
-  readcol,root+directory+galaxy_ref+'_S_N_array_full.txt',format='F,F,F,F',$
-    xpix_total,ypix_total,signal,noise
+  readcol,root+galaxy_ref+'_S_N_array_full.txt',format='F,F,F,F',$
+    xpix_total,ypix_total,signal,noise,/silent
 
   ;read in bins for each pixel
-  readcol,root+directory+galaxy_ref+'_voronoi_2d_binning_output.txt',$
-    format='F,F,F',xtemp,ytemp,binarray
+  readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',$
+    format='F,F,F',xtemp,ytemp,binarray,/silent
   
   ;identify those pixels with S/N less than 5 and set to 0, and those 
   ;contained within the bad bins. Then work out 
@@ -1071,15 +859,10 @@ if setup.correct_kinematics eq 'y' then begin
   x_final=fltarr(n_elements(xpix_total))
   y_final=fltarr(n_elements(xpix_total))
   bins_final=fltarr(n_elements(xpix_total))
-;  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
-;      format='F,X,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
-  if emission_yn eq 'n' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
-      format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
-  if emission_yn eq 'y' then readcol,root+directory+kinematics+galaxy_ref+'_kinematics.txt',$
-      format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#'
+  readcol,root+kinematics+galaxy_ref+'_kinematics.txt',$
+      format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#',/SILENT
   
-; fits_read,root+directory+file+'.fits',input_IFU,header_IFU
-  fits_read,root+directory+kinematics+file+'_counts.fits',input_IFU,header_IFU
+  fits_read,root+file+'.fits',input_IFU,header_IFU
   x=sxpar(header_IFU,'NAXIS1')
   y=sxpar(header_IFU,'NAXIS2')
   z=sxpar(header_IFU,'NAXIS3')
@@ -1105,7 +888,7 @@ if setup.correct_kinematics eq 'y' then begin
   vel_correction=fltarr(n_elements(bin_kinematics))
   sigma_correction=fltarr(n_elements(bin_kinematics))
   
-  openw,22,root+directory+kinematics+galaxy_ref+'_kinematics0.txt'
+  openw,22,root+kinematics+galaxy_ref+'_kinematics0.txt'
   printf,22,' Velocity= '+string(vel0)
   printf,22,' Sigma=    '+string(sigma0)
   close,22
@@ -1120,11 +903,8 @@ if setup.correct_kinematics eq 'y' then begin
     vel_correction[l]=long(vel_correction[l])
     
     ;calculate sigma corrections
-;    correction_angstrom=((sqrt(sigma0*sigma0-sigma_bin[l]*sigma_bin[l]))/3e5)*central_wavelength
-;    sigma_correction[l]=alog10(central_wavelength+correction_angstrom)-alog10(central_wavelength)   
     if sigma_bin[l] le sigma0 then FWHM_dif = SQRT((2.355*sigma0/velScale)^2 - (2.355*sigma_bin[l]/velScale)^2)  $;divide sigma by velScale to get value in pixels
       else FWHM_dif=0.
-;    sigma_correction[l] = FWHM_dif/2.355;/step ; Sigma difference in pixels 
     sigma_correction[l] = FWHM_dif/2.355*step ; Sigma difference in AA 
   endfor
   
@@ -1138,36 +918,7 @@ if setup.correct_kinematics eq 'y' then begin
       m_new=a_and_b(xxxxx,yyyyy)
       bins_final[m]=binarray[m_new[0]]
       ;subtract off emission spectrum if requested
-      if emission_yn eq 'y' then begin
-        fits_read,root+directory+kinematics+galaxy_ref+'_emission_'+string(bins_final[m],format='(i4.4)')+'.fits',emission_spec,h_e
-        fits_read,root+directory+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,h_b
-        ;voronoi binning code takes average flux value in the aperture. 
-        ;therefore, emission spec can simply be subtracted from each spectrum being
-        ;averaged for the binned spectrum
-        
-        ;need to match up wavelength of emissiona nd galaxy spectra
-        wave_e0=sxpar(h_e,'CRVAL1')
-        step_e=sxpar(h_e,'CDELT1')
-        wavelength_e=fltarr(sxpar(h_e,'NAXIS1'))
-        for f=0,sxpar(h_e,'NAXIS1')-1,1 do wavelength_e[f]=wave_e0+(f*step_e)
-        diff=round((wavelength_e[0]-wavelength[0])/step_e)
-        ;need to rescale the emission spectrum using the input spec and the binned spec
-        ;use the region 5500-6000AA since there are no emission lines here
-        wave_1=velocity_bin[bins_final[m]]/3e5*5500+5500
-        wave_2=velocity_bin[bins_final[m]]/3e5*5700+5700
-        wave_sample=where(wavelength gt alog10(wave_1) and wavelength lt alog10(wave_2))
-        wave_sample_e=where(wavelength_e gt alog10(wave_1) and wavelength_e lt alog10(wave_2))
-;        scale=median(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,wave_sample])/median(binned_spec[wave_sample,bins_final[m]])
-;        scale=median(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,diff:diff+sxpar(h_e,'NAXIS1')-1])/median(binned_spec[diff:diff+sxpar(h_e,'NAXIS1')-1,bins_final[m]])
-        scale=(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,diff:diff+sxpar(h_e,'NAXIS1')-1])/(binned_spec[diff:diff+sxpar(h_e,'NAXIS1')-1,bins_final[m]])
-        temp_val=where(10^wavelength_e ge wave_1)
-        emission_spec[1:temp_val[1]]=emission_spec[0:temp_val[0]]
-        ;if bins_final[m] eq 62 then print,'a',max(emission_spec[0:1500])
-        emission_spec*=scale
-        ;if bins_final[m] eq 62 then print,'b',max(emission_spec[0:1500])
-        temp=input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]
-        input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,diff:diff+sxpar(h_e,'NAXIS1')-1]-=emission_spec
-      endif
+      
 
       ;apply kinematics corrections here
       intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
@@ -1218,14 +969,14 @@ if setup.correct_kinematics eq 'y' then begin
   endfor
   
   
-  result = FILE_TEST(root+directory+decomp, /DIRECTORY) 
-  if result eq 0 then file_mkdir,root+directory+decomp
-  fits_write, root+directory+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
+  result = FILE_TEST(root+decomp, /DIRECTORY) 
+  if result eq 0 then file_mkdir,root+decomp
+  fits_write, root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
 
 
   set_plot,'ps'
   cgloadct,33 
-  device,file=root+directory+kinematics+galaxy_ref+'_kinematics_corrections.eps',/color,xoffset=0,yoffset=0
+  device,file=root+kinematics+galaxy_ref+'_kinematics_corrections.eps',/color,xoffset=0,yoffset=0
     !p.multi=0;[0,2,2]
     pixelSize=1
     plot,temparray[0,*],temparray[1,*],/nodata,xtitle='x-axis',ytitle='y-axis',color=cgcolor('black'),xrange=[-2,max(temparray[0,*])+2],yrange=[-2,max(temparray[1,*])+2],/xstyle,/ystyle
@@ -1247,7 +998,7 @@ endif
 
 ;1a. Slice the data cube up into individual images between the required wavelengths
 ;1b. Bin the datacube into higher quality images over the desired wavelength range
-output=root+directory
+output=root
 
 decompose='n'
 if setup.bin_datacube            eq 'y' then decompose='y'  
@@ -1260,11 +1011,9 @@ if setup.visualise_results       eq 'y' then decompose='y'
 
 
 if decompose eq 'y' then begin
-        result = FILE_TEST(root+directory+decomp, /DIRECTORY) 
-        if result eq 0 then file_mkdir,root+directory+decomp
-        fits_read,root+directory+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
-;        if setup.bin_datacube eq 'n' then readcol,root+directory+decomp+slices_dir+'info.txt',format='X,F',info
-;        readcol,root+directory+decomp+slices_dir+'info.txt',format='X,F',info
+        result = FILE_TEST(root+decomp, /DIRECTORY) 
+        if result eq 0 then file_mkdir,root+decomp
+        fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
 endif
 
 
@@ -1272,8 +1021,10 @@ endif
 
 
 if setup.bin_datacube eq 'y' then begin
-    output=root+directory
-    bin_datacube_test,corrected_IFU, no_bins, root,directory,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,/galaxy,/PSF,/MANGA
+    output=root
+    bin_datacube,corrected_IFU, no_bins, root,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,$
+      file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,$
+      psf_file,/galaxy,/PSF,/MANGA
 endif
 
 ;2a. Download and decompose an sdss image of the galaxy
@@ -1281,7 +1032,7 @@ endif
 ;   Take the median value for each pixel in the x and y plane 
 ;   within the wavelength range stipulated above
 
-if decompose eq 'y' then readcol,root+directory+decomp+slices_dir+'info.txt',format='X,F',info
+if decompose eq 'y' then readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
 
 
 
@@ -1295,32 +1046,53 @@ if setup.decompose_median_image eq 'y' then begin
   for j=0,x-1,1 do begin
     for k=0,y-1,1 do begin
       if corrected_IFU[j,k,100] eq 0 then mean=0 $
-          else RESISTANT_Mean,corrected_IFU[j,k,info[0]:info[1]], 3, mean;, meansig, num ;3 Sigma clipping 
+          else RESISTANT_Mean,corrected_IFU[j,k,info[0]+500:info[1]-500], 3, mean
       median_image[j,k]=mean
       
     endfor
   endfor
   
-  result = FILE_TEST(root+directory+decomp+median_dir, /DIRECTORY) 
-  if result eq 0 then file_mkdir,root+directory+decomp+median_dir
-  ;h = headfits(root+directory+galaxy_ref+'-LOGCUBE.fits');,exten='FLUX')
+  result = FILE_TEST(root+decomp+median_dir, /DIRECTORY) 
+  if result eq 0 then file_mkdir,root+decomp+median_dir
+  ;h = headfits(root+galaxy_ref+'-LOGCUBE.fits');,exten='FLUX')
 
-  fits_read,root+directory+file+'.fits',crap,h
+  fits_read,root+file+'.fits',temp_input,h
+  
+  
+;  mkhdr, hdr0,median_image;,/IMAGE
+;  
+;  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+;  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
+  fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image;,hdr0
+  
+  
+  mkhdr, hdr0,median_image
+  
 
-;  fits_write, root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,h
-  spawn,'cp /Users/ejohnsto/Manga/7443-9102_ss/IFU_decomp/median_image/manga-7443-9102_median_image.fits '+root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits'
-  modfits,root+directory+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image
+  sxaddpar,hdr0,'SIMPLE','T',before='BITPIX'
+  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
+
+  
+  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',0,hdr0
+  
+
+  
+  
+  
+  ;fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,h
+  ;modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image
   scale=[abs(sxpar(h,'CD1_1')*3600),abs(sxpar(h,'CD2_2')*3600)]
   
-  ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
   
-  badpixelmask, root+directory+decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir
+  ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
+  badpixelmask, root+decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir
   
   ;write a constraints file, initially constraining the centres of the bulge 
   ;and disc fits to be together
   
-  ;constraints,root+directory+decomp,binned_dir,slices_dir,median_dir,/single
-  if n_comp gt 1000 then constraints,root+directory+decomp,binned_dir,slices_dir,median_dir,n_comp,constraints,/double
+  ;constraints,root+decomp,binned_dir,slices_dir,median_dir,/single
+  if n_comp gt 1000 then constraints,root+decomp,binned_dir,slices_dir,median_dir,n_comp,constraints,/double
 
 
   
@@ -1329,15 +1101,15 @@ if setup.decompose_median_image eq 'y' then begin
   
   
   ;run initially for a single Sersic fit
-  output=root+directory+decomp
+  output=root+decomp
   
     crash_test1= file_search(output+median_dir+'imgblock_single.galfit.*',COUNT=nfiles1)
     if nfiles1 gt 0 then spawn,'rm '+output+median_dir+'imgblock_single.galfit.*'
     print,'*Now running Galfitm on single image with a single Sersic fit*'
     galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-                        y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,$
+                        y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,$
                         estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,/median,/single
-    CD,root+directory+decomp+median_dir
+    CD,root+decomp+median_dir
     if n_comp eq 1000 then spawn,galfitm+' galfitm_single.feedme' 
 
   
@@ -1347,23 +1119,28 @@ if setup.decompose_median_image eq 'y' then begin
     crash_test1= file_search(output+median_dir+'imgblock_double.galfit.*',COUNT=nfiles1)
     if nfiles1 gt 0 then spawn,'rm '+output+median_dir+'imgblock_double.galfit.*'
     galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-                        y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,$
+                        y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,$
                         estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,/median,/double
-    CD,root+directory+decomp+median_dir
+    CD,root+decomp+median_dir
     spawn,galfitm+' galfitm_double.feedme' 
   endif
-  CD,root+directory
+  CD,root
   
 endif
 
 ;3a. Read in the imgblock for the median image to get initial parameters.
 ;3b. Prepare galfitm readme file and run galfitm with all free parameters
 
+
+
+
+
+
 if setup.decompose_binned_images eq 'y' then begin
-  output=root+directory+decomp
-;  crash_test1= file_search(output+binned_dir+'imgblock.*',COUNT=nfiles1)
-;  if nfiles1 gt 0 then spawn,'mv '+output+binned_dir+'imgblock.*'
+  output=root+decomp
   
+  fits_read,root+file+'.fits',temp_input,h
+  scale=[abs(sxpar(h,'CD1_1')*3600),abs(sxpar(h,'CD2_2')*3600)]
   
   ;test to determine the polynomials for each parameter.
   ;run once with all parameters free, then ask the user
@@ -1375,12 +1152,12 @@ if setup.decompose_binned_images eq 'y' then begin
     comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
       
     ;test if a free fit has already been carried out
-    result=file_test(root+directory+decomp+binned_dir+'imgblock_free.fits')
+    result=file_test(root+decomp+binned_dir+'imgblock_free.fits')
     if result eq 1 and rep eq 1 then rep=2
     
     if rep eq 1 then $
       galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
+          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
           galfitm,rep,/binned,/header;file
     
@@ -1400,7 +1177,7 @@ if setup.decompose_binned_images eq 'y' then begin
       if decision eq 'q' then rep=999
       if decision eq 'a' then begin
         galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
+          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
           galfitm,rep,/binned,/file
       endif
@@ -1421,7 +1198,7 @@ if setup.decompose_binned_images eq 'y' then begin
 
         
         galfitm_multiband,output,binned_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
+          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
           galfitm,rep,/binned,/header
         
@@ -1430,7 +1207,7 @@ if setup.decompose_binned_images eq 'y' then begin
     
     if rep ne 999 then begin  
     
-      CD,root+directory+decomp+binned_dir;decomp+median_dir
+      CD,root+decomp+binned_dir
       spawn,'pwd'
       print,'*Now running Galfitm on multi-band images*'
       
@@ -1449,25 +1226,34 @@ if setup.decompose_binned_images eq 'y' then begin
       ;plot summary of results to screen
       nband=info[2]
       if rep gt 1 then begin
-        if n_comp eq 1000 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1100 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1101 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1101 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
         
-        else if n_comp eq 1010  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1010  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+binned_dir+'imgblock.fits', nband, bd=0) 
+        if setup.disk_type eq 'Sersic' then setup.disk_type='sersic' 
+        if setup.bulge_type eq 'Sersic' then setup.bulge_type='sersic' 
+        if setup.comp3_type eq 'Sersic' then setup.comp3_type='sersic' 
+        if setup.comp4_type eq 'Sersic' then setup.comp4_type='sersic' 
+        if setup.disk_type eq 'PSF' then setup.disk_type='psf' 
+        if setup.bulge_type eq 'PSF' then setup.bulge_type='psf' 
+        if setup.comp3_type eq 'PSF' then setup.comp3_type='psf' 
+        if setup.comp4_type eq 'PSF' then setup.comp4_type='psf' 
+        if n_comp eq 1000 then res=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1101 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1101 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        
+        else if n_comp eq 1010  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1010  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) 
       
       
         Re_disk=res.RE_GALFIT_BAND_D
@@ -1486,25 +1272,25 @@ if setup.decompose_binned_images eq 'y' then begin
       endif
       
 ;      if rep eq 1 then begin
-        if n_comp eq 1000 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1100 then res=read_sersic_results_2comp(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1101 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1101 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        if n_comp eq 1000 then res=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1101 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1101 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         
-        else if n_comp eq 1010  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1010  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
-        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+directory+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) 
+        else if n_comp eq 1010  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1010  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
+        else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) 
         
         
         Re_disk1=res.RE_GALFIT_BAND_D
@@ -1610,7 +1396,7 @@ if setup.decompose_binned_images eq 'y' then begin
           
           
       set_plot,'ps'
-      device,file=root+directory+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
+      device,file=root+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
       !P.thick=2
       !p.charthick=2
       !p.charsize=1
@@ -1621,12 +1407,12 @@ if setup.decompose_binned_images eq 'y' then begin
     
       x1=3500
       x2=10500
-      if n_comp ge 1100 then plot,mag_bulge1,yrange=[min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,max([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
+      if n_comp ge 1100 then plot,mag_bulge1,yrange=[max([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,min([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
         /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
         ytitle='m!ITot!N',title='Bulge'
       if n_comp ge 1100 and rep gt 1 then oplot,mag_bulge,linestyle=0
       multiplot
-      plot,mag_disk1,yrange=[min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,max([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
+      plot,mag_disk1,yrange=[max([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,min([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
         /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Disc'
       if rep gt 1 then oplot,mag_disk,linestyle=0
       multiplot
@@ -1671,10 +1457,15 @@ if setup.decompose_binned_images eq 'y' then begin
       if rep gt 1 then oplot,q_disk,linestyle=0
       multiplot,/reset,/default
       device,/close      
-      CD,root+directory
+      CD,root
       
       
       ;user inpiut to determine if polynomials are ok
+      print,'******************************************************'
+      print,'The latest fit has been plotted and saved as'
+      print,root+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps'
+      print,'******************************************************'
+      
       decision='0'
       while decision ne 'y' and decision ne 'n' do $
         READ, decision, PROMPT='Are you happy with your current polynomial fits? [y/n]: '
@@ -1729,17 +1520,17 @@ endif
 ;4b. Prepare galfitm readme file and run galfitm with all free parameters
 
 if setup.decompose_image_slices eq 'y' then begin
-  output=root+directory+decomp
+  output=root+decomp
   comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
   galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-    y_centre,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
+    y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
     disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,galfitm,/slices
 
-  result = FILE_TEST(root+directory+decomp+slices_dir+'galfit.*') 
-  if result eq 1 then spawn,'rm '+root+directory+decomp+slices_dir+'galfit.*'
+  result = FILE_TEST(root+decomp+slices_dir+'galfit.*') 
+  if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
   
   
-  CD,root+directory+decomp+slices_dir;decomp+median_dir
+  CD,root+decomp+slices_dir;decomp+median_dir
   spawn,'pwd'
   print,'*Now running Galfitm on image_slices*'
   spawn,'chmod a+x run_galfitm.sh'
@@ -1747,7 +1538,7 @@ if setup.decompose_image_slices eq 'y' then begin
   spawn,'./run_galfitm.sh'
   print,'***Note: PSF binning and implementation has not yet been coded***'
   
-  CD,root+directory
+  CD,root
  
 endif
 ;  print,'if you see this, then Im testing where the code has hung'
@@ -1757,29 +1548,29 @@ endif
 if setup.create_subcomps eq 'y' then begin
 ;  print,'if you see this, then the code has not hung'
 
-  subcomps,root+directory+decomp,slices_dir,decomp,info,no_slices,n_comp,setup.comp3_type,setup.comp4_type,wavelength,galfitm,/MANGA
+  subcomps,root+decomp,slices_dir,decomp,info,no_slices,n_comp,setup.comp3_type,setup.comp4_type,wavelength,galfitm,/MANGA
 
-  CD,root+directory+decomp+slices_dir;+'models/';decomp+median_dir
+  CD,root+decomp+slices_dir;+'models/';decomp+median_dir
   spawn,'pwd'
   print,'*Now running Galfitm -o3 to get subcomps*'
   spawn,'chmod a+x run_subcomps.sh'
   spawn,'./run_subcomps.sh'
   
-  CD,root+directory
+  CD,root
 endif
 
 ;6. create bulge and disc data cubes
 
 ;need to make sure the code can identify where no subcomps file exists, 
 ;say in the case that galfitm crashes for that feedme file
-if setup.create_decomposed_cubes eq 'y' then datacube_creator,root,directory,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,setup.comp3_type,setup.comp4_type,no_slices,wavelength,/MANGA
+if setup.create_decomposed_cubes eq 'y' then datacube_creator,root,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,setup.comp3_type,setup.comp4_type,no_slices,wavelength,/MANGA
 
 
 ;7. Analysis of the datacubes.
 ;7a. Use datacubes to create !D bulge and disc spectra, and ps file to visualise results.
 ;
 
-if setup.visualise_results eq 'y' then result_visualiser_2,root,directory,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
+if setup.visualise_results eq 'y' then result_visualiser_2,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
 
 
 

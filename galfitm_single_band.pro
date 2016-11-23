@@ -9,7 +9,7 @@
 ;  DOUBLE keyword- to be used for double Sersic fit
 ;
 pro Galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-  y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
+  y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
   n_comp,disc_n_poly,bulge_n_poly,MEDIAN=median, SLICES=slices, SINGLE=single,$
   DOUBLE=double
   
@@ -56,7 +56,7 @@ if keyword_set(single) then  printf, 60, 'G) none                # File with par
 if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
   printf, 60, 'H) 1    '+string(x,format='(I3.3)')+'   1  '+string(y,format='(I3.3)')+'    # Image region to fit (xmin xmax ymin ymax)'
   printf, 60, 'I) '+string(x,format='(I3.3)')+'    '+string(x,format='(I3.3)')+'          # Size of the convolution box (x y)'
-  printf, 60, 'J) 15.0              # Magnitude photometric zeropoint '
+  printf, 60, 'J) '+string(magzpt,format='(F4.1)')+'            # Magnitude photometric zeropoint '
   printf, 60, 'K) '+string(scale[0],format='(F4.2)')+'    '+string(scale[1],format='(F4.2)')+'      # Plate scale (dx dy)    [arcsec per pixel]'
   printf, 60, 'O) regular             # Display type (regular, curses, both)'
   printf, 60, 'P) 0                   # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps'
@@ -87,7 +87,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
 
   printf, 60, '# Object number: 1'
   printf, 60, ' 0) sky                    #  object type'
-  printf, 60, '  1) 0.00   1 band #  sky background at center of fitting region [ADUs]'
+  printf, 60, '  1) 0   1 band #  sky background at center of fitting region [ADUs]'
   printf, 60, '  2) 0      0 band  #  dsky/dx (sky gradient in x)'
   printf, 60, '  3) 0      0 band  #  dsky/dy (sky gradient in y)'
   printf, 60, '  Z) 0                      #  output option (0 = resid., 1 = Dont subtract) '
@@ -131,40 +131,13 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
     endif  
   endif
   if keyword_set(DOUBLE) then begin 
-      res=read_sersic_results_2comp(output+median_dir+'imgblock_single.fits', 1, bd=0)
+;      res=read_sersic_results_2comp(output+median_dir+'imgblock_single.fits', 1, bd=0)
       
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
        
-;      printf, 60, '# Object number: 2'    ;disc
-;      printf, 60, ' 0) sersic                 #  object type'
-;      printf, 60, ' 1) '+string(res.X_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position x, y'
-;      printf, 60, ' 2) '+string(res.Y_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position x, y'
-;      printf, 60, ' 3) '+string(0.75+res.MAG_GALFIT_BAND,format='(F06.2)')+'        1 band  #  Integrated magnitude' 
-;      printf, 60, ' 4) '+string(1.2*res.RE_GALFIT_BAND,format='(F07.2)')+'   1 band  #  R_e (half-light radius)   [pix]'
-;      printf, 60, ' 5) 1.0             0 band  #  Sersic index n (de Vaucouleurs n=4) '
-;      printf, 60, ' 9) '+string(res.Q_GALFIT_BAND,format='(F06.2)')+'        1 band  #  axis ratio (b/a)  '
-;      printf, 60, '10) '+string(res.PA_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
-;      printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-;      
-;      printf, 60, ' '
-;      printf, 60, ' '
-;      printf, 60, ' '
-;      printf, 60, ' '
-;     
-;      printf, 60, ' # Object number: 3   '    ;bulge
-;      printf, 60, '   0) sersic                 #  object type'
-;      printf, 60, ' 1) '+string(res.X_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position x, y'
-;      printf, 60, ' 2) '+string(res.Y_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position x, y'
-;      printf, 60, ' 3) '+string(0.75+res.MAG_GALFIT_BAND,format='(F06.2)')+'        1 band  #  Integrated magnitude' 
-;      printf, 60, ' 4) '+string(0.5*res.RE_GALFIT_BAND,format='(F06.2)')+'   1 band  #  R_e (half-light radius)   [pix]'
-;      printf, 60, ' 5) '+string(res.N_GALFIT_BAND,format='(F06.2)')+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
-;      printf, 60, ' 9) '+string(res.Q_GALFIT_BAND,format='(F06.2)')+'        1 band  #  axis ratio (b/a)  '
-;      printf, 60, '10) '+string(res.PA_GALFIT_BAND,format='(F06.2)')+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
-;      printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-;      printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
   
   
       printf, 60, '# Object number: 2'    ;disc
@@ -177,7 +150,6 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       printf, 60, ' 9) '+string(estimates_disk[4])+'   1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+string(estimates_disk[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-      ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
 
       printf, 60, ' '
       printf, 60, ' '

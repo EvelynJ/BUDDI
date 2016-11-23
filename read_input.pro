@@ -28,7 +28,6 @@ PRO read_input, setup_file, setup
   ; the CASE keyword.
   ; 
   setup = create_struct('root', '', $
-                        'directory', '', $
                         'galaxy_ref', '', $
                         'file', '', $
                         'kinematics', '', $
@@ -36,10 +35,8 @@ PRO read_input, setup_file, setup
                         'median_dir', '', $
                         'binned_dir', '', $
                         'slices_dir', '', $
-                        'loglin', '', $
                         'psf_file', '', $
                         'stellib_dir','',$
-                        'galfit', '', $
                         'galfitm', '', $
                         'x_centre', 0., $
                         'y_centre', 0., $
@@ -49,7 +46,8 @@ PRO read_input, setup_file, setup
                         'Redshift', 0., $
                         'PA', 0., $
                         'central_wavelength', 0., $
-                        'emission_yn','',$
+                        'wave0', 0., $
+                        'step', 0., $
                         'start_wavelength', 0., $
                         'end_wavelength', 0., $
                         'no_bins', 0., $
@@ -68,6 +66,7 @@ PRO read_input, setup_file, setup
                         'visualise_results', '', $
                         'n_comp', 0., $
                         'constraint', '', $
+                        'magzpt', 0, $
                         'disk_type', '', $
                         'disk_mag', 0., $
                         'disk_re', 0., $
@@ -147,7 +146,6 @@ PRO read_input, setup_file, setup
 ;CHANGE=====have to trigger bad input / proper filenames
         
         'A00)': setup.root = content
-        'A01)': setup.directory = content
         'A02)': setup.galaxy_ref = content
         'A03)': setup.file = content
         'A04)': setup.kinematics = content
@@ -157,10 +155,8 @@ PRO read_input, setup_file, setup
         'A08)': setup.slices_dir = content
         'A09)': setup.psf_file = content
         'A10)': setup.stellib_dir = content
-        'A11)': setup.loglin = content
         
-        'B00)': setup.galfit = content
-        'B01)': setup.galfitm = content
+        'B00)': setup.galfitm = content
          
         'C00)': setup.x_centre = float(content)
         'C01)': setup.y_centre = float(content)
@@ -170,12 +166,13 @@ PRO read_input, setup_file, setup
         'C05)': setup.Redshift = float(content)
         'C06)': setup.PA = float(content)
         'C07)': setup.central_wavelength = float(content)
-        'C08)': setup.emission_yn = content
         
-        'D00)': setup.start_wavelength = float(content)
-        'D01)': setup.end_wavelength = float(content)
-        'D02)': setup.no_bins = float(content)
-        'D03)': setup.no_slices = float(content)
+        'D00)': setup.wave0 = float(content)
+        'D01)': setup.step = float(content)
+        'D03)': setup.start_wavelength = float(content)
+        'D04)': setup.end_wavelength = float(content)
+        'D05)': setup.no_bins = float(content)
+        'D06)': setup.no_slices = float(content)
         
         'E00)': setup.bin_data = content
         'E01)': setup.measure_kinematics = content
@@ -196,6 +193,7 @@ PRO read_input, setup_file, setup
         
         'F00)': setup.n_comp = float(content)
         'F01)': setup.constraint = content
+        'F02)': setup.magzpt = content
         
         'F10)': setup.disk_type = content
         'F11)': setup.disk_mag = float(content)
