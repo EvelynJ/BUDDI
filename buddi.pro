@@ -1563,6 +1563,7 @@ endif
 
 ;need to make sure the code can identify where no subcomps file exists, 
 ;say in the case that galfitm crashes for that feedme file
+
 if setup.create_decomposed_cubes eq 'y' then datacube_creator,root,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,setup.comp3_type,setup.comp4_type,no_slices,wavelength,/MANGA
 
 
@@ -1570,10 +1571,10 @@ if setup.create_decomposed_cubes eq 'y' then datacube_creator,root,decomp,kinema
 ;7a. Use datacubes to create !D bulge and disc spectra, and ps file to visualise results.
 ;
 
-if setup.visualise_results eq 'y' then result_visualiser_2,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
+if setup.visualise_results eq 'y' then result_visualiser,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
 
 
 
-print,'*** Code has finished running. You can now check out your cool spectra***'
+print,'*** Code has finished running***'
 end
 

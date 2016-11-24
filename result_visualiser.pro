@@ -213,7 +213,7 @@ device,file=root+decomp+'decomposed_data/Spectra_integrated.eps',/landscape;,xsi
 !p.charsize=1.3
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-end_wavelength=10000;7000
+;end_wavelength=10000;7000
 
 plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
     xrange=[start_wavelength-100,end_wavelength+100],$
@@ -337,7 +337,7 @@ device,file=root+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,x
 !p.charsize=1.0
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
-end_wavelength=10300;6900
+;end_wavelength=10300;6900
 
 
 
@@ -380,15 +380,12 @@ Mgb_new=5177+(5177*Redshift)
 Fe5335_new=5335+(5335*Redshift)
 Fe5270_new=5270+(5270*Redshift)
 Na_new= 5895.92+(5895.92*Redshift)
+CaII_new=3934+(3934*Redshift)
+CaII2_new= 8542.09+(8542.09*Redshift)
+Pae_new= 9546+(9546*Redshift)
+Paz_new= 9229+(9229*Redshift)
 
 
-;oplot,[Ha_new,Ha_new],[-5,5],linestyle=1
-;oplot,[Hb_new,Hb_new],[-5,5],linestyle=1
-;oplot,[Hg_new,Hg_new],[-5,5],linestyle=1
-;oplot,[Hd_new,Hd_new],[-5,5],linestyle=1
-;oplot,[Mgb_new,Mgb_new],[-5,5],linestyle=1
-;oplot,[Fe5335_new,Fe5335_new],[-5,5],linestyle=1
-;oplot,[Fe5270_new,Fe5270_new],[-5,5],linestyle=1
 
 a=where(wavelength ge Ha_new)
 b=where(wavelength ge Hb_new)
@@ -398,15 +395,47 @@ e=where(wavelength ge Mgb_new)
 f=where(wavelength ge Fe5335_new)
 g=where(wavelength ge Fe5270_new)
 h=where(wavelength ge Na_new)
+i=where(wavelength ge CaII_new)
+j=where(wavelength ge CaII2_new)
+k=where(wavelength ge Pae_new)
+l=where(wavelength ge Paz_new)
 
-aa=mean((orig_1D[a[0]-30:a[0]+30]/median(orig_1D)))+0.2
-bb=mean((orig_1D[b[0]-30:b[0]+30]/median(orig_1D)))+0.2
-cc=mean((orig_1D[c[0]-30:c[0]+30]/median(orig_1D)))+0.2
-dd=mean((orig_1D[d[0]-30:d[0]+30]/median(orig_1D)))+0.2
-ee=mean((orig_1D[e[0]-30:e[0]+30]/median(orig_1D)))+0.2
-ff=mean((orig_1D[f[0]-30:f[0]+30]/median(orig_1D)))+0.2
-gg=mean((orig_1D[g[0]-30:g[0]+30]/median(orig_1D)))+0.2
-hh=mean((orig_1D[h[0]-30:h[0]+30]/median(orig_1D)))+0.2
+if a[0]-30 gt 0 and a[0]+30 lt n_elements(orig_1D)-1 then $
+  aa=mean((orig_1D[a[0]-30:a[0]+30]/median(orig_1D)))+0.2 $
+  else aa=-1000
+if b[0]-30 gt 0 and b[0]+30 lt n_elements(orig_1D)-1 then $
+  bb=mean((orig_1D[b[0]-30:b[0]+30]/median(orig_1D)))+0.2 $
+  else bb=-1000
+if c[0]-30 gt 0 and c[0]+30 lt n_elements(orig_1D)-1 then $
+  cc=mean((orig_1D[c[0]-30:c[0]+30]/median(orig_1D)))+0.2 $
+  else cc=-1000
+if d[0]-30 gt 0 and d[0]+30 lt n_elements(orig_1D)-1 then $
+  dd=mean((orig_1D[d[0]-30:d[0]+30]/median(orig_1D)))+0.2 $
+  else dd=-1000
+if e[0]-30 gt 0 and e[0]+30 lt n_elements(orig_1D)-1 then $
+  ee=mean((orig_1D[e[0]-30:e[0]+30]/median(orig_1D)))+0.2 $
+  else ee=-1000
+if f[0]-30 gt 0 and f[0]+30 lt n_elements(orig_1D)-1 then $
+  ff=mean((orig_1D[f[0]-30:f[0]+30]/median(orig_1D)))+0.2 $
+  else ff=-1000
+if g[0]-30 gt 0 and g[0]+30 lt n_elements(orig_1D)-1 then $
+  gg=mean((orig_1D[g[0]-30:g[0]+30]/median(orig_1D)))+0.2 $
+  else gg=-1000
+if h[0]-30 gt 0 and h[0]+30 lt n_elements(orig_1D)-1 then $
+  hh=mean((orig_1D[h[0]-30:h[0]+30]/median(orig_1D)))+0.2 $
+  else hh=-1000
+if i[0]-30 gt 0 and i[0]+30 lt n_elements(orig_1D)-1 then $
+  ii=mean((orig_1D[i[0]-30:i[0]+30]/median(orig_1D)))+0.2 $
+  else ii=-1000
+if j[0]-30 gt 0 and j[0]+30 lt n_elements(orig_1D)-1 then $
+  jj=mean((orig_1D[j[0]-30:j[0]+30]/median(orig_1D)))+0.2 $
+  else jj=-1000
+if k[0]-30 gt 0 and k[0]+30 lt n_elements(orig_1D)-1 then $
+  kk=mean((orig_1D[k[0]-30:k[0]+30]/median(orig_1D)))+0.2 $
+  else kk=-1000
+if l[0]-30 gt 0 and l[0]+30 lt n_elements(orig_1D)-1 then $
+  ll=mean((orig_1D[l[0]-30:l[0]+30]/median(orig_1D)))+0.2 $
+  else ll=-1000
 
 
 xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
@@ -417,40 +446,43 @@ xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
 xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
 xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
 xyouts,Na_new-30,hh,'Na D',charsize=0.9
+;xyouts,CaII_new-30,0.95,'Ca II',charsize=0.9
+xyouts,CaII_new-30,ii,'Ca II',charsize=0.9
+xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
 
 ;!p.multi=0
 device,/close
 
 
-
-set_plot,'ps'
-;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
-!P.thick=3 
-!p.charthick=3 
-!p.charsize=1.0 
-!p.multi=0;[0,1,4]
-;start_wavelength=4600
-end_wavelength=10300  
-
-plot,wavelength,resid_sky_1D/median(orig_1D),$
-    xrange=[start_wavelength-100,end_wavelength+100],$
-    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
-   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
-    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
-
-
-xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
-xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
-xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
-xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
-xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
-xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
-xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
-xyouts,Na_new-30,hh,'Na D',charsize=0.9
-
-;!p.multi=0
-device,/close
+;
+;set_plot,'ps'
+;;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
+;device,file=root+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+;!P.thick=3 
+;!p.charthick=3 
+;!p.charsize=1.0 
+;!p.multi=0;[0,1,4]
+;;start_wavelength=4600
+;end_wavelength=10300  
+;
+;plot,wavelength,resid_sky_1D/median(orig_1D),$
+;    xrange=[start_wavelength-100,end_wavelength+100],$
+;    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+;   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
+;    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+;
+;
+;xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
+;xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
+;xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
+;xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
+;xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
+;xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
+;xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
+;xyouts,Na_new-30,hh,'Na D',charsize=0.9
+;
+;;!p.multi=0
+;device,/close
 
 
 end
