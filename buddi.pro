@@ -266,17 +266,11 @@ if setup.bin_data eq 'y' then begin
   ; *** Apply voronoi binning to the image
   readcol,root+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#',/SILENT
   
-  ; Load a colortable and open a graphic window
-;  set_plot,'x'
-;  Device, Decomposed=0
-;  loadct, 5
-;  ;r = GET_SCREEN_SIZE()      ;ubuntu laptop
-;  device,get_screen_size=r    ;macbook
-;  window, xsize=r[0]*0.4, ysize=r[1]*0.8
   
   ; Perform the actual computation. The vectors
   ; (binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale)
   ; are all generated in *output*
+  
   voronoi_2d_binning, xpix, ypix, signal, noise, targetSN, $
       binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,galaxy_ref, /QUIET;,/PLOT
   

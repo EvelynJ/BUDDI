@@ -271,6 +271,7 @@ good = bytarr(n)  ; will contain 1 if the bin has been accepted as good
 ; For each point, find the distance to all other points and select the minimum.
 ; This is a robust but slow way of determining the pixel size of unbinned data.
 ;
+;stop
 if n_elements(pixelSize) eq 0 then $
     pixelSize = min(distance_measure( transpose([[x],[y]]) ))
 
@@ -286,6 +287,7 @@ maxnum = round(total((signal[w]/noise[w])^2)/targetSN^2) + nc
 ; The first bin will be assigned CLASS = 1
 ; With N pixels there will be at most N bins
 ;
+
 for ind=1,n do begin
 
     if not keyword_set(quiet) then print, ind, maxnum, FORMAT='(%"Bin:  %d / %d")'
@@ -557,6 +559,8 @@ if min(signal/noise) gt targetSN then $
 noise = noise > min(noise[where(noise gt 0)])*1e-9
 
 print, 'Bin-accretion...'
+;stop
+pixelSize=1
 bin2d_accretion, x, y, signal, noise, targetSN, class, pixelSize, QUIET=quiet
 print, strtrim(max(class),2), ' initial bins.'
 print, 'Reassign bad bins...'
