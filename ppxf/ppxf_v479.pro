@@ -851,10 +851,11 @@ print,velscale
 p = 0
 for j=0,ncomp-1 do begin
     start1 = start[0:1,j]/velScale  ; Convert velocity scale to pixels
-    parinfo[0+p].limits = start1[0] + [-2d3,2d3]/velScale ; +/-2000 km/s from first guess
+    parinfo[0+p].limits = start1[0] + [-5d3,5d3]/velScale ; +/-2000 km/s from first guess
     parinfo[1+p].limits = [0.1d,1d3/velScale] ; hard-coded velScale/10<sigma<1000 km/s
     parinfo[[0,1]+p].value = start1
     parinfo[[0,1]+p].step = 1d-2
+    
     if s1[1] le 2*(abs(vsyst/velScale + start1[0]) + 5d*start1[1]) then $
         message, 'Velocity shift too big: Adjust wavelength ranges of spectrum and templates'
     if moments[j] lt 0 then begin

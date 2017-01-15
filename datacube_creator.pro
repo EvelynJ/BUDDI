@@ -49,7 +49,6 @@ if galfit_or_galfitm eq 'galfitm' then begin
       ;For bulge and disc, read in the fits file, the try to select every 
       ;third image (change when I include the PSF fit) after the first
       ;50 to go into the bulge or disc arrays. 
-      
       tempy=file_search(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits',COUNT=nfiles_subcomps)
       result=file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
       

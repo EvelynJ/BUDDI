@@ -37,6 +37,7 @@ PRO read_input, setup_file, setup
                         'slices_dir', '', $
                         'psf_file', '', $
                         'stellib_dir','',$
+                        'badpix_file','',$
                         'galfitm', '', $
                         'x_centre', 0., $
                         'y_centre', 0., $
@@ -155,6 +156,7 @@ PRO read_input, setup_file, setup
         'A08)': setup.slices_dir = content
         'A09)': setup.psf_file = content
         'A10)': setup.stellib_dir = content
+        'A11)': setup.badpix_file = content
         
         'B00)': setup.galfitm = content
          

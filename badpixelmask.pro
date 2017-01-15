@@ -8,7 +8,8 @@
 ; images (Nov 2014)
 ; 
 
-pro badpixelmask, directory, galaxy_ref, badpix, binned_dir, median_dir, slices_dir
+pro badpixelmask, root,decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir,badpix_file
+directory=root+decomp
 fits_read,directory+galaxy_ref+'_smoothed_kinematics.fits', spec_in, header1
 ;fits_read,directory+decomp+median_dir+galaxy_ref+'_median_image.fits', spec_in, header1
 side1=sxpar(header1,'NAXIS1')
@@ -44,6 +45,18 @@ for x=0,side1-1,1 do begin
   endfor
 endfor
 
+if file_test(root+badpix_file) eq 1 then begin
+  print,'***YESYESYESYESYES***'
+ 
+  readcol,root+badpix_file,format='f,f',x_bad,y_bad,comment='#',/SILENT
+  for j=0,n_elements(x_bad)-1,1 do begin
+    printf,55,x_bad+1,y_bad+1
+    printf,56,x_bad+1,y_bad+1
+    printf,57,x_bad+1,y_bad+1
+    badpix[x_bad,y_bad]=1
+    
+  endfor
+endif
 
 fits_write,directory+binned_dir+'badpix.fits',badpix
 fits_write,directory+slices_dir+'badpix.fits',badpix

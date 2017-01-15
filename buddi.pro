@@ -32,7 +32,7 @@ S_N_array=fltarr(x,y)
 close,01
 openw,01,root+galaxy_ref+'_S_N_array.txt'
 printf,01,'##########################################################################'
-printf,01,'#          Xpix           Ypix               Signal              noise'
+printf,01,'#          Xpix           Ypix               Signal              noise               S/N '
 printf,01,'##########################################################################'
 
 close,11
@@ -53,8 +53,8 @@ if xy[0] ne -100 and xy[1] ne -100 then background_source='y' else background_so
 
 for column=0,x-1,1 do begin
   for row=0,y-1,1 do begin
-    Signal=mean(cont_array[column,row,*])
-    noise=stddev(cont_array[column,row,*])
+    Signal=mean(cont_array[column,row,*]);/100
+    noise=stddev(cont_array[column,row,*]);/100
     ;if directory eq 'Commissioning_12701/' and row-y_centre ge 17 then Signal=0
     S_N=Signal/noise
     S_N_array[column,row]=S_N
@@ -65,13 +65,17 @@ for column=0,x-1,1 do begin
           noise=1
           ;print,column-x_centre,row-y_centre,Signal,noise
     endif
+;    if Signal eq 0 then begin
+;      Signal=0.0001
+;      noise=1
+;    endif    
     S_N=Signal/noise
     S_N_array[column,row]=S_N
     
     
-    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.2)'
+    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,Signal/noise,format='(2f16.5,3f20.4)'
     if S_N gt 0 then printf,11,column-x_centre,row-y_centre,format='(2f16.5)'
-    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.2)'
+    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.4)'
     
   endfor
 endfor
@@ -138,7 +142,7 @@ targetSN=setup.targetSN               ;target S/N value for binning
 Redshift=setup.Redshift               ;value from NED after doing an position search
 PA=setup.PA                     ;kinematic Position Angle of galaxy (from NED)
 central_wavelength=setup.central_wavelength     ;central wavelength of spectrum for kinematics corrections
-
+badpix_file=setup.badpix_file
 
 ;*** Set wavelength range for decomposition
 start_wavelength=setup.start_wavelength       ;start wavelength for decomposition
@@ -266,11 +270,18 @@ if setup.bin_data eq 'y' then begin
   ; *** Apply voronoi binning to the image
   readcol,root+galaxy_ref+'_S_N_array.txt',format='F,F,F,F',Xpix,Ypix,signal,noise,comment='#',/SILENT
   
+  ; Load a colortable and open a graphic window
+;  set_plot,'x'
+;  Device, Decomposed=0
+;  loadct, 5
+;  ;r = GET_SCREEN_SIZE()      ;ubuntu laptop
+;  device,get_screen_size=r    ;macbook
+;  window, xsize=r[0]*0.4, ysize=r[1]*0.8
   
   ; Perform the actual computation. The vectors
   ; (binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale)
   ; are all generated in *output*
-  
+  ;signal/10 for victors datacubes
   voronoi_2d_binning, xpix, ypix, signal, noise, targetSN, $
       binNum, xnde, ynde, xBar, yBar, sn, nPixels, scale, root,galaxy_ref, /QUIET;,/PLOT
   
@@ -618,7 +629,7 @@ if setup.plot_kinematics eq 'y' then begin
 ;read in pixel scale in x and y directions from file header
   fits_read,root+file+'.fits',input_IFU,header_IFU
   x_scale=abs(sxpar(header_IFU,'CD1_1')*3600)      ;*3600 to convert to arcsec
-  y_scale=abs(sxpar(header_IFU,'CD2_2')*3600)
+  y_scale=0.2;abs(sxpar(header_IFU,'CD2_2')*3600)
   
 
 ;calculate distance of each bin from the centre of the galaxy, taking 
@@ -641,8 +652,8 @@ if setup.plot_kinematics eq 'y' then begin
     ;to change 0,0 to the x and y position of galaxy.
     ;need to determine positive or negative radii depending on PA position of each bin
     if case_x eq 'case1' then begin
-      PA=PA/360*(2*!pi)           ;convert PA into radians
-      y_x=(xbar[n])*tan(PA)
+      PA_rad=PA/360*(2*!pi)           ;convert PA into radians
+      y_x=(xbar[n])*tan(PA_rad)
       if ybar[n] ge y_x then temp=temp
       if ybar[n] lt y_x then temp=-temp
     endif else begin
@@ -794,7 +805,7 @@ kinematics_sorted=kinematics_temp3[*,0:count-1]
   cgloadct,33 
   device,file=root+kinematics+galaxy_ref+'_kinematics_maps.eps',/color,xoffset=0,yoffset=0
     !p.multi=[0,2,2]
-    pixelSize=1
+    pixelSize=x_scale;1
     bin2d_display_pixels, x_new[0:count-1], y_new[0:count-1], vel_new[0:count-1], pixelSize
      cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(vel_new),maxrange=max(vel_new),title='V!ILOS!N (km/s)',position=[0.44,0.61,0.46,0.945],format='(i5)'
     bin2d_display_pixels, x_new[0:count-1], y_new[0:count-1], sigma_new[0:count-1], pixelSize
@@ -1080,7 +1091,7 @@ if setup.decompose_median_image eq 'y' then begin
   
   
   ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
-  badpixelmask, root+decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir
+  badpixelmask, root,decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir, badpix_file
   
   ;write a constraints file, initially constraining the centres of the bulge 
   ;and disc fits to be together
@@ -1104,7 +1115,7 @@ if setup.decompose_median_image eq 'y' then begin
                         y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,$
                         estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,/median,/single
     CD,root+decomp+median_dir
-    if n_comp eq 1000 then spawn,galfitm+' galfitm_single.feedme' 
+    if n_comp eq 1000 or n_comp eq 1001 then spawn,galfitm+' galfitm_single.feedme' 
 
   
   ;rerun with a double Sersic profile
@@ -1162,11 +1173,12 @@ if setup.decompose_binned_images eq 'y' then begin
       
       decision='n'
       print,'For the starting parameters, do you want to use: '
-      print,'  a) results from the median fit'
+      print,'  a) results from the input file'
       print,'  b) results from the free binned fit'
+      print,'  c) results from the median fit (not yet incorporated)'
       print,'  q) quit'
-      while decision ne 'a' and decision ne 'b' and decision ne 'q' do $
-        READ, decision, PROMPT='Please select "a", "b" or "q": '
+      while decision ne 'a' and decision ne 'b' and decision ne 'c' and decision ne 'q' do $
+        READ, decision, PROMPT='Please select "a", "b", "c" or "q": '
       
       if decision eq 'q' then rep=999
       if decision eq 'a' then begin
@@ -1174,8 +1186,7 @@ if setup.decompose_binned_images eq 'y' then begin
           y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
           galfitm,rep,/binned,/file
-      endif
-      if decision eq 'b' then begin
+      endif else if decision eq 'b' then begin
         read_input, input_file, setup
         disk_re_polynomial=setup.disk_re_polynomial
         disk_mag_polynomial=setup.disk_mag_polynomial
@@ -1196,7 +1207,13 @@ if setup.decompose_binned_images eq 'y' then begin
           disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
           galfitm,rep,/binned,/header
         
+      endif else if decision eq 'c' then begin
+        galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
+          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
+          disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
+          galfitm,1,/binned,/file
       endif
+
     endif
     
     if rep ne 999 then begin  
@@ -1262,6 +1279,13 @@ if setup.decompose_binned_images eq 'y' then begin
           pa_bulge=res.PA_GALFIT_BAND_B
           q_bulge=res.Q_GALFIT_BAND_B
         endif
+        if n_comp gt 1100 and n_comp ne 1101 then begin
+          Re_comp3=res.RE_GALFIT_BAND_COMP3
+          mag_comp3=res.MAG_GALFIT_BAND_COMP3
+          n_comp3=res.N_GALFIT_BAND_COMP3
+          pa_comp3=res.PA_GALFIT_BAND_COMP3
+          q_comp3=res.Q_GALFIT_BAND_COMP3
+        endif
         sky=res.sky_galfit_band
       endif
       
@@ -1299,95 +1323,15 @@ if setup.decompose_binned_images eq 'y' then begin
           pa_bulge1=res.PA_GALFIT_BAND_B
           q_bulge1=res.Q_GALFIT_BAND_B
         endif
+        if n_comp gt 1100 and n_comp ne 1101 then begin
+          Re_comp3_1=res.RE_GALFIT_BAND_COMP3
+          mag_comp3_1=res.MAG_GALFIT_BAND_COMP3
+          n_comp3_1=res.N_GALFIT_BAND_COMP3
+          pa_comp3_1=res.PA_GALFIT_BAND_COMP3
+          q_comp3_1=res.Q_GALFIT_BAND_COMP3
+        endif
         sky1=res.sky_galfit_band
-;      endif  
-;      endif
-      
-;      set_plot,'x'
-;      !P.thick=2
-;      !p.charthick=2
-;      !p.charsize=1
-;      !p.multi=0;[0,2,3] 
-;      
-;      multiplot, [2,5],  mXtitle='Wavelength ('+cgSymbol("angstrom")+')'
-;      symbolsize=0.5
-;    
-;      x1=3500
-;      x2=10500
-;      if n_comp ge 1100 then plot,mag_bulge1,yrange=[min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,max([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-;        ytitle='m!ITot!N',title='Bulge'
-;      if n_comp ge 1100 and rep gt 1 then oplot,mag_bulge,linestyle=0
-;      multiplot
-;      plot,mag_disk1,yrange=[min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,max([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Disc'
-;      if rep gt 1 then oplot,mag_disk,linestyle=0
-;      multiplot
-;  
-;      if n_comp ge 1100 then plot,Re_bulge1,yrange=[0,max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-;        ytitle='R!Ie!N!C(arcsec)',ytickinterval=4,yminor=4
-;      if n_comp ge 1100 and rep gt 1 then oplot,Re_bulge,linestyle=0
-;      multiplot
-;      plot,Re_disk1,yrange=[0,max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=4,yminor=4
-;      if rep gt 1 then oplot,Re_disk,linestyle=0
-;      multiplot
-;    
-;      if n_comp ge 1100 then plot,n_bulge1,yrange=[0,max([n_bulge1[1:-2],n_disk1[1:-2]])+1],$
-;        /xstyle,/ystyle,psym=sym(1),$
-;        ytitle='n',ytickinterval=2
-;      if n_comp ge 1100 and rep gt 1 then oplot,n_bulge,linestyle=0
-;      multiplot
-;      plot,n_disk1,yrange=[0,max([n_bulge1[1:-2],n_disk1[1:-2]])+1],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=2
-;      if rep gt 1 then oplot,n_disk,linestyle=0
-;      multiplot
-;    
-;      if n_comp ge 1100 then plot,pa_bulge1,yrange=[min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10,max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-;        ytitle='PA!C(degrees)',ytickinterval=20
-;      if n_comp ge 1100 and rep gt 1 then oplot,pa_bulge,linestyle=0
-;      multiplot
-;      plot,pa_disk1,yrange=[min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10,max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10],$
-;        /xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
-;      if rep gt 1 then oplot,pa_disk,linestyle=0
-;       multiplot
-;    
-;      if n_comp ge 1100 then plot,q_bulge1,yrange=[0,1],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-;        ytitle='q',ytickinterval=0.5
-;      if n_comp ge 1100 and rep gt 1 then oplot,q_bulge,linestyle=0
-;      multiplot
-;      plot,q_disk1,yrange=[0,1],$
-;        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.5
-;      if rep gt 1 then oplot,q_disk,linestyle=0
-;      multiplot,/reset,/default  
-  
-  
-  
-  
-  
-  
-  ;    if n_comp ge 1100 then plot,mag_bulge,yrange=[min(mag_bulge)-2,max(mag_bulge)+2],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Bulge mag'
-  ;    plot,mag_disk,yrange=[min(mag_disk)-2,max(mag_disk)+2],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Disk mag'
-  ;    if n_comp ge 1100 then plot,Re_bulge,yrange=[min(Re_bulge)-1,max(Re_bulge)+1],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Bulge Re'
-  ;    plot,Re_disk,yrange=[min(Re_disk)-1,max(Re_disk)+1],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Disk Re'
-  ;    if n_comp ge 1100 then plot,n_bulge,yrange=[0,10],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Bulge n'
-  ;    plot,sky,yrange=[min(sky)-2,max(sky)+2],$
-  ;        /xstyle,/ystyle,$
-  ;        ytitle='Sky (ADU)'
-          
+
           
       set_plot,'ps'
       device,file=root+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
@@ -1396,59 +1340,120 @@ if setup.decompose_binned_images eq 'y' then begin
       !p.charsize=1
       !p.multi=0;[0,2,3] 
       
-      multiplot, [2,5],  mXtitle='Wavelength ('+cgSymbol("angstrom")+')'
+      if n_comp eq 1110 or n_comp eq 1101 then number=3  $
+        else if n_comp eq 1100 then number=2 $
+        else if n_comp eq 1000 then number=1
+      multiplot, [number,5],  mXtitle='Wavelength ('+cgSymbol("angstrom")+')'
       symbolsize=0.5
     
       x1=3500
       x2=10500
-      if n_comp ge 1100 then plot,mag_bulge1,yrange=[max([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,min([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-        ytitle='m!ITot!N',title='Bulge'
-      if n_comp ge 1100 and rep gt 1 then oplot,mag_bulge,linestyle=0
-      multiplot
-      plot,mag_disk1,yrange=[max([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5,min([mag_bulge1[1:-2],mag_disk1[1:-2]])+3],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Disc'
+      if n_comp ge 1100 then begin
+        mag_max=max([mag_bulge1[1:-2],mag_disk1[1:-2]])+1.5
+        mag_min=min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5
+        Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4
+        n_max=max([n_bulge1[1:-2],n_disk1[1:-2]])+1
+        PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10
+        PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10
+      endif else begin
+        mag_max=max(mag_disk1[1:-2])+1.5
+        mag_min=min(mag_disk1[1:-2])-1.5
+        Re_max=max(Re_disk1[1:-2])+4
+        n_max=max(n_disk1[1:-2])+1
+        PA_min=min(pa_disk1[1:-2])-10
+        PA_max=max(pa_disk1[1:-2])+10
+      endelse
+      plot,mag_disk1,yrange=[mag_max,mag_min],$
+        ytitle='m!ITot!N',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Disc'
       if rep gt 1 then oplot,mag_disk,linestyle=0
       multiplot
-  
-      if n_comp ge 1100 then plot,Re_bulge1,yrange=[0,max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-        ytitle='R!Ie!N!C(arcsec)',ytickinterval=4,yminor=4
-      if n_comp ge 1100 and rep gt 1 then oplot,Re_bulge,linestyle=0
-      multiplot
-      plot,Re_disk1,yrange=[0,max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=4,yminor=4
+      if n_comp ge 1100 then begin
+        plot,mag_bulge1,yrange=[mag_max,mag_min],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
+          title='Bulge'
+        if rep gt 1 then oplot,mag_bulge,linestyle=0
+        multiplot
+      endif
+      if n_comp gt 1100 then begin
+        plot,mag_comp3_1,yrange=[mag_max,mag_min],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Component 3'
+        if rep gt 1 and n_comp gt 1100 then oplot,mag_comp3,linestyle=0
+        multiplot
+      endif
+      
+      plot,Re_disk1,yrange=[0,Re_max],$
+        ytitle='R!Ie!N!C(arcsec)',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=4,yminor=4
       if rep gt 1 then oplot,Re_disk,linestyle=0
       multiplot
-    
-      if n_comp ge 1100 then plot,n_bulge1,yrange=[0,max([n_bulge1[1:-2],n_disk1[1:-2]])+1],$
-        /xstyle,/ystyle,psym=sym(1),$
-        ytitle='n',ytickinterval=2
-      if n_comp ge 1100 and rep gt 1 then oplot,n_bulge,linestyle=0
-      multiplot
-      plot,n_disk1,yrange=[0,max([n_bulge1[1:-2],n_disk1[1:-2]])+1],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=2
+      if n_comp ge 1100 then begin
+        plot,Re_bulge1,yrange=[0,Re_max],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
+          ytickinterval=4,yminor=4
+        if rep gt 1 then oplot,Re_bulge,linestyle=0
+        multiplot
+      endif
+      if n_comp gt 1100 then begin
+        plot,Re_comp3_1,yrange=[0,Re_max],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=4,yminor=4
+        if rep gt 1 then oplot,Re_comp3,linestyle=0
+        multiplot
+      endif
+      
+      plot,n_disk1,yrange=[0,n_max],$
+        ytitle='n',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=2
       if rep gt 1 then oplot,n_disk,linestyle=0
       multiplot
-    
-      if n_comp ge 1100 then plot,pa_bulge1,yrange=[min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10,max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-        ytitle='PA!C(degrees)',ytickinterval=20
-      if n_comp ge 1100 and rep gt 1 then oplot,pa_bulge,linestyle=0
-      multiplot
-      plot,pa_disk1,yrange=[min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10,max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10],$
-        /xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
+      if n_comp ge 1100 then begin
+        plot,n_bulge1,yrange=[0,n_max],$
+          /xstyle,/ystyle,psym=sym(1),$
+          ytickinterval=2
+         if rep gt 1 then oplot,n_bulge,linestyle=0
+         multiplot
+      endif
+      if n_comp gt 1100 then begin
+        plot,n_comp3_1,yrange=[0,n_max],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=2
+        if rep gt 1 then oplot,n_comp3,linestyle=0
+        multiplot
+      endif
+      
+      plot,pa_disk1,yrange=[PA_min,PA_max],$
+        ytitle='PA!C(degrees)',/xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
       if rep gt 1 then oplot,pa_disk,linestyle=0
-       multiplot
-    
-      if n_comp ge 1100 then plot,q_bulge1,yrange=[0,1],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
-        ytitle='q',ytickinterval=0.5
-      if n_comp ge 1100 and rep gt 1 then oplot,q_bulge,linestyle=0
       multiplot
-      plot,q_disk1,yrange=[0,1],$
-        /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.5
-      if rep gt 1 then oplot,q_disk,linestyle=0
+      
+      if n_comp ge 1100 then begin 
+        plot,pa_bulge1,yrange=[PA_min,PA_max],$
+         /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
+         ytickinterval=20
+         if rep gt 1 then oplot,pa_bulge,linestyle=0
+         multiplot
+       endif
+       if n_comp gt 1100 then begin
+         plot,pa_comp3_1,yrange=[PA_min,PA_max],$
+           /xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
+         if rep gt 1 then oplot,pa_comp3,linestyle=0
+         multiplot
+       endif
+       
+       plot,q_disk1,yrange=[0,1],$
+         ytitle='q',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.5
+       if rep gt 1 then oplot,q_disk,linestyle=0
+       ;multiplot,/reset,/default
+      if n_comp ge 1100 then begin
+        multiplot
+        plot,q_bulge1,yrange=[0,1],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
+          ytickinterval=0.5
+        if rep gt 1 then oplot,q_bulge,linestyle=0
+        
+      endif
+      if n_comp gt 1100 then begin
+        multiplot
+        plot,q_comp3_1,yrange=[0,1],$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.5
+        if rep gt 1 then oplot,q_comp3,linestyle=0
+      endif
       multiplot,/reset,/default
       device,/close      
       CD,root
@@ -1527,6 +1532,7 @@ if setup.decompose_image_slices eq 'y' then begin
   CD,root+decomp+slices_dir;decomp+median_dir
   spawn,'pwd'
   print,'*Now running Galfitm on image_slices*'
+  spawn,'rm *galfit.01*'
   spawn,'chmod a+x run_galfitm.sh'
   
   spawn,'./run_galfitm.sh'
