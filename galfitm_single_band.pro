@@ -8,11 +8,12 @@
 ;  SINGLE keyword- to be used for single Sersic fit
 ;  DOUBLE keyword- to be used for double Sersic fit
 ;
-pro Galfitm_single_band,output,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
+pro Galfitm_single_band,root,decomp,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
   y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
-  n_comp,disc_n_poly,bulge_n_poly,MEDIAN=median, SLICES=slices, SINGLE=single,$
+  n_comp,disc_n_poly,bulge_n_poly,stars_file,MEDIAN=median, SLICES=slices, SINGLE=single,$
   DOUBLE=double
   
+output=root+decomp
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -207,6 +208,19 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       endif
       printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
     endif  
+
+
+    if file_test(root+stars_file) eq 1 then begin
+      readcol,root+stars_file,format='f,f',x_star,y_star,mag_star,comment='#',/SILENT
+      for j=0,n_elements(x_star)-1,1 do begin
+        printf, 60, ' # Object number:  '+string(j)
+        printf, 60, '  0) psf                 #  object type'
+        printf, 60, ' 1) '+string(x_star[j])+'   1 band  #  position x'
+        printf, 60, ' 2) '+string(y_star[j])+'   1 band  #  position y'
+        printf, 60, ' 3) '+string(mag_star[j])+'   1 band  #  Integrated magnitude'     
+      endfor
+    endif
+
     
   endif
   close,60

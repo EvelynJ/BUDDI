@@ -1,6 +1,6 @@
  
  
-pro result_visualiser,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
+pro result_visualiser,root,decomp,galaxy_ref,slices_dir,binned_dir,decomp_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 first_image=info[0]
 final_image=info[1] 
 no_bins=info[2]
@@ -10,18 +10,21 @@ end_wavelength=info[5]
 total_images=final_image-first_image+1
 no_images_final=total_images mod no_slices
 
+
 wavelength=10^(wavelength)
 ;stop
 ; read in datacubes
-fits_read,root+decomp+'decomposed_data/original.fits',original_datacube,h_orig
-fits_read,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h_bestfit
-fits_read,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h_resid
+fits_read,root+decomp+decomp_dir+'original.fits',original_datacube,h_orig
+fits_read,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,h_bestfit
+fits_read,root+decomp+decomp_dir+'residuals.fits',residual_datacube,h_resid
 
-fits_read,root+decomp+'decomposed_data/disk.fits',disk_datacube,h_disk
-fits_read,root+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h_sky
-if n_comp ge 1100 then fits_read,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h_bulge
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+decomp+'decomposed_data/comp3.fits',comp3_datacube,h_comp3
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+decomp+'decomposed_data/comp4.fits',comp4_datacube,h_comp4
+fits_read,root+decomp+binned_dir+'badpix.fits',badpix,h_bp
+
+fits_read,root+decomp+decomp_dir+'disk.fits',disk_datacube,h_disk
+fits_read,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,h_sky
+if n_comp ge 1100 then fits_read,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,h_bulge
+  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_read,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,h_comp3
+  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_read,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,h_comp4
 
 npix=sxpar(h_disk,'NAXIS3')
 bulge_1D=fltarr(npix)
@@ -65,7 +68,7 @@ if result eq 1 then begin
   endelse
   
   FOR n=0,n_elements(Xpix)-1,1 do begin
-      if BINpix[n] ne bad_bin then begin
+      if BINpix[n] ne bad_bin and badpix[Xpix[n]+x_centre,Ypix[n]+y_centre] eq 0 then begin
         if n_comp ge 1100  then bulge_1D[*]+=bulge_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then comp3_1D[*]+=comp3_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011  then comp4_1D[*]+=comp4_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
@@ -82,12 +85,12 @@ if result eq 1 then begin
 endif else begin
   ;***not working yet!!!***
   for aaa=0,npix-1,1 do begin
-    disk_1D[aaa]=total(disk_datacube[*,*,aaa])
-    orig_1D[aaa]=total(original_datacube[*,*,aaa])
-    bestfit_1D[aaa]=total(bestfit_datacube[*,*,aaa])
-    resid_1D[aaa]=total(residual_datacube[*,*,aaa])
-    resid_sky_1D[aaa]=total(residual_sky_datacube[*,*,aaa])
-    if n_comp ge 1100  then bulge_1D[aaa]=total(bulge_datacube[*,*,aaa])
+    disk_1D[aaa]=total(disk_datacube[*,*,aaa]*badpix)
+    orig_1D[aaa]=total(original_datacube[*,*,aaa]*badpix)
+    bestfit_1D[aaa]=total(bestfit_datacube[*,*,aaa]*badpix)
+    resid_1D[aaa]=total(residual_datacube[*,*,aaa]*badpix)
+    resid_sky_1D[aaa]=total(residual_sky_datacube[*,*,aaa]*badpix)
+    if n_comp ge 1100  then bulge_1D[aaa]=total(bulge_datacube[*,*,aaa]*badpix)
   endfor
 endelse
 ;convert magnitude units into flux units where necessary, Magzp is 15 in the feedme files
@@ -123,7 +126,7 @@ for n=0,nfiles-1,1 do begin
 ;    if n ne nfiles-1 then nbands=no_slices else nbands=no_images_final 
     
     
-
+nband=nbands
   if n_comp eq 1000 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
@@ -163,8 +166,10 @@ for n=0,nfiles-1,1 do begin
   endelse
 endfor    
 
-if n_comp eq 1000 or n_comp eq 1001 then disk_1d=disk_1d+sky $
-else if n_comp eq 1100 or n_comp eq 1101 then begin
+if n_comp eq 1000 or n_comp eq 1001 then begin
+  disk_1D_orig=disk_1D
+  disk_1d=disk_1d+sky 
+endif else if n_comp eq 1100 or n_comp eq 1101 then begin
   disk_1D_orig=disk_1D
   bulge_1D_orig=bulge_1D
   disk_1D=disk_1d+(0.5*sky)
@@ -186,28 +191,31 @@ endelse
 
 
 ;obtain new bulge spectrum within 3Re
-res2=read_sersic_results_2comp(root+decomp+'binned_images/imgblock.fits', nband, bd=1)
-readcol,root+decomp+slices_dir+'info.txt',format='X,F',info
-PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
-no_slices=info[2]
-h_temp=headfits(root+decomp+'binned_images/image_'+string(0,format='(I4.4)')+'.fits')
-wave1=sxpar(h_temp,'WAVELENG')
-h_temp=headfits(root+decomp+'binned_images/image_'+string(no_slices-1,format='(I4.4)')+'.fits')
-wave2=sxpar(h_temp,'WAVELENG')
-wavelength_Re=5500
-Re_b=chebeval(wavelength_Re,res2.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
-bulge_1D_small=fltarr(n_elements(bulge_1D))
-;stop
-measure_circular_radius,indgen(n_elements(Xpix)),Xpix,Ypix,0,0,PA[0], radii
-FOR n=0,n_elements(Xpix)-1,1 do begin
-    if n_comp ge 1100 and radii[n] le 3*Re_b then bulge_1D_small[*]+=bulge_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
-endfor
 
+  if n_comp ge 1100 then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
+    else res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0)
+  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info
+  PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
+  no_slices=info[2]
+  h_temp=headfits(root+decomp+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')
+  wave1=sxpar(h_temp,'WAVELENG')
+  h_temp=headfits(root+decomp+binned_dir+'image_'+string(no_slices-1,format='(I4.4)')+'.fits')
+  wave2=sxpar(h_temp,'WAVELENG')
+  wavelength_Re=5500
+  measure_circular_radius,indgen(n_elements(Xpix)),Xpix,Ypix,0,0,PA[0], radii
+if n_comp ge 1100 then begin
+  Re_b=chebeval(wavelength_Re,res2.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+  bulge_1D_small=fltarr(n_elements(bulge_1D))
+;stop
+  FOR n=0,n_elements(Xpix)-1,1 do begin
+    if n_comp ge 1100 and radii[n] le 3*Re_b then bulge_1D_small[*]+=bulge_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
+  endfor
+endif
 
 ;print,bulge_1D
 ;plot results for comparison
 set_plot,'ps'
-device,file=root+decomp+'decomposed_data/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=2
 !p.charthick=3
 !p.charsize=1.3
@@ -226,7 +234,7 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D/median(orig_1D)),color=cgcolor('blue');/10000;+90
 oplot,wavelength,(disk_1D/median(orig_1D)),color=cgcolor('red');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength,((bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+if n_comp ge 1100 then oplot,wavelength,((bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
 oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
@@ -260,7 +268,7 @@ plot,wavelength,disk_1D,/NODATA,yrange=[-0.1,2.5],$
 if n_comp ge 1100 then oplot,wavelength,(bulge_1D_orig/median(orig_1D)),color=cgcolor('blue');/10000;+90
 oplot,wavelength,(disk_1D_orig/median(orig_1D)),color=cgcolor('red');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
-oplot,wavelength,((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+if n_comp ge 1100 then oplot,wavelength,((bulge_1D_orig+disk_1D_orig)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
 oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
 
@@ -317,13 +325,13 @@ for bd=1,xx,1 do begin
     sxdelpar,h,'CUNIT3'
     sxdelpar,h,'CUNIT2'
 print,bd
-    if bd eq 3 then fits_write,root+decomp+'decomposed_data/comp3_1D.fits',comp3_1D,h
-    if bd eq 2 then fits_write,root+decomp+'decomposed_data/disk_1D.fits',disk_1D,h
-    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_1D.fits',bulge_1D,h
-    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_1D_small.fits',bulge_1D_small,h
-    if bd eq 2 then fits_write,root+decomp+'decomposed_data/disk_Re.fits',disk_Re,h
-    if bd eq 1 then fits_write,root+decomp+'decomposed_data/bulge_Re.fits',bulge_Re,h
-    if bd eq 2 then fits_write,root+decomp+'decomposed_data/residual_sky_1D.fits',resid_sky_1D,h
+    if bd eq 3 then fits_write,root+decomp+decomp_dir+'comp3_1D.fits',comp3_1D,h
+    if bd eq 2 then fits_write,root+decomp+decomp_dir+'disk_1D.fits',disk_1D,h
+    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_1D.fits',bulge_1D,h
+    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_1D_small.fits',bulge_1D_small,h
+    if bd eq 2 then fits_write,root+decomp+decomp_dir+'disk_Re.fits',disk_Re,h
+    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_Re.fits',bulge_Re,h
+    if bd eq 2 then fits_write,root+decomp+decomp_dir+'residual_sky_1D.fits',resid_sky_1D,h
 
 endfor
 
@@ -331,7 +339,7 @@ endfor
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+'decomposed_data/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0
@@ -363,7 +371,7 @@ if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then opl
 if n_comp eq 1000 or n_comp eq 1001 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Disc','Sky','Residuals'],linestyle=[0,0,0,0,0],$
   colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
-if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Sky','Bulge','Disc','Residuals'],linestyle=[0,0,0,0,0,0],$
+if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Bulge + Disc','Bulge','Disc','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
   colors=[cgcolor('black'),cgcolor('purple'),cgcolor('red'),cgcolor('blue'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
 
 if n_comp eq 1010 or n_comp eq 1011 then al_legend,['Integrated spectrum from datacube','Centre + Disc','Centre','Disc','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
@@ -459,7 +467,7 @@ device,/close
 ;
 ;set_plot,'ps'
 ;;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-;device,file=root+decomp+'decomposed_data/Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+;device,file=root+decomp+decomp_dir+'Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 ;!P.thick=3 
 ;!p.charthick=3 
 ;!p.charsize=1.0 

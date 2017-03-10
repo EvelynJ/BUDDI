@@ -35,9 +35,12 @@ PRO read_input, setup_file, setup
                         'median_dir', '', $
                         'binned_dir', '', $
                         'slices_dir', '', $
+                        'decomp_dir', '', $
                         'psf_file', '', $
                         'stellib_dir','',$
                         'badpix_file','',$
+                        'stars_file','',$
+                        'rmv_emission','',$
                         'galfitm', '', $
                         'x_centre', 0., $
                         'y_centre', 0., $
@@ -154,9 +157,12 @@ PRO read_input, setup_file, setup
         'A06)': setup.median_dir = content
         'A07)': setup.binned_dir = content
         'A08)': setup.slices_dir = content
-        'A09)': setup.psf_file = content
-        'A10)': setup.stellib_dir = content
-        'A11)': setup.badpix_file = content
+        'A09)': setup.decomp_dir = content
+        'A10)': setup.psf_file = content
+        'A11)': setup.stellib_dir = content
+        'A12)': setup.badpix_file = content
+        'A13)': setup.stars_file = content
+        'A14)': setup.rmv_emission = content
         
         'B00)': setup.galfitm = content
          

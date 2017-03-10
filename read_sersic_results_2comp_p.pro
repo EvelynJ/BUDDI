@@ -237,7 +237,7 @@ ENDIF ELSE BEGIN
                                  'x_galfit_cheb_comp3', fltarr(nband), 'xerr_galfit_cheb_comp3', fltarr(nband)+99999., $
                                  'y_galfit_cheb_comp3', fltarr(nband), 'yerr_galfit_cheb_comp3', fltarr(nband)+99999., $ 
                                  'mag_galfit_cheb_comp3', fltarr(nband), 'magerr_galfit_cheb_comp3', fltarr(nband)+99999., $ 
-                                 'sky_galfit_cheb', fltarr(ncheb)-999., $
+                                 'sky_galfit_cheb', fltarr(nband)-999., $
                                  'initfile_bd', ' ', $
                                  'constrnt_bd', ' ', $
                                  'psf_galfit_band', psf, $

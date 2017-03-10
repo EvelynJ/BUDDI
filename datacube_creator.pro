@@ -1,7 +1,7 @@
 
 
 
-pro datacube_creator,root,decomp,kinematics,galaxy_ref,file,slices_dir,info,n_comp,comp3_type,comp4_type,no_slices,wavelength,MANGA=manga,CALIFA=califa
+pro datacube_creator,root,decomp,decomp_dir,kinematics,galaxy_ref,file,slices_dir,info,n_comp,comp3_type,comp4_type,no_slices,wavelength,MANGA=manga,CALIFA=califa
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -20,8 +20,8 @@ side1=sxpar(h,'NAXIS1')
 side2=sxpar(h,'NAXIS2')
 images=sxpar(h,'NAXIS3')
 
-result = FILE_TEST(root+decomp+'decomposed_data/', /DIRECTORY) 
-if result eq 0 then file_mkdir,root+decomp+'decomposed_data/'
+result = FILE_TEST(root+decomp+decomp_dir, /DIRECTORY) 
+if result eq 0 then file_mkdir,root+decomp+decomp_dir
 
 bulge_datacube=fltarr(side1,side2,total_images)
 disk_datacube=fltarr(side1,side2,total_images)
@@ -141,15 +141,15 @@ if galfit_or_galfitm eq 'galfitm' then begin
     sxaddpar,h,'CRVAL3',alog(wavelength0)
     sxaddpar,h,'CD3_3',step
   endif
-  fits_write,root+decomp+'decomposed_data/original.fits',original_datacube,h
-  fits_write,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
-  fits_write,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h
+  fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,h
+  fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,h
+  fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,h
   
-  fits_write,root+decomp+'decomposed_data/disk.fits',disk_datacube,h
-  fits_write,root+decomp+'decomposed_data/residual_sky.fits',residual_sky_datacube,h
-  if n_comp ge 1100 then fits_write,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+decomp+'decomposed_data/comp3.fits',comp3_datacube,h
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+decomp+'decomposed_data/comp4.fits',comp4_datacube,h
+  fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,h
+  fits_write,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,h
+  if n_comp ge 1100 then fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,h
+  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,h
+  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,h
 
 
 
@@ -195,9 +195,9 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
   wavelength0=sxpar(h_temp,'WAVELENG')
   sxaddpar,h,'CRVAL3',alog10(wavelength0)
   
-  fits_write,root+decomp+'decomposed_data/original.fits',original_datacube,h
-  fits_write,root+decomp+'decomposed_data/bestfit.fits',bestfit_datacube,h
-  fits_write,root+decomp+'decomposed_data/residuals.fits',residual_datacube,h
+  fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,h
+  fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,h
+  fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,h
   
 
 
@@ -227,8 +227,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
   endfor  
   
   
-  fits_write,root+decomp+'decomposed_data/disk.fits',disk_datacube,h
-  if n_comp eq 110 or n_comp eq 111 then fits_write,root+decomp+'decomposed_data/bulge.fits',bulge_datacube,h
+  fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,h
+  if n_comp eq 110 or n_comp eq 111 then fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,h
 
 
 

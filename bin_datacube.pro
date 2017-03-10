@@ -251,7 +251,7 @@ endif
 
 
 
-
+delvarx,psf_cube,combined_psf,psf_cube_input,spec_in,binned_image
 
 
 

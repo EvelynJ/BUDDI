@@ -18,8 +18,10 @@ images=sxpar(header1,'NAXIS3')
 openw,55,directory+binned_dir+'badpix.pl'
 openw,56,directory+slices_dir+'badpix.pl'
 openw,57,directory+median_dir+'badpix.pl'
+openw,58,directory+binned_dir+'badpix_end.pl'
 
-badpix=fltarr(side1,side2)
+badpix=intarr(side1,side2)
+badpix_end=intarr(side1,side2)
 
 image_slice=spec_in[*,*,fix(images/2)]
 
@@ -28,6 +30,8 @@ image_slice=spec_in[*,*,fix(images/2)]
 for x=0,side1-1,1 do begin
   for y=0,side2-1,1 do begin
 ;    if image_slice[x,y] eq 0 OR y le 6 or y ge 34 then begin
+    printf,58,x+1,y+1
+    badpix_end[x,y]=1
     if image_slice[x,y] eq 0.0 then begin
         printf,55,x+1,y+1
         printf,56,x+1,y+1
@@ -46,7 +50,7 @@ for x=0,side1-1,1 do begin
 endfor
 
 if file_test(root+badpix_file) eq 1 then begin
-  print,'***YESYESYESYESYES***'
+  ;print,'***YESYESYESYESYES***'
  
   readcol,root+badpix_file,format='f,f',x_bad,y_bad,comment='#',/SILENT
   for j=0,n_elements(x_bad)-1,1 do begin
@@ -58,9 +62,10 @@ if file_test(root+badpix_file) eq 1 then begin
   endfor
 endif
 
-fits_write,directory+binned_dir+'badpix.fits',badpix
-fits_write,directory+slices_dir+'badpix.fits',badpix
-fits_write,directory+median_dir+'badpix.fits',badpix
+fits_write,directory+binned_dir+'badpix.fits',byte(badpix)
+fits_write,directory+slices_dir+'badpix.fits',byte(badpix)
+fits_write,directory+median_dir+'badpix.fits',byte(badpix)
+fits_write,directory+binned_dir+'badpix_end.fits',byte(badpix_end)
 ;printf,57,'21 12'
 ;printf,57,'21 11'
 ;printf,57,'20 12'
@@ -69,4 +74,6 @@ fits_write,directory+median_dir+'badpix.fits',badpix
 close,55
 close,56
 close,57
+
+delvarx,badpix,badpix_end
 end

@@ -8,11 +8,13 @@
 ; 
 ; scale
 ;
-pro galfitm_multiband,output,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,scale,$
+pro galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,scale,$
   magzpt_in,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,$
   disk_re_polynomial_in,disk_mag_polynomial_in,disk_n_polynomial_in,bulge_re_polynomial_in,$
-  bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,BINNED=binned,$
+  bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,stars_file,BINNED=binned,$
   SLICES=slices,FILE=file,HEADER=header
+  
+output=root+decomp
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -95,6 +97,11 @@ if keyword_set(binned) then begin
   y_size=sxpar(h,'NAXIS2')
 
 
+  if disk_n_polynomial_in eq 0 then res.N_GALFIT_BAND_D[*]=estimates_disk[3]
+  if disk_Re_polynomial_in eq 0 then res.RE_GALFIT_BAND_D[*]=estimates_disk[2]
+  if bulge_n_polynomial_in eq 0 then res.N_GALFIT_BAND_B[*]=estimates_bulge[3]
+  if bulge_Re_polynomial_in eq 0 then res.RE_GALFIT_BAND_B[*]=estimates_bulge[2]
+  
   if input eq 'header' and rep ne 1 then begin
       ;determine the psf file to be used first.
       temp=abs(ugriz-sxpar(h,'WAVELENG'))
@@ -105,14 +112,14 @@ if keyword_set(binned) then begin
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits';psf_temp
-      badpix='badpix.pl'
+      badpix='badpix_end.fits'
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
       x_D=string(median(res.X_GALFIT_BAND_D),format='(F07.2)')
       y_D=string(median(res.Y_GALFIT_BAND_D),format='(F07.2)')
       mag_D=string(median(res.MAG_GALFIT_BAND_D),format='(F05.2)')
-      Re_D=string(median(res.RE_GALFIT_BAND_D),format='(F06.2)')
+      Re_D=string(median(res.RE_GALFIT_BAND_D),format='(F07.2)')
       n_D=string(median(res.N_GALFIT_BAND_D),format='(F06.2)')
       q_D=string(median(res.Q_GALFIT_BAND_D),format='(F04.2)')
       pa_D=string(median(res.PA_GALFIT_BAND_D),format='(F06.2)')
@@ -121,7 +128,7 @@ if keyword_set(binned) then begin
         x_B=string(median(res.X_GALFIT_BAND_B),format='(F07.2)')
         y_B=string(median(res.Y_GALFIT_BAND_B),format='(F07.2)')
         mag_B=string(median(res.MAG_GALFIT_BAND_B),format='(F05.2)')
-        Re_B=string(median(res.RE_GALFIT_BAND_B),format='(F06.2)')
+        Re_B=string(median(res.RE_GALFIT_BAND_B),format='(F07.2)')
         n_B=string(median(res.N_GALFIT_BAND_B),format='(F06.2)')
         q_B=string(median(res.Q_GALFIT_BAND_B),format='(F04.2)')
         pa_B=string(median(res.PA_GALFIT_BAND_B),format='(F06.2)')
@@ -166,15 +173,15 @@ if keyword_set(binned) then begin
         ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
-        badpix+=',badpix.pl'
+        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
+        ;badpix+=',badpix.fits'
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string(median(res.X_GALFIT_BAND_D),format='(F07.2)')
         y_D+=','+string(median(res.Y_GALFIT_BAND_D),format='(F07.2)')
         mag_D+=','+string(median(res.MAG_GALFIT_BAND_D),format='(F05.2)')
-        Re_D+=','+string(median(res.RE_GALFIT_BAND_D),format='(F06.2)')
+        Re_D+=','+string(median(res.RE_GALFIT_BAND_D),format='(F07.2)')
         n_D+=','+string(median(res.N_GALFIT_BAND_D),format='(F05.2)')
         q_D+=','+string(median(res.Q_GALFIT_BAND_D),format='(F04.2)')
         pa_D+=','+string(median(res.PA_GALFIT_BAND_D),format='(F06.2)')
@@ -184,7 +191,7 @@ if keyword_set(binned) then begin
           x_B+=','+string(median(res.X_GALFIT_BAND_B),format='(F07.2)')
           y_B+=','+string(median(res.Y_GALFIT_BAND_B),format='(F07.2)')
           mag_B+=','+string(median(res.MAG_GALFIT_BAND_B),format='(F05.2)')
-          Re_B+=','+string(median(res.RE_GALFIT_BAND_B),format='(F06.2)')
+          Re_B+=','+string(median(res.RE_GALFIT_BAND_B),format='(F07.2)')
           n_B+=','+string(median(res.N_GALFIT_BAND_B),format='(F05.2)')
           q_B+=','+string(median(res.Q_GALFIT_BAND_B),format='(F04.2)')
           pa_B+=','+string(median(res.PA_GALFIT_BAND_B),format='(F06.2)')
@@ -228,14 +235,14 @@ if keyword_set(binned) then begin
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
-      badpix='badpix.pl'
+      badpix='badpix_end.fits'
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string((res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
       x_D=string((res.X_GALFIT_BAND_D),format='(F07.2)')
       y_D=string((res.Y_GALFIT_BAND_D),format='(F07.2)')
       mag_D=string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
-      Re_D=string((res.RE_GALFIT_BAND_D),format='(F06.2)')
+      Re_D=string((res.RE_GALFIT_BAND_D),format='(F07.2)')
       n_D=string((res.N_GALFIT_BAND_D),format='(F06.2)')
       q_D=string((res.Q_GALFIT_BAND_D),format='(F04.2)')
       pa_D=string((res.PA_GALFIT_BAND_D),format='(F06.2)')
@@ -244,7 +251,7 @@ if keyword_set(binned) then begin
         x_B=string((res.X_GALFIT_BAND_B),format='(F07.2)')
         y_B=string((res.Y_GALFIT_BAND_B),format='(F07.2)')
         mag_B=string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
-        Re_B=string((res.RE_GALFIT_BAND_B),format='(F06.2)')
+        Re_B=string((res.RE_GALFIT_BAND_B),format='(F07.2)')
         n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
         q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
         pa_B=string((res.PA_GALFIT_BAND_B),format='(F06.2)')
@@ -289,15 +296,15 @@ if keyword_set(binned) then begin
         ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
-        badpix+=',badpix.pl'
+        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
+        ;badpix+=',badpix.fits'
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string((res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string((res.X_GALFIT_BAND_D),format='(F07.2)')
         y_D+=','+string((res.Y_GALFIT_BAND_D),format='(F07.2)')
         mag_D+=','+string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
-        Re_D+=','+string((res.RE_GALFIT_BAND_D),format='(F06.2)')
+        Re_D+=','+string((res.RE_GALFIT_BAND_D),format='(F07.2)')
         n_D+=','+string((res.N_GALFIT_BAND_D),format='(F05.2)')
         q_D+=','+string((res.Q_GALFIT_BAND_D),format='(F04.2)')
         pa_D+=','+string((res.PA_GALFIT_BAND_D),format='(F06.2)')
@@ -307,7 +314,7 @@ if keyword_set(binned) then begin
           x_B+=','+string((res.X_GALFIT_BAND_B),format='(F07.2)')
           y_B+=','+string((res.Y_GALFIT_BAND_B),format='(F07.2)')
           mag_B+=','+string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
-          Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F06.2)')
+          Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F07.2)')
           n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
           q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
           pa_B+=','+string((res.PA_GALFIT_BAND_B),format='(F06.2)')
@@ -347,14 +354,14 @@ if keyword_set(binned) then begin
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf='psf_'+string(n,format='(I4.4)')+'.fits'
-      badpix='badpix.pl'
+      badpix='badpix_end.fits'
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string(0,format='(F010.0)')
       sky_grad='0.0'
       x_D=string(x,format='(F07.2)')
       y_D=string(y,format='(F07.2)')
       mag_D=string(estimates_disk[1],format='(F05.2)')
-      Re_D=string(estimates_disk[2],format='(F06.2)')
+      Re_D=string(estimates_disk[2],format='(F07.2)')
       n_D=string(estimates_disk[3],format='(F06.2)')
       q_D=string(estimates_disk[4],format='(F04.2)')
       pa_D=string(estimates_disk[5],format='(F06.2)')
@@ -363,7 +370,7 @@ if keyword_set(binned) then begin
           x_B=string(x,format='(F07.2)')
           y_B=string(y,format='(F07.2)')
           mag_B=string(estimates_bulge[1],format='(F05.2)')
-          Re_B=string(estimates_bulge[2],format='(F06.2)')
+          Re_B=string(estimates_bulge[2],format='(F07.2)')
           n_B=string(estimates_bulge[3],format='(F06.2)')
           q_B=string(estimates_bulge[4],format='(F04.2)')
           pa_B=string(estimates_bulge[5],format='(F06.2)')
@@ -404,15 +411,15 @@ if keyword_set(binned) then begin
         ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        ;if n ne no_bins-1 then badpix=badpix+',badpix.pl' else badpix=badpix+',badpix_end.pl'
-        badpix+=',badpix.pl'
+        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
+        ;badpix+=',badpix.fits'
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string(0,format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string(x,format='(F07.2)')
         y_D+=','+string(y,format='(F07.2)')
         mag_D+=','+string(estimates_disk[1],format='(F05.2)')
-        Re_D+=','+string(estimates_disk[2],format='(F06.2)')
+        Re_D+=','+string(estimates_disk[2],format='(F07.2)')
         n_D+=','+string(estimates_disk[3],format='(F05.2)')
         q_D+=','+string(estimates_disk[4],format='(F04.2)')
         pa_D+=','+string(estimates_disk[5],format='(F06.2)')
@@ -421,7 +428,7 @@ if keyword_set(binned) then begin
             x_B+=','+string(x,format='(F07.2)')
             y_B+=','+string(y,format='(F07.2)')
             mag_B+=','+string(estimates_bulge[1],format='(F05.2)')
-            Re_B+=','+string(estimates_bulge[2],format='(F06.2)')
+            Re_B+=','+string(estimates_bulge[2],format='(F07.2)')
             n_B+=','+string(estimates_bulge[3],format='(F05.2)')
             q_B+=','+string(estimates_bulge[4],format='(F04.2)')
             pa_B+=','+string(estimates_bulge[5],format='(F06.2)')
@@ -450,10 +457,12 @@ if keyword_set(binned) then begin
         endif
         
 
-
-
 ;        endif  
       endfor  
+
+      
+      
+
     endif else begin
         Message,'Please select an input method for the Galfitm constraints'
     endelse
@@ -549,7 +558,7 @@ if keyword_set(binned) then begin
         printf, 60, ' 9) '+q_B+'        1 band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-      ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
+        ;printf, 60, 'C0) 1.2         1      # traditional diskyness(-)/boxyness(+)'
     
         printf, 60, ' '
         printf, 60, ' '
@@ -594,6 +603,29 @@ if keyword_set(binned) then begin
         printf, 60, ' '
       endif
   
+      if file_test(root+stars_file) eq 1 then begin
+        readcol,root+stars_file,format='f,f,f',x_star,y_star,mag_star,comment='#',/SILENT
+        for j=0,n_elements(x_star)-1,1 do begin
+          x_pos=string(x_star[j],format='(F07.2)')
+          y_pos=string(y_star[j],format='(F07.2)')
+          mag_pos=string(mag_star[j],format='(F05.2)')
+          
+          for n=1,no_bins-1,1 do begin
+            x_pos+=','+string(x_star[j],format='(F07.2)')
+            y_pos+=','+string(y_star[j],format='(F07.2)')
+            mag_pos+=','+string(mag_star[j],format='(F05.2)')
+          endfor
+          
+          printf, 60, ' # Object number:  '+string(j)
+          printf, 60, ' 0) psf                 #  object type'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+          printf, 60, ' '
+          printf, 60, ' '
+          printf, 60, ' '
+        endfor
+      endif
   
   
       
@@ -694,6 +726,7 @@ if keyword_set(binned) then begin
         printf, 60, ' 9) '+q_B+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
+        ;printf, 60, 'C0) 1.2         '+string(no_bins,format='(I3.3)')+'      # traditional diskyness(-)/boxyness(+)'
       ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
         printf, 60, ' '
         printf, 60, ' '
@@ -736,6 +769,30 @@ if keyword_set(binned) then begin
         printf, 60, ' '
       endif
       
+      if file_test(root+stars_file) eq 1 then begin
+        readcol,root+stars_file,format='f,f,f',x_star,y_star,mag_star,comment='#',/SILENT
+        for j=0,n_elements(x_star)-1,1 do begin
+          x_pos=string(x_star[j],format='(F07.2)')
+          y_pos=string(y_star[j],format='(F07.2)')
+          mag_pos=string(mag_star[j],format='(F05.2)')
+          
+          for n=1,no_bins-1,1 do begin
+            x_pos+=','+string(x_star[j],format='(F07.2)')
+            y_pos+=','+string(y_star[j],format='(F07.2)')
+            mag_pos+=','+string(mag_star[j],format='(F05.2)')
+          endfor
+          
+          printf, 60, ' # Object number:  '+string(j)
+          printf, 60, ' 0) psf                 #  object type'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+          printf, 60, ' '
+          printf, 60, ' '
+          printf, 60, ' '
+        endfor
+      endif
+
       printf, 60, '================================================================================'
       
     
@@ -932,7 +989,7 @@ if keyword_set(slices) then begin
     x_D=string(x_disk_all[x0-first_image],format='(F07.2)')
     y_D=string(y_disk_all[x0-first_image],format='(F07.2)')
     mag_D=string(mag_disk_all[x0-first_image],format='(F05.2)')
-    Re_D=string(Re_disk_all[x0-first_image],format='(F07.3)')
+    Re_D=string(Re_disk_all[x0-first_image],format='(F07.2)')
     n_D=string(n_disk_all[x0-first_image],format='(F06.3)')
     q_D=string(q_disk_all[x0-first_image],format='(F04.2)')
     pa_D=string(pa_disk_all[x0-first_image],format='(F07.2)')
@@ -941,7 +998,7 @@ if keyword_set(slices) then begin
       x_B=string(x_bulge_all[x0-first_image],format='(F07.2)')
       y_B=string(y_bulge_all[x0-first_image],format='(F07.2)')
       mag_B=string(mag_bulge_all[x0-first_image],format='(F05.2)')
-      Re_B=string(Re_bulge_all[x0-first_image],format='(F07.3)')
+      Re_B=string(Re_bulge_all[x0-first_image],format='(F07.2)')
       n_B=string(n_bulge_all[x0-first_image],format='(F06.3)')
       q_B=string(q_bulge_all[x0-first_image],format='(F04.2)')
       pa_B=string(pa_bulge_all[x0-first_image],format='(F07.2)')
@@ -1021,7 +1078,7 @@ if keyword_set(slices) then begin
       x_D+=','+string(x_disk_all[x0-first_image+n],format='(F07.2)')
       y_D+=','+string(y_disk_all[x0-first_image+n],format='(F07.2)')
       mag_D+=','+string(mag_disk_all[x0-first_image+n],format='(F05.2)')
-      Re_D+=','+string(Re_disk_all[x0-first_image+n],format='(F07.3)')
+      Re_D+=','+string(Re_disk_all[x0-first_image+n],format='(F07.2)')
       n_D+=','+string(n_disk_all[x0-first_image+n],format='(F06.3)')
       q_D+=','+string(q_disk_all[x0-first_image+n],format='(F04.2)')
       pa_D+=','+string(pa_disk_all[x0-first_image+n],format='(F07.2)')
@@ -1030,7 +1087,7 @@ if keyword_set(slices) then begin
         x_B+=','+string(x_bulge_all[x0-first_image+n],format='(F07.2)')
         y_B+=','+string(y_bulge_all[x0-first_image+n],format='(F07.2)')
         mag_B+=','+string(mag_bulge_all[x0-first_image+n],format='(F05.2)')
-        Re_B+=','+string(Re_bulge_all[x0-first_image+n],format='(F07.3)')
+        Re_B+=','+string(Re_bulge_all[x0-first_image+n],format='(F07.2)')
         n_B+=','+string(n_bulge_all[x0-first_image+n],format='(F06.3)')
         q_B+=','+string(q_bulge_all[x0-first_image+n],format='(F04.2)')
         pa_B+=','+string(pa_bulge_all[x0-first_image+n],format='(F07.2)')
@@ -1151,7 +1208,7 @@ disk_n_polynomial=0
       printf, 60, ' 9) '+q_B+'        0 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+pa_B+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-    ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
+      ;printf, 60, 'C0) 1.17         0      # traditional diskyness(-)/boxyness(+)'
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
@@ -1193,6 +1250,29 @@ disk_n_polynomial=0
       printf, 60, ' '
     endif
     
+    if file_test(root+stars_file) eq 1 then begin
+      readcol,root+stars_file,format='f,f,f',x_star,y_star,mag_star,comment='#',/SILENT
+      for j=0,n_elements(x_star)-1,1 do begin
+        x_pos=string(x_star[j],format='(F07.2)')
+        y_pos=string(y_star[j],format='(F07.2)')
+        mag_pos=string(mag_star[j],format='(F05.2)')
+        
+        for n=1,no_bins-1,1 do begin
+          x_pos+=','+string(x_star[j],format='(F07.2)')
+          y_pos+=','+string(y_star[j],format='(F07.2)')
+          mag_pos+=','+string(mag_star[j],format='(F05.2)')
+        endfor
+        
+        printf, 60, ' # Object number:  '+string(j)
+        printf, 60, ' 0) psf                 #  object type'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+        printf, 60, ' '
+        printf, 60, ' '
+        printf, 60, ' '
+      endfor
+    endif    
     printf, 60, '================================================================================'
     
   
@@ -1208,6 +1288,34 @@ disk_n_polynomial=0
 
 
 endif
+
+delvarx, res
+delvarx,sky_grad
+delvarx,x_D
+delvarx,y_D
+delvarx,mag_D
+delvarx,Re_D
+delvarx,n_D
+delvarx,PA_D
+delvarx,q_D
+delvarx,x_B
+delvarx,y_B
+delvarx,mag_B
+delvarx,Re_B
+delvarx,n_B
+delvarx,PA_B
+delvarx,q_B
+delvarx,x_comp3
+delvarx,y_comp3
+delvarx,mag_comp3
+delvarx,Re_comp3
+delvarx,n_comp3
+delvarx,PA_comp3
+delvarx,q_comp3
+delvarx,x_pos
+delvarx,y_pos
+delvarx,mag_pos
+
 
 end
 

@@ -802,6 +802,7 @@ endif else begin   ; NOISE is an error spectrum
     if ~array_equal(noise1 gt 0, 1) then message, 'NOISE must be a positive error vector or covariance matrix'
     noise = noise1
 endelse
+
 if (s1[1] lt s2[1]) then message, 'STAR length cannot be smaller than GALAXY'
 if n_elements(reddening) gt 0 then begin
     if ~array_equal(size(lambda),s2) then $
@@ -809,11 +810,13 @@ if n_elements(reddening) gt 0 then begin
     if n_elements(mdegree) gt 0 then $
         message, 'MDEGREE cannot be used with REDDENING keyword'
 endif else lambda = 0
+
 if s4[0] gt 0 && s4[1] ne s2[1] then message, 'SKY must have the same size as GALAXY'
 degree = ~n_elements(degree) ? 4 : degree > (-1)
 mdegree = ~n_elements(mdegree) ? 0 : mdegree > 0
 factor = keyword_set(oversample) ? 30 : 1
 nGood = n_elements(goodPixels)
+
 if nGood le 0 then begin
     nGood = s2[1]
     goodPixels = indgen(nGood)
@@ -823,12 +826,14 @@ endif else begin
     if goodPixels[0] lt 0 || goodPixels[nGood-1] gt s2[1]-1 then $
         message, 'GOODPIXELS are outside the data range'
 endelse
+
 if n_elements(bias) le 0 then bias = 0.7d*sqrt(500d/n_elements(goodPixels)) ; pPXF paper pg.144 left
 if n_elements(moments) eq 0 then moments = 2 else begin
     for j=0,ncomp-1 do $
         if total(absmom[j] eq [2,4,6]) eq 0 then $
             message, 'MOMENTS should be 2, 4 or 6 (or negative to keep kinematics fixed)'
 endelse
+
 if ncomp gt 1 && ncomp ne (size(start,/dim))[1] then $
     message, 'Each component must have a starting guess in START'
 if s2[0] eq 2 then goodPixels = [goodPixels,s2[1]-1+goodPixels]  ; two-sided fitting of LOSVD
@@ -847,7 +852,6 @@ npars = ngh + mdegree*s2[0] + n_elements(reddening)
 ; and constrain -0.3 < [h3,h4,...] < 0.3
 ;
 parinfo = replicate({step:1d-3,limits:[-0.3d,0.3d],limited:[1,1],value:0d,fixed:0}, npars)
-print,velscale
 p = 0
 for j=0,ncomp-1 do begin
     start1 = start[0:1,j]/velScale  ; Convert velocity scale to pixels
@@ -980,7 +984,6 @@ if keyword_set(plot) then begin
         cgplot, goodPixels[w[[j,j]]], [mn,bestfit[goodPixels[w[j]]]], COLOR='lime green', /OVERPLOT
     wait, 0.01 ; Ensure screen refresh under windows
 endif
-print,velscale
 
 END
 ;----------------------------------------------------------------------------

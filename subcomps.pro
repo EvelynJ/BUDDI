@@ -16,7 +16,7 @@
 ; *** create the subcomps images.  NOW FIXED               ***
 ; ************************************************************
 ; 
-pro subcomps,dir,slices_dir,decomp,info,no_slices,n_comp,comp3_type,comp4_type,wavelength,galfitm,CALIFA=califa,MANGA=manga
+pro subcomps,dir,slices_dir,decomp,decomp_dir,info,no_slices,n_comp,comp3_type,comp4_type,wavelength,galfitm,CALIFA=califa,MANGA=manga
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -78,6 +78,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
       printf,70,'mv imgblock_'+string(n,format='(I4.4)')+'.fits subcomps_'+string(n,format='(I4.4)')+'.fits'
       if n eq nfiles_img-1 then nbands=no_images_final else nbands=no_slices
       
+      nband=nbands
 ;      if n_comp eq 100 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=0) $
 ;      else if n_comp eq 110 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=1) $
 ;      else if n_comp eq 111 and comp3_type eq 'psf' then res=read_sersic_results_3psf(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=1) $
