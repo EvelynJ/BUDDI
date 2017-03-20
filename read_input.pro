@@ -38,9 +38,10 @@ PRO read_input, setup_file, setup
                         'decomp_dir', '', $
                         'psf_file', '', $
                         'stellib_dir','',$
-                        'badpix_file','',$
                         'stars_file','',$
-                        'rmv_emission','',$
+                        'sigma_cube','',$
+                        'badpix_cube','',$
+                        'badpix_file','',$
                         'galfitm', '', $
                         'x_centre', 0., $
                         'y_centre', 0., $
@@ -160,9 +161,10 @@ PRO read_input, setup_file, setup
         'A09)': setup.decomp_dir = content
         'A10)': setup.psf_file = content
         'A11)': setup.stellib_dir = content
-        'A12)': setup.badpix_file = content
-        'A13)': setup.stars_file = content
-        'A14)': setup.rmv_emission = content
+        'A12)': setup.stars_file = content
+        'A13)': setup.sigma_cube = content
+        'A14)': setup.badpix_cube = content
+        'A15)': setup.badpix_file = content
         
         'B00)': setup.galfitm = content
          

@@ -130,7 +130,10 @@ slices_dir=setup.slices_dir
 decomp_dir=setup.decomp_dir
 psf_file=setup.psf_file
 stellib_dir=setup.stellib_dir
-
+sigma_cube=setup.sigma_cube
+badpix_cube=setup.badpix_cube
+badpix_file=setup.badpix_file
+stars_file=setup.stars_file
 
 ;*** Define software versions
 galfitm=setup.galfitm
@@ -144,8 +147,6 @@ targetSN=setup.targetSN               ;target S/N value for binning
 Redshift=setup.Redshift               ;value from NED after doing an position search
 PA=setup.PA                     ;kinematic Position Angle of galaxy (from NED)
 central_wavelength=setup.central_wavelength     ;central wavelength of spectrum for kinematics corrections
-badpix_file=setup.badpix_file
-stars_file=setup.stars_file
 
 ;*** Set wavelength range for decomposition
 start_wavelength=setup.start_wavelength       ;start wavelength for decomposition
@@ -635,7 +636,7 @@ if setup.measure_kinematics eq 'y' then begin
   y=sxpar(h_input,'NAXIS2')
   z=sxpar(h_input,'NAXIS3')
 
-
+  setup.rmv_emission='n'
   if setup.rmv_emission eq 'y' then begin
     ;read in galaxy and best fit spectra
     readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='f,f,f',$
@@ -974,6 +975,14 @@ endif
 ; should read in the centres of each bin, and calculate the distance 
 ; of each unbinned pixel from the bin centres to identify the closest 
 ; bin.
+;
+; Only apply velocity corrections to sigma and badpixel masks
+result = FILE_TEST(root+sigma_cube+'.fits')
+if result eq 1 then sigma_TF='T' else sigma_TF='F'
+result = FILE_TEST(root+badpix_cube+'.fits')
+if result eq 1 then badpix_TF='T' else badpix_TF='F'
+
+
 if setup.correct_kinematics eq 'y' then begin
   
   badbins=-1
@@ -1014,15 +1023,28 @@ if setup.correct_kinematics eq 'y' then begin
       format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#',/SILENT
   
   fits_read,root+file+'.fits',input_IFU,header_IFU
+  if sigma_TF eq 'T' then fits_read,root+sigma_cube+'.fits',input_sigma,header_sigma
+  if badpix_TF eq 'T' then begin
+    fits_read,root+badpix_cube+'.fits',input_badpix,header_badpix
+    
+    s=size(input_badpix)
+    for col=0,s[1]-1,1 do begin
+      for row=0,s[2]-1,1 do begin
+        temp_val=where(input_badpix[col,row,*] gt 0)
+        input_badpix[col,row,temp_val]=1
+      endfor
+    endfor
+  endif
+  
   x=sxpar(header_IFU,'NAXIS1')
   y=sxpar(header_IFU,'NAXIS2')
   z=sxpar(header_IFU,'NAXIS3')
-;  wavelength0=sxpar(header_IFU,'CRVAL3')
-;  step=sxpar(header_IFU,'CD3_3')
-;  wavelength=fltarr(z)
-;  for m=0,z-1,1 do wavelength[m]=wavelength0+(m*step)
+
   corrected_IFU=fltarr(x,y,z)
   intermediate_IFU=fltarr(x,y,z)
+
+  if sigma_TF eq 'T' then corrected_sigma=fltarr(x,y,z)
+  if badpix_TF eq 'T' then corrected_badpix=intarr(x,y,z)
 
 ;  identify binned emission spectrum for each spaxel, and subtract
   
@@ -1074,6 +1096,9 @@ if setup.correct_kinematics eq 'y' then begin
 
       ;apply kinematics corrections here
       intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
+;      if sigma_TF eq 'T' then corrected_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
+;      if badpix_TF eq 'T' then corrected_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
+
       temparray[0,m]=x_final[m]+x_centre
       temparray[1,m]=y_final[m]+y_centre
       temparray[2,m]=-vel_correction[bins_final[m]]
@@ -1102,7 +1127,9 @@ if setup.correct_kinematics eq 'y' then begin
       temparray[1,m]=y_final[m]+y_centre
       temparray[2,m]=-vel_correction[bins_final[m]]
       intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
-      
+      ;if sigma_TF eq 'T' then corrected_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
+      ;if badpix_TF eq 'T' then corrected_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
+     
       if sigma_correction[bins_final[m]] ne 0 then begin
         input_spec=intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]
         corrected_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=gauss_smooth(input_spec[*],sigma_correction[bins_final[m]]) 
@@ -1123,8 +1150,28 @@ if setup.correct_kinematics eq 'y' then begin
   
   result = FILE_TEST(root+decomp, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+decomp
-  fits_write, root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
+  h_temp=headfits(root+file+'_FLUX.fits') 
+  fits_write, root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU,extname='FLUX'
+  modfits,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',0,h_temp
+  temp=mrdfits(root+file+'_FLUX.fits',1,h_flux)
+  modfits,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',1,h_flux,extname='FLUX'
 
+  
+  if sigma_TF eq 'T' then begin
+;    fits_write, root+decomp+galaxy_ref+'_smoothed_SIGMA.fits',corrected_sigma,extname='SIGMA'
+;    modfits,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits',0,h_temp
+;    temp=mrdfits(root+file+'_SIGMA.fits',1,h_sigma)
+;    modfits,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits',1,h_sigma,extname='SIGMA'
+     spawn,'cp '+root+file+'_SIGMA.fits '+root+decomp+galaxy_ref+'_smoothed_SIGMA.fits'
+  endif
+  
+  if badpix_TF eq 'T' then begin
+;    fits_write, root+decomp+galaxy_ref+'_smoothed_BADPIX.fits',corrected_badpix,extname='BADPIX'
+;    modfits,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits',0,h_temp
+;    temp=mrdfits(root+file+'_BADPIX.fits',1,h_bp)
+;    modfits,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits',1,h_bp,extname='BADPIX'
+     spawn,'cp '+root+file+'_BADPIX.fits '+root+decomp+galaxy_ref+'_smoothed_BADPIX.fits'
+  endif
 
   set_plot,'ps'
   cgloadct,33 
@@ -1166,7 +1213,7 @@ if setup.visualise_results       eq 'y' then decompose2='y1'
 if decompose eq 'y' then begin
         result = FILE_TEST(root+decomp, /DIRECTORY) 
         if result eq 0 then file_mkdir,root+decomp
-        fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
+        fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
 endif
 
 
@@ -1175,9 +1222,9 @@ endif
 
 if setup.bin_datacube eq 'y' then begin
     output=root
-    bin_datacube,corrected_IFU, no_bins, root,decomp, binned_dir,slices_dir,median_dir,galaxy_ref,$
-      file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,x_centre,y_centre,$
-      psf_file,/galaxy,/PSF,/MANGA
+    bin_datacube,corrected_IFU, setup,$
+      file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,$
+      /galaxy,/PSF,/MANGA
 endif
 
 ;2a. Download and decompose an sdss image of the galaxy
@@ -1195,16 +1242,26 @@ if setup.decompose_median_image eq 'y' then begin
   y=sxpar(header_IFU,'NAXIS2')
   print,'starting decomposition'
   median_image=fltarr(x,y)
-  
+  sigma_image=fltarr(x,y)
+  badpix_image=fltarr(x,y)
+
   for j=0,x-1,1 do begin
     for k=0,y-1,1 do begin
       if corrected_IFU[j,k,100] eq 0 then mean=0 $
           else RESISTANT_Mean,corrected_IFU[j,k,info[0]+500:info[1]-500], 3, mean
       median_image[j,k]=mean
-      
     endfor
   endfor
   
+  if sigma_TF eq 'T' then begin
+    fits_read,directory+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
+    sigma_image=sigma_in[*,*,100]
+  endif 
+  if badpix_TF eq 'T' then begin
+    fits_read,directory+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
+    badpix_image=badpix_in[*,*,100]
+  endif
+
   result = FILE_TEST(root+decomp+median_dir, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+decomp+median_dir
   ;h = headfits(root+galaxy_ref+'-LOGCUBE.fits');,exten='FLUX')
@@ -1216,20 +1273,34 @@ if setup.decompose_median_image eq 'y' then begin
 ;  
 ;  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
 ;  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
-  fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image;,hdr0
+  fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,extname='FLUX';,hdr0
+  temp=mrdfits(directory+file+'_smoothed_FLUX.fits',0,h_temp)
+  tempf=mrdfits(directory+file+'_smoothed_FLUX.fits',1,h_flux)
+  sxaddpar,h_temp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+  sxaddpar,h_temp,'NCOMBINE',sxpar(h,'NEXP')
+  sxaddpar,h_flux,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+  sxaddpar,h_flux,'NCOMBINE',sxpar(h,'NEXP')
+  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',0,h_temp
+  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',1,h_flux,extname='FLUX'
   
-  
-  mkhdr, hdr0,median_image
-  
+  if sigma_TF eq 'T' then begin
+    fits_write, root+decomp+median_dir+'sigma.fits',sigma_image,extname='SIGMA'
+    tempf=mrdfits(directory+file+'_smoothed_SIGMA.fits',1,h_sigma)
+    sxaddpar,h_sigma,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+    sxaddpar,h_sigma,'NCOMBINE',sxpar(h,'NEXP')
+    modfits,root+decomp+median_dir+'sigma.fits',0,h_temp
+    modfits,root+decomp+median_dir+'sigma.fits',1,h_sigma,extname='SIGMA'
+  endif
 
-  sxaddpar,hdr0,'SIMPLE','T',before='BITPIX'
-  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
-
+  if badpix_TF eq 'T' then begin
+    fits_write, root+decomp+median_dir+'badpix.fits',badpix_image,extname='BADPIX'
+    tempf=mrdfits(directory+file+'_smoothed_BADPIX.fits',1,h_bp)
+    sxaddpar,h_bp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+    sxaddpar,h_bp,'NCOMBINE',sxpar(h,'NEXP')
+    modfits,root+decomp+median_dir+'badpix.fits',0,h_temp
+    modfits,root+decomp+median_dir+'badpix.fits',1,h_bp,extname='BADPIX'
+  endif
   
-  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',0,hdr0
-  
-
   
   
   
@@ -1239,7 +1310,7 @@ if setup.decompose_median_image eq 'y' then begin
   
   
   ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
-  badpixelmask, root,decomp, galaxy_ref, badpix, binned_dir, median_dir, slices_dir, badpix_file
+  badpixelmask, setup,badpix
   
   ;write a constraints file, initially constraining the centres of the bulge 
   ;and disc fits to be together
@@ -1259,9 +1330,9 @@ if setup.decompose_median_image eq 'y' then begin
     crash_test1= file_search(output+median_dir+'imgblock_single.galfit.*',COUNT=nfiles1)
     if nfiles1 gt 0 then spawn,'rm '+output+median_dir+'imgblock_single.galfit.*'
     print,'*Now running Galfitm on single image with a single Sersic fit*'
-    galfitm_single_band,root,decomp,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-                        y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,$
-                        estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,stars_file,/median,/single
+    galfitm_single_band,setup,info,x,y,$
+                        scale,estimates_bulge,estimates_disk,estimates_comp3,$
+                        estimates_comp4,/median,/single
     CD,root+decomp+median_dir
     if n_comp eq 1000 or n_comp eq 1001 then spawn,galfitm+' galfitm_single.feedme' 
 
@@ -1271,9 +1342,9 @@ if setup.decompose_median_image eq 'y' then begin
     print,'*Now running Galfitm on single image with a double Sersic fit*'
     crash_test1= file_search(output+median_dir+'imgblock_double.galfit.*',COUNT=nfiles1)
     if nfiles1 gt 0 then spawn,'rm '+output+median_dir+'imgblock_double.galfit.*'
-    galfitm_single_band,root,decomp,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-                        y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,$
-                        estimates_comp4,n_comp,disk_n_polynomial,bulge_n_polynomial,stars_file,/median,/double
+    galfitm_single_band,setup,info,x,y,$
+                        scale,estimates_bulge,estimates_disk,estimates_comp3,$
+                        estimates_comp4,/median,/double
     CD,root+decomp+median_dir
     spawn,galfitm+' galfitm_double.feedme' 
   endif
@@ -1309,10 +1380,9 @@ if setup.decompose_binned_images eq 'y' then begin
     if result eq 1 and rep eq 1 then rep=2
     
     if rep eq 1 then $
-      galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
-          disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,stars_file,/binned,/header;file
+      galfitm_multiband,setup,info,x_centre,$
+          y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+          rep,stars_file,/binned,/header
     
     
     if rep ne 1 then begin
@@ -1330,10 +1400,10 @@ if setup.decompose_binned_images eq 'y' then begin
       
       if decision eq 'q' then rep=999
       if decision eq 'a' then begin
-        galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
-          disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,stars_file,/binned,/file
+        galfitm_multiband,setup,info,x_centre,$
+          y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+          rep,stars_file,/binned,/header,/file
+
       endif else if decision eq 'b' then begin
         read_input, input_file, setup
         disk_re_polynomial=setup.disk_re_polynomial
@@ -1350,16 +1420,16 @@ if setup.decompose_binned_images eq 'y' then begin
         endelse
 
         
-        galfitm_multiband,root,decomp,binned_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
-          disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,rep,stars_file,/binned,/header
+        galfitm_multiband,setup,info,x_centre,$
+          y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+          rep,stars_file,/binned,/header
+
         
       endif else if decision eq 'c' then begin
-        galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-          y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
-          disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,$
-          galfitm,1,stars_file,/binned,/file
+        galfitm_multiband,setup,info,x_centre,$
+          y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+          rep,stars_file,/binned,/file
+
       endif
 
     endif

@@ -8,11 +8,35 @@
 ; 
 ; scale
 ;
-pro galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x,y,scale,$
-  magzpt_in,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,$
-  disk_re_polynomial_in,disk_mag_polynomial_in,disk_n_polynomial_in,bulge_re_polynomial_in,$
-  bulge_mag_polynomial_in,bulge_n_polynomial_in,comp3_poly,galfitm,rep,stars_file,BINNED=binned,$
-  SLICES=slices,FILE=file,HEADER=header
+pro galfitm_multiband,setup,info,x,y,scale,$
+  estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
+  rep,BINNED=binned,SLICES=slices,FILE=file,HEADER=header
+  
+  
+  root=setup.root
+  decomp=setup.decomp
+  binned_dir=setup.binned_dir
+  slices_dir=setup.slices_dir
+  median_dir=setup.median_dir
+  galaxy_ref=setup.galaxy_ref
+  psf_cube=setup.psf_file
+  x_centre=fix(setup.x_centre-1)             ;x position of centre of galaxy, -1 to convert to position in array
+  y_centre=fix(setup.y_centre-1)             ;y position of centre of galaxy, -1 to convert to position in array
+  magzpt_in=setup.magzpt
+  n_comp=setup.n_comp
+  no_slices=setup.no_slices
+  stars_file=setup.stars_file
+  galfitm=setup.galfitm
+  disk_re_polynomial_in=setup.disk_re_polynomial
+  disk_mag_polynomial_in=setup.disk_mag_polynomial
+  disk_n_polynomial_in=setup.disc_n_poly
+  bulge_re_polynomial_in=setup.bulge_re_polynomial
+  bulge_mag_polynomial_in=setup.bulge_mag_polynomial
+  bulge_n_polynomial_in=setup.bulge_n_poly
+  comp3_poly=setup.comp3_poly
+
+
+
   
 output=root+decomp
 first_image=info[0]
@@ -91,7 +115,7 @@ if keyword_set(binned) then begin
   
   ;make string arrays for each galfitm input parameter
   n=0
-  fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',crap,h
+  fits_read,output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits',tempy,h
 ;  h=headfits(output+binned_dir+'image_'+string(n,format='(I4.4)')+'.fits')
   x_size=sxpar(h,'NAXIS1')
   y_size=sxpar(h,'NAXIS2')
@@ -113,6 +137,9 @@ if keyword_set(binned) then begin
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits';psf_temp
       badpix='badpix_end.fits'
+      temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
+      if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
+      
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
@@ -170,11 +197,15 @@ if keyword_set(binned) then begin
         file+=',image_'+string(n,format='(I4.4)')+'.fits'
         band+=','+string(n,format='(I3.3)')
         wavelength+=','+string(sxpar(h,'WAVELENG'),format='(F09.3)')
-        ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
-;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
-        ;badpix+=',badpix.fits'
+        ;if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
+        
+        result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
+        if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
+        else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
+        else badpix=badpix+',badpix_end.fits'
+
+        if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'         
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string(median(res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
@@ -236,6 +267,10 @@ if keyword_set(binned) then begin
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix_end.fits'
+      temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
+      if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
+
+      
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string((res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
@@ -296,8 +331,14 @@ if keyword_set(binned) then begin
         ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
-        ;badpix+=',badpix.fits'
+        
+        result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
+        if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
+        else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
+        else badpix=badpix+',badpix_end.fits'
+        if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits' else sigma=0
+
+        
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string((res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
@@ -355,6 +396,10 @@ if keyword_set(binned) then begin
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf='psf_'+string(n,format='(I4.4)')+'.fits'
       badpix='badpix_end.fits'
+      temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
+      if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
+
+      
       magzpt=string(magzpt_in,format='(F04.1)')
       sky=string(0,format='(F010.0)')
       sky_grad='0.0'
@@ -411,7 +456,12 @@ if keyword_set(binned) then begin
         ;print,n,sxpar(h,'WAVELENG')
         psf+=',PSF/'+string(n,format='(I4.4)')+'.fits'
 ;        psf+=',psf_'+string(n,format='(I4.4)')+'.fits'
-        if n ne no_bins-1 then badpix=badpix+',badpix.fits' else badpix=badpix+',badpix_end.fits'
+        result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
+        if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
+        else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
+        else badpix=badpix+',badpix_end.fits'
+        if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'
+
         ;badpix+=',badpix.fits'
         magzpt+=','+string(magzpt_in,format='(F04.1)')
         sky+=','+string(0,format='(F010.0)')
@@ -478,7 +528,7 @@ if keyword_set(binned) then begin
       printf, 60, 'A1) '+band+'             # Band labels (can be omitted if fitting a single band)'
       printf, 60, 'A2) '+wavelength+'             # Band wavelengths'
       printf, 60, 'B) imgblock.fits       # Output data image block
-      printf, 60, 'C) none                # Sigma image name (made from data if blank or "none") 
+      printf, 60, 'C) '+sigma+'                # Sigma image name (made from data if blank or "none") 
       printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
       printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
@@ -649,7 +699,7 @@ if keyword_set(binned) then begin
       printf, 60, 'A1) '+band+'             # Band labels (can be omitted if fitting a single band)'
       printf, 60, 'A2) '+wavelength+'             # Band wavelengths'
       printf, 60, 'B) imgblock.fits       # Output data image block
-      printf, 60, 'C) none                # Sigma image name (made from data if blank or "none") 
+      printf, 60, 'C) '+sigma+'                # Sigma image name (made from data if blank or "none") 
       printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
       printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
@@ -974,7 +1024,12 @@ if keyword_set(slices) then begin
     ;wavelength=string(sxpar(h,'WAVELENG'),format='(F08.3)')
 ;    psf='psf/'+string(x0,format='(I4.4)')+'.fits'
     psf='PSF/'+string(x0,format='(I4.4)')+'.fits'
-    badpix='badpix.fits'
+    temp1=file_search(output+slices_dir+'badpix*.fits',COUNT=nfiles_bp)
+    if nfiles_bp gt 2 then badpix='badpix_'+string(x0,format='(I4.4)')+'.fits' else badpix='badpix.fits'
+    
+    temp2=file_search(output+slices_dir+'sigma*.fits',COUNT=nfiles_sig)
+    if nfiles_sig gt 0 then sigma='sigma_'+string(x0,format='(I4.4)')+'.fits' else sigma='none'
+    
     magzpt=string(magzpt_in,format='(F04.1)')
     ;sky=string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
     resistant_mean, res.SKY_GALFIT_BAND,3,mean_sky
@@ -1065,7 +1120,14 @@ if keyword_set(slices) then begin
       ;wavelength=wavelength+','+string(sxpar(h,'WAVELENG'),format='(F08.3)')
       psf+=',PSF/'+string(x2,format='(I4.4)')+'.fits'
 ;      psf+=',psf/'+string(x2,format='(I4.4)')+'.fits'
-      badpix+=',badpix.fits'
+      
+      if n ne no_bins-1 and nfiles_bp gt 1 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
+      else if n ne no_bins-1 and nfiles_bp le 1 then badpix=badpix+',badpix.fits' $
+      else badpix=badpix+',badpix_end.fits'
+      
+      if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'
+      
+      ;badpix+=',badpix.fits'
       magzpt+=','+string(magzpt_in,format='(F04.1)')
 ;      sky=sky+','+string(res.SKY_GALFIT_BAND[loop],format='(F08.4)')
       sky+=','+string(mean_sky,format='(F010.0)')
@@ -1128,7 +1190,7 @@ if keyword_set(slices) then begin
     printf, 60, 'A1) '+band+'             # Band labels (can be omitted if fitting a single band)'
     printf, 60, 'A2) '+wavelength+'             # Band wavelengths'
     printf, 60, 'B) imgblock_'+string(loop,format='(I4.4)')+'.fits       # Output data image block
-    printf, 60, 'C) none                # Sigma image name (made from data if blank or "none") 
+    printf, 60, 'C) '+sigma+'                # Sigma image name (made from data if blank or "none") 
     printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
     printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
     printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)

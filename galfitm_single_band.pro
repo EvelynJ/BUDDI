@@ -8,11 +8,27 @@
 ;  SINGLE keyword- to be used for single Sersic fit
 ;  DOUBLE keyword- to be used for double Sersic fit
 ;
-pro Galfitm_single_band,root,decomp,median_dir,slices_dir,galaxy_ref,info,x,y,x_centre,$
-  y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
-  n_comp,disc_n_poly,bulge_n_poly,stars_file,MEDIAN=median, SLICES=slices, SINGLE=single,$
-  DOUBLE=double
+pro Galfitm_single_band,setup,info,x,y,$
+  scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
+  MEDIAN=median, SLICES=slices, SINGLE=single,DOUBLE=double
   
+  root=setup.root
+  decomp=setup.decomp
+  slices_dir=setup.slices_dir
+  median_dir=setup.median_dir
+  galaxy_ref=setup.galaxy_ref
+  psf_cube=setup.psf_file
+  x_centre=fix(setup.x_centre-1)             ;x position of centre of galaxy, -1 to convert to position in array
+  y_centre=fix(setup.y_centre-1)             ;y position of centre of galaxy, -1 to convert to position in array
+  magzpt=setup.magzpt
+  n_comp=setup.n_comp
+  disc_n_poly=setup.disc_n_poly
+  bulge_n_poly=setup.bulge_n_poly
+  stars_file=setup.stars_file
+  
+  
+
+
 output=root+decomp
 first_image=info[0]
 final_image=info[1]
@@ -47,12 +63,10 @@ if keyword_set(median) then begin
   printf, 60, 'A1) MaNGA             # Band labels (can be omitted if fitting a single band)'
   printf, 60, 'A2) '+string(0.5*(start_wavelength+end_wavelength))+'             # Band wavelengths'
   printf, 60, 'B) imgblock_'+s_d+'.fits       # Output data image block
-  printf, 60, 'C) none                # Sigma image name (made from data if blank or "none") 
-;  printf, 60, 'D) '+galaxy_ref+'_median_psf.fits           # Input PSF image and (optional) diffusion kernel
+  printf, 60, 'C) sigma.fits                # Sigma image name (made from data if blank or "none") 
   printf, 60, 'D) psf.fits           # Input PSF image and (optional) diffusion kernel
   printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
   printf, 60, 'F) badpix.fits                # Bad pixel mask (FITS image or ASCII coord list)
-;if keyword_set(single) then  printf, 60, 'G) galfitm.constraints_single                # File with parameter constraints (ASCII file)' 
 if keyword_set(single) then  printf, 60, 'G) none                # File with parameter constraints (ASCII file)' 
 if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
   printf, 60, 'H) 1    '+string(x,format='(I4.4)')+'   1  '+string(y,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
@@ -211,13 +225,21 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
 
 
     if file_test(root+stars_file) eq 1 then begin
-      readcol,root+stars_file,format='f,f',x_star,y_star,mag_star,comment='#',/SILENT
+      readcol,root+stars_file,format='f,f,f,s',x_star,y_star,mag_star,prof,comment='#',/SILENT
       for j=0,n_elements(x_star)-1,1 do begin
+        printf, 60, '  '
         printf, 60, ' # Object number:  '+string(j)
-        printf, 60, '  0) psf                 #  object type'
-        printf, 60, ' 1) '+string(x_star[j])+'   1 band  #  position x'
-        printf, 60, ' 2) '+string(y_star[j])+'   1 band  #  position y'
-        printf, 60, ' 3) '+string(mag_star[j])+'   1 band  #  Integrated magnitude'     
+        printf, 60, '  0) '+prof'+                 #  object type'
+        printf, 60, ' 1) '+string(setup.x_star[j])+'   1 band  #  position x'
+        printf, 60, ' 2) '+string(setup.y_star[j])+'   1 band  #  position y'
+        printf, 60, ' 3) '+string(setup.mag_star[j])+'   1 band  #  Integrated magnitude'     
+        if prof ne 'psf' then begin
+          printf, 60, '4) 5      1  band     # R_e (half-light radius)   [pix] '
+          printf, 60, '5) 1      1  band     # Sersic index n (de Vaucouleurs n=4)  '
+          printf, 60, '9) 0.9      1  band     # axis ratio (b/a)    '
+          printf, 60, '10) 0      1  band     # position angle (PA) [deg: Up=0, Left=90]  '
+        endif
+        printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
       endfor
     endif
 
