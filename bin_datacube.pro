@@ -63,6 +63,8 @@ if keyword_set(galaxy) then begin
 
   result = FILE_TEST(directory+decomp+slices_dir, /DIRECTORY) 
   if result eq 0 then file_mkdir,directory+decomp+slices_dir
+  if result eq 0 then file_mkdir,directory+decomp+slices_dir+'badpix/'
+  if result eq 0 then file_mkdir,directory+decomp+slices_dir+'sigma/'
 
   step=wavelength_arr[1]-wavelength_arr[0]
   
@@ -77,14 +79,6 @@ if keyword_set(galaxy) then begin
   ;extensions, which galfit and galfitm can read with no problems
   fits_read,directory+file+'.fits',temp_input,h
 ;  h = headfits(directory+file+'.fits')
-
-
-  mkhdr, hdr0,temp_input[*,*,500]  
-
-  sxaddpar,hdr0,'SIMPLE','T',before='BITPIX'
-  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
-
   
 
   ;print out only the image slices required for final wavelength range to save disc space
@@ -99,11 +93,18 @@ if keyword_set(galaxy) then begin
   endfor
  
   ;temp=mrdfits(directory+file+'_FLUX.fits',0,h_temp)
-  h_temp=headfits(directory+file+'_FLUX.fits')
-  tempf=mrdfits(directory+file+'_FLUX.fits',1,h_flux)
-  if sigma_TF eq 'T' then temps=mrdfits(directory+file+'_SIGMA.fits',1,h_sig)
-  if badpix_TF eq 'T' then tempb=mrdfits(directory+file+'_BADPIX.fits',1,h_bp)
+  h_temp=headfits(directory+file+'.fits')
+  tempf=mrdfits(directory+file+'.fits',1,h_flux)
+  if sigma_TF eq 'T' then temps=mrdfits(directory+sigma_cube+'.fits',1,h_sig)
+  if badpix_TF eq 'T' then tempb=mrdfits(directory+badpix_cube+'.fits',1,h_bp)
   
+  sxaddpar,h_flux,'NAXIS',2
+  sxdelpar,h_flux,'NAXIS3'
+  if sigma_TF eq 'T' then sxaddpar,h_sigma,'NAXIS',2
+  if sigma_TF eq 'T' then sxdelpar,h_sigma,'NAXIS3'
+  if badpix_TF eq 'T' then sxaddpar,h_bp,'NAXIS',2
+  if badpix_TF eq 'T' then sxdelpar,h_bp,'NAXIS3'
+
 
   sxaddpar,h_temp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
   sxaddpar,h_temp,'NCOMBINE',sxpar(h,'NEXP')
@@ -121,37 +122,42 @@ if keyword_set(galaxy) then begin
     sxaddpar,h_bp,'NCOMBINE',sxpar(h,'NEXP')
   endif
   
+  
+  ;print out slices for wavelength range
   for n=first_image,final_image,1 do begin
-    
+    mkhdr,hdr0,spec_in[*,*,n]
+  
     sxaddpar,h_temp,'Wavelength',10^(wavelength_arr[n])
     sxaddpar,h_temp,'CRVAL3',wavelength_arr[n]
+    sxaddpar,hdr0,'Wavelength',10^(wavelength_arr[n])
+    sxaddpar,hdr0,'CRVAL3',wavelength_arr[n]
     sxaddpar,h_flux,'Wavelength',10^(wavelength_arr[n])
     sxaddpar,h_flux,'CRVAL3',wavelength_arr[n]
-    fits_write,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',spec_in[*,*,n],extname='FLUX'
-    modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',0,h_temp
-    modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
+    fits_write,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',spec_in[*,*,n],hdr0
+;    fits_write,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',spec_in[*,*,n],extname='FLUX'
+;    modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',0,h_temp
+;    modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
     
     if sigma_TF eq 'T' then begin
       sxaddpar,h_sig,'Wavelength',10^(wavelength_arr[n])
       sxaddpar,h_sig,'CRVAL3',wavelength_arr[n]
-      fits_write,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',sigma_in[*,*,n],extname='SIGMA'
-      modfits,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',0,h_temp
-      modfits,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
+      fits_write,directory+decomp+slices_dir+'sigma/'+sigma_name+string(n,format='(i4.4)')+'.fits',sigma_in[*,*,n],hdr0
+;      fits_write,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',sigma_in[*,*,n],extname='SIGMA'
+;      modfits,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',0,h_temp
+;      modfits,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
      endif
     
     if badpix_TF eq 'T' then begin
       sxaddpar,h_bp,'Wavelength',10^(wavelength_arr[n])
       sxaddpar,h_bp,'CRVAL3',wavelength_arr[n]
-      fits_write,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_in[*,*,n],extname='BADPIX'
-      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',0,h_temp
-      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
+      fits_write,directory+decomp+slices_dir+'badpix/'+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_in[*,*,n],hdr0
+;      fits_write,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_in[*,*,n],extname='BADPIX'
+;      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',0,h_temp
+;      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
     endif
    
     
-    ;modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',0,hdr0
-    ;modfits,directory+decomp+slices_dir+name+string(n,format='(i4.4)')+'.fits',0,h,exten_no=1
-    
-  endfor
+   endfor
 
   openw,45,directory+decomp+slices_dir+'info.txt'
   printf,45,'First_image_slice    ',first_image
@@ -192,26 +198,33 @@ if keyword_set(galaxy) then begin
   if sigma_TF eq 'T' then binned_sigma=sigma_in[*,*,first_image-1]
 
     
+  mkhdr,hdr0,spec_in[*,*,0]
   wavelength=10^(wavelength_arr[0]);sxpar(header1,'WAVELENG')
+  sxaddpar,hdr0,'Wavelength',wavelength
   sxaddpar,h_temp,'Wavelength',wavelength
   sxaddpar,h_flux,'Wavelength',wavelength
-  fits_write,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits', spec_in[*,*,0],extname='FLUX'
-  modfits,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits',0,h_temp
-  modfits,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
+  fits_write,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits', spec_in[*,*,0],hdr0
+;  fits_write,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits', spec_in[*,*,0],extname='FLUX'
+;  modfits,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits',0,h_temp
+;  modfits,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
+
+
   
   if sigma_TF eq 'T' then begin
     sxaddpar,h_temp,'Wavelength',wavelength
-    sxaddpar,h_sigma,'Wavelength',wavelength
-    fits_write,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits', spec_in[*,*,0],extname='SIGMA'
-    modfits,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits',0,h_temp
-    modfits,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits',1,h_sigma,extname='SIGMA'
+    sxaddpar,h_sig,'Wavelength',wavelength
+    fits_write,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits', sigma_in[*,*,0],hdr0
+;    fits_write,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits', sigma_in[*,*,0],extname='SIGMA'
+;    modfits,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits',0,h_temp
+;    modfits,directory+decomp+binned_dir+sigma_name+string(0,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
   endif
   if badpix_TF eq 'T' then begin
     sxaddpar,h_temp,'Wavelength',wavelength
     sxaddpar,h_bp,'Wavelength',wavelength
-    fits_write,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits', spec_in[*,*,0],extname='BADPIX'
-    modfits,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits',0,h_temp
-    modfits,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
+    fits_write,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits', badpix_in[*,*,0],hdr0
+;    fits_write,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits', badpix_in[*,*,0],extname='BADPIX'
+;    modfits,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits',0,h_temp
+;    modfits,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
   endif
   
   ;modfits,directory+decomp+binned_dir+name+string(0,format='(i4.4)')+'.fits',0,hdr0
@@ -234,66 +247,85 @@ if keyword_set(galaxy) then begin
       for x=0,side1-1,1 do begin
         for y=0,side2-1,1 do begin
             ;binned_image[x,y]=total(image[x,y,*])
+            
             RESISTANT_Mean,image[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
             binned_image[x,y]=mean_temp
-            if sigma_TF eq 'T' then RESISTANT_Mean,sig[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
-            if sigma_TF eq 'T' then binned_sigma[x,y]=mean_temp
-            if badpix_TF eq 'T' then RESISTANT_Mean,bp[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
-            if badpix_TF eq 'T' then binned_badpix[x,y]=mean_temp
+            
+            if sigma_TF eq 'T' then begin
+              temp_val=where(finite(sig[x,y,*]))
+              if n_elements(temp_val) eq 1 then temp_val=[0,1,2]
+              if n_elements(temp_val) gt 1 then RESISTANT_Mean,sig[x,y,temp_val],3,mean_temp     ;don't include pixels with values >3sigma from mean
+              binned_sigma[x,y]=mean_temp
+            endif
+            
+            if badpix_TF eq 'T' then begin
+              RESISTANT_Mean,bp[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
+              binned_badpix[x,y]=mean_temp
+            endif
         endfor
       endfor
       if odd_even eq 0 then element=first_image+run*(bins_no_images/2)+(step/2)
       if odd_even ne 0 then element=first_image+run*((bins_no_images+1)/2)
  
       wavelength=10^(wavelength_arr[fix(0.5*(a+b))])
+      sxaddpar,hdr0,'Wavelength',wavelength
       sxaddpar,h_temp,'Wavelength',wavelength
       sxaddpar,h_flux,'Wavelength',wavelength
       binned_wavelengths[run+1]=wavelength
-      fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image,extname='FLUX'
-      modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-      modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
+      fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image,hdr0
+;      fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image,extname='FLUX'
+;      modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
+;      modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
  
       if sigma_TF eq 'T' then begin
+        
         sxaddpar,h_sigma,'Wavelength',wavelength
-        fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma,extname='SIGMA'
-        modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-        modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',1,h_sigma,extname='SIGMA'
+        fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma,hdr0
+;        fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma,extname='SIGMA'
+;        modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
+;        modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
       endif
       
       if badpix_TF eq 'T' then begin
         sxaddpar,h_bp,'Wavelength',wavelength
-        fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX'
-        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
+        fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,hdr0
+;        fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX'
+;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
+;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
       endif
       
  endfor  
 
   ;finally print last image slice
-  binned_image=spec_in[*,*,final_image]
-  if badpix_TF eq 'T' then binned_badpix=badpix_in[*,*,final_image]
-  if sigma_TF eq 'T' then binned_sigma=sigma_in[*,*,final_image]
-
+  binned_image=spec_in[*,*,-1]
+  if badpix_TF eq 'T' then binned_badpix=badpix_in[*,*,-1]
+  if sigma_TF eq 'T' then binned_sigma=sigma_in[*,*,-1]
+  
   wavelength=10^(wavelength_arr[-1])
+  sxaddpar,hdr0,'Wavelength',wavelength
   sxaddpar,h_temp,'Wavelength',wavelength
   sxaddpar,h_flux,'Wavelength',wavelength
   binned_wavelengths[run+1]=wavelength
-  fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image
+  
+  fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image,hdr0
+;  fits_write,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits', binned_image,extname='FLUX'
 ;  modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-  modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',1,h_flux
+;  modfits,directory+decomp+binned_dir+name+string(run+1,format='(i4.4)')+'.fits',1,h_flux,extname='FLUX'
 
   if sigma_TF eq 'T' then begin
     sxaddpar,h_sigma,'Wavelength',wavelength
-    fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma
+    fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma,hdr0
+;    fits_write,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits', binned_sigma,extname='SIGMA'
 ;    modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-    modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',1,h_sigma
+;    modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
   endif
 
   if badpix_TF eq 'T' then begin
     sxaddpar,h_bp,'Wavelength',wavelength
-    fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix;, h
+    fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,hdr0
+;    fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX';, h
 ;    modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
-    modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp
+;    modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
   endif
   
   wavelength2=sxpar(h,'Waveleng')
@@ -316,15 +348,67 @@ endif
 
 
 
+
+
+;repeat for median image
 result = FILE_TEST(directory+decomp+median_dir, /DIRECTORY) 
 if result eq 0 then file_mkdir,directory+decomp+median_dir
 
+wavelength=10^(median(wavelength_arr[first_image:final_image]))
+sxaddpar,h_temp,'Wavelength',wavelength
+sxaddpar,h_flux,'Wavelength',wavelength
+sxaddpar,h_sigma,'Wavelength',wavelength
+sxaddpar,h_bp,'Wavelength',wavelength
+
+
+for x=0,side1-1,1 do begin
+  for y=0,side2-1,1 do begin
+    RESISTANT_Mean,spec_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+    binned_image[x,y]=mean_temp
+  endfor
+endfor
+mkhdr,hdr0,binned_image
+sxaddpar,hdr0,'Wavelength',wavelength
+fits_write,directory+decomp+median_dir+'image.fits', binned_image,hdr0;,extname='FLUX'
+;fits_write,directory+decomp+median_dir+'image.fits', binned_image,extname='FLUX'
+;modfits,directory+decomp+median_dir+'image.fits',0,h_temp
+;modfits,directory+decomp+median_dir+'image.fits',1,h_flux,extname='FLUX'
+
+
+if badpix_TF eq 'T' then begin
+  for x=0,side1-1,1 do begin
+    for y=0,side2-1,1 do begin
+      RESISTANT_Mean,badpix_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+      binned_badpix[x,y]=mean_temp
+    endfor
+  endfor
+  fits_write,directory+decomp+median_dir+'badpix.fits', binned_badpix,hdr0;,extname='BADPIX'
+  ;fits_write,directory+decomp+median_dir+'badpix.fits', binned_badpix,extname='BADPIX'
+  ;modfits,directory+decomp+median_dir+'badpix.fits',0,h_temp
+  ;modfits,directory+decomp+median_dir+'badpix.fits',1,h_bp,extname='BADPIX'
+endif
+if sigma_TF eq 'T' then begin
+  for x=0,side1-1,1 do begin
+    for y=0,side2-1,1 do begin
+      RESISTANT_Mean,sigma_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+      binned_sigma[x,y]=mean_temp
+    endfor
+  endfor
+  fits_write,directory+decomp+median_dir+'sigma.fits', binned_sigma,hdr0;,extname='SIGMA'
+  ;fits_write,directory+decomp+median_dir+'sigma.fits', binned_sigma,extname='SIGMA'
+  ;modfits,directory+decomp+median_dir+'sigma.fits',0,h_temp
+  ;modfits,directory+decomp+median_dir+'sigma.fits',1,h_sig,extname='SIGMA'
+endif
+
+
+
+
+
+
 
 ;read in PSF datacube and split into image slices and binned PSF images
+;repeat for bad pixel mask if included as datacube
 
-
-;result = FILE_TEST(directory+decomp+slices_dir+'PSF/', /DIRECTORY) 
-;if result eq 0 then file_mkdir,directory+decomp+slices_dir+'PSF/'
 result = FILE_TEST(directory+psf_cube) 
 if result eq 1 then begin
   fits_read,directory+psf_cube,psf_cube_input,h_psf
@@ -374,14 +458,14 @@ if result eq 1 then begin
       fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
     else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', combined_psf, h_psf
   endfor  
-  
-
 endif
 
 
 
 
-delvarx,psf_cube,combined_psf,psf_cube_input,spec_in,binned_image,binned_badpix,binned_sigma
+
+
+delvarx,psf_cube,combined_psf,psf_cube_input,spec_in,binned_image,binned_badpix,binned_sigma,tempf,tempb,temps
 
 
 

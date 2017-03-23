@@ -1,6 +1,30 @@
  
  
-pro result_visualiser,root,decomp,galaxy_ref,slices_dir,binned_dir,decomp_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
+pro result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,MANGA=manga,CALIFA=califa
+  root=setup.root
+  decomp=setup.decomp
+  galaxy_ref=setup.galaxy_ref
+  slices_dir=setup.slices_dir
+  binned_dir=setup.binned_dir
+  median_dir=setup.median_dir
+  decomp_dir=setup.decomp_dir
+  x_centre=fix(setup.x_centre-1)             ;x position of centre of galaxy, -1 to convert to position in array
+  y_centre=fix(setup.y_centre-1)             ;y position of centre of galaxy, -1 to convert to position in array
+  Redshift=setup.Redshift
+  n_comp=setup.n_comp
+  comp3_type=setup.comp3_type
+  comp4_type=setup.comp4_type
+  comp4_x=setup.comp4_x
+  comp4_y=setup.comp4_y
+  no_slices=setup.no_slices
+
+
+
+
+
+
+
+
 first_image=info[0]
 final_image=info[1] 
 no_bins=info[2]
@@ -18,7 +42,7 @@ fits_read,root+decomp+decomp_dir+'original.fits',original_datacube,h_orig
 fits_read,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,h_bestfit
 fits_read,root+decomp+decomp_dir+'residuals.fits',residual_datacube,h_resid
 
-fits_read,root+decomp+binned_dir+'badpix.fits',badpix,h_bp
+fits_read,root+decomp+median_dir+'badpix.fits',badpix,h_bp
 
 fits_read,root+decomp+decomp_dir+'disk.fits',disk_datacube,h_disk
 fits_read,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,h_sky
@@ -214,8 +238,11 @@ endif
 
 ;print,bulge_1D
 ;plot results for comparison
+result = FILE_TEST(root+decomp+decomp_dir+'masked_flux/', /DIRECTORY)
+if result eq 0 then file_mkdir,root+decomp+decomp_dir+'masked_flux/'
+
 set_plot,'ps'
-device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=2
 !p.charthick=3
 !p.charsize=1.3
@@ -298,48 +325,72 @@ print,'residuals',resid_1D[100]
 device,/close
 
 ;update header with correct parameters for 1D spectra.
+h0=headfits(root+decomp+decomp_dir+'original.fits')
+tempf=mrdfits(root+decomp+decomp_dir+'original.fits',1,h_flux)
+delvarx,tempf
+wavelength0=sxpar(h0,'WAVELENG') 
+step=sxpar(h0,'CD3_3')                 
 if n_comp ne 1111 and n_comp ne 1011 and n_comp ne 1110 and n_comp ne 1010 then xx=2 else xx=3
 for bd=1,xx,1 do begin
     if n_comp lt 1100 and bd eq 1 then bd=2
     if bd eq 1 then h=h_bulge else if bd eq 2 then h=h_disk else if bd eq 3 then h=h_comp3
-    sxdelpar,h,'CRVAL1'
-    sxdelpar,h,'CRVAL2'
-    sxdelpar,h,'CDELT1'
-    sxdelpar,h,'CDELT2'
-    sxdelpar,h,'CD1_1'
-    sxdelpar,h,'CD2_2'
+    sxdelpar,h0,'CRVAL1'
+    sxdelpar,h0,'CRVAL2'
+    sxdelpar,h0,'CDELT1'
+    sxdelpar,h0,'CDELT2'
+    sxdelpar,h0,'CD1_1'
+    sxdelpar,h0,'CD2_2'
     
-    sxaddpar,h,'CUNIT1','Angstrom'
-    temp=sxpar(h,'CRVAL3')
-    sxaddpar,h,'CRVAL1',temp
-    temp=sxpar(h,'CD3_3')
-    sxaddpar,h,'CD1_1',temp
-    sxaddpar,h,'CTYPE1','WAVE-LOG'
-    sxaddpar,h,'CRPIX1',1
-    sxaddpar,h,'CRPIX2',1
+    sxaddpar,h0,'CUNIT1','Angstrom'
+    temp=sxpar(h0,'CRVAL3')
+    sxaddpar,h0,'CRVAL1',temp
+    temp=sxpar(h0,'CD3_3')
+    sxaddpar,h0,'CD1_1',temp
+    sxaddpar,h0,'CTYPE1','WAVE-LOG'
+    sxaddpar,h0,'CRPIX1',1
+    sxaddpar,h0,'CRPIX2',1
     
-    sxdelpar,h,'CRVAL3'
-    sxdelpar,h,'CD3_3'
-    sxdelpar,h,'CTYPE3'
-    sxdelpar,h,'CRPIX3'
-    sxdelpar,h,'CUNIT3'
-    sxdelpar,h,'CUNIT2'
-print,bd
-    if bd eq 3 then fits_write,root+decomp+decomp_dir+'comp3_1D.fits',comp3_1D,h
-    if bd eq 2 then fits_write,root+decomp+decomp_dir+'disk_1D.fits',disk_1D,h
-    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_1D.fits',bulge_1D,h
-    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_1D_small.fits',bulge_1D_small,h
-    if bd eq 2 then fits_write,root+decomp+decomp_dir+'disk_Re.fits',disk_Re,h
-    if bd eq 1 then fits_write,root+decomp+decomp_dir+'bulge_Re.fits',bulge_Re,h
-    if bd eq 2 then fits_write,root+decomp+decomp_dir+'residual_sky_1D.fits',resid_sky_1D,h
+    sxdelpar,h0,'CRVAL3'
+    sxdelpar,h0,'CD3_3'
+    sxdelpar,h0,'CTYPE3'
+    sxdelpar,h0,'CRPIX3'
+    sxdelpar,h0,'CUNIT3'
+    sxdelpar,h0,'CUNIT2'
 
+    if bd eq 3 then begin
+      fits_write,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',comp3_1D,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
+    endif
+    if bd eq 2 then begin
+      fits_write,root+decomp+decomp_dir+'masked_flux/disk_1D.fits',disk_1D,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/disk_1D.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/disk_1D.fits',1,h_flux,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'masked_flux/disk_Re.fits',disk_Re,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/disk_Re.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/disk_Re.fits',1,h_flux,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',resid_sky_1D,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',1,h_flux,extname='FLUX'
+    endif
+    if bd eq 1 then begin
+      fits_write,root+decomp+decomp_dir+'masked_flux/bulge_1D.fits',bulge_1D,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D.fits',1,h_flux,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'masked_flux/bulge_1D_small.fits',bulge_1D_small,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D_small.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D_small.fits',1,h_flux,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'masked_flux/bulge_Re.fits',bulge_Re,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_Re.fits',0,h0
+      modfits,root+decomp+decomp_dir+'masked_flux/bulge_Re.fits',1,h_flux,extname='FLUX'
+    endif
 endfor
 
 
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+decomp_dir+'Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0
@@ -464,35 +515,6 @@ xyouts,CaII2_new-30,jj,'Ca II',charsize=0.9
 device,/close
 
 
-;
-;set_plot,'ps'
-;;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-;device,file=root+decomp+decomp_dir+'Residual_sky.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
-;!P.thick=3 
-;!p.charthick=3 
-;!p.charsize=1.0 
-;!p.multi=0;[0,1,4]
-;;start_wavelength=4600
-;end_wavelength=10300  
-;
-;plot,wavelength,resid_sky_1D/median(orig_1D),$
-;    xrange=[start_wavelength-100,end_wavelength+100],$
-;    /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
-;   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
-;    xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
-;
-;
-;xyouts,Ha_new-30,aa,'H'+greek('alpha'),charsize=0.9
-;xyouts,Hb_new-30,bb,'H'+greek('beta'),charsize=0.9
-;xyouts,Hg_new-30,cc,'H'+greek('gamma'),charsize=0.9
-;xyouts,Hd_new-30,dd,'H'+greek('delta'),charsize=0.9
-;xyouts,Mgb_new-30,ee,'Mg',charsize=0.9
-;xyouts,Fe5335_new-30,ff,'Fe',charsize=0.9
-;xyouts,Fe5270_new-30,gg,'Fe',charsize=0.9
-;xyouts,Na_new-30,hh,'Na D',charsize=0.9
-;
-;;!p.multi=0
-;device,/close
 
 
 end

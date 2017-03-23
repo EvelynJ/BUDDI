@@ -1,7 +1,22 @@
 
 
 
-pro datacube_creator,root,decomp,decomp_dir,kinematics,galaxy_ref,file,slices_dir,info,n_comp,comp3_type,comp4_type,no_slices,wavelength,MANGA=manga,CALIFA=califa
+pro datacube_creator,setup,info,wavelength,MANGA=manga,CALIFA=califa
+
+
+  root=setup.root
+  decomp=setup.decomp
+  decomp_dir=setup.decomp_dir
+  kinematics=setup.kinematics
+  galaxy_ref=setup.galaxy_ref
+  file=setup.file
+  slices_dir=setup.slices_dir
+  n_comp=setup.n_comp
+  comp3_type=setup.comp3_type
+  comp4_type=setup.comp4_type
+  no_slices=setup.no_slices
+  
+
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
@@ -15,7 +30,7 @@ x1=(total_images mod no_slices)     ;total number of images in the last feedme f
 
 
 ;fits_read,root+kinematics+file+'_counts.fits',temp_input,h
-fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',temp_input,h
+fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',temp_input,h
 side1=sxpar(h,'NAXIS1')
 side2=sxpar(h,'NAXIS2')
 images=sxpar(h,'NAXIS3')
@@ -127,31 +142,70 @@ if galfit_or_galfitm eq 'galfitm' then begin
       endelse 
   endfor
   
-  h_temp = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
+  h_temp=headfits(root+file+'.fits')
+  h_tempy = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
 ;  fits_read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
-  wavelength0=sxpar(h_temp,'WAVELENG')  ;linear
-  step=sxpar(h,'CD3_3')                 ;log
+  wavelength0=sxpar(h_tempy,'WAVELENG') 
+  step=setup.step;sxpar(h_temp,'CD3_3')               
   print,'***',wavelength0,step
   
+  tempf=mrdfits(root+file+'.fits',1,h_flux)
+  delvarx,tempf,h_tempy
   if keyword_set(manga) then begin
     ;read in header for original image. Use the CRVAL3 and CD3_3 parameters to work out the step size in log units
-    sxaddpar,h,'CRVAL3',alog10(wavelength0)
-    sxaddpar,h,'CD3_3',step;alog10(wavelength0+step)-alog10(wavelength0)
+    sxaddpar,h_temp,'Wave0',(wavelength0)
+    sxaddpar,h_temp,'CRVAL3',alog10(wavelength0)
+    sxaddpar,h_temp,'CD3_3',step
+    sxaddpar,h_flux,'Wave0',(wavelength0)
+    sxaddpar,h_flux,'CRVAL3',alog10(wavelength0)
+    sxaddpar,h_flux,'CD3_3',step
   endif else if keyword_set(califa) then begin
-    sxaddpar,h,'CRVAL3',alog(wavelength0)
-    sxaddpar,h,'CD3_3',step
+    sxaddpar,h_temp,'Wave0',alog(wavelength0)
+    sxaddpar,h_temp,'CRVAL3',(wavelength0)
+    sxaddpar,h_temp,'CD3_3',step
+    sxaddpar,h_flux,'WAvE0',alog(wavelength0)
+    sxaddpar,h_flux,'CRVAL3',(wavelength0)
+    sxaddpar,h_flux,'CD3_3',step
   endif
-  fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,h
-  fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,h
-  fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,h
+  s=size(bestfit_datacube)
+  sxaddpar,h_flux,'NAXIS3',s[3]
   
-  fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,h
-  fits_write,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,h
-  if n_comp ge 1100 then fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,h
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then fits_write,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,h
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then fits_write,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,h
+  
+  fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,extname='FLUX'
+  modfits,root+decomp+decomp_dir+'original.fits',0,h_temp
+  modfits,root+decomp+decomp_dir+'original.fits',1,h_flux,extname='FLUX'
+  fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,extname='FLUX'
+  modfits,root+decomp+decomp_dir+'bestfit.fits',0,h_temp
+  modfits,root+decomp+decomp_dir+'bestfit.fits',1,h_flux,extname='FLUX'
+  fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,extname='FLUX'
+  modfits,root+decomp+decomp_dir+'residuals.fits',0,h_temp
+  modfits,root+decomp+decomp_dir+'residuals.fits',1,h_flux,extname='FLUX'
+  
+  fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,extname='FLUX'
+  modfits,root+decomp+decomp_dir+'disk.fits',0,h_temp
+  modfits,root+decomp+decomp_dir+'disk.fits',1,h_flux,extname='FLUX'
+  fits_write,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,extname='FLUX'
+  modfits,root+decomp+decomp_dir+'residual_sky.fits',0,h_temp
+  modfits,root+decomp+decomp_dir+'residual_sky.fits',1,h_flux,extname='FLUX'
+  if n_comp ge 1100 then begin
+    fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'bulge.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'bulge.fits',1,h_flux,extname='FLUX'
+  endif
+  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+    fits_write,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'comp3.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'comp3.fits',1,h_flux,extname='FLUX'
+  endif
+  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+    fits_write,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'comp4.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'comp4.fits',1,h_flux,extname='FLUX'
+  endif
 
-
+  delvarx,comp4_datacube,comp3_datacube,disk_datacube,bulge_datacube,residual_sky_datacube
+  delvarx,residual_datacube,original_datacube,original_in,bestfit_in,residuals_in,comp4_in
+  delvarx,comp3_in,bulge_in,disk_in
 
 ;======================================================================
 endif else if galfit_or_galfitm eq 'galfit' then begin

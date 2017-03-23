@@ -73,9 +73,9 @@ for column=0,x-1,1 do begin
     S_N_array[column,row]=S_N
     
     
-    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,Signal/noise,format='(2f16.5,3f20.4)'
+    if S_N gt limit then printf,01,column-x_centre,row-y_centre,Signal,noise,Signal/noise,format='(2f16.5,2e20,f20.4)'
     if S_N gt 0 then printf,11,column-x_centre,row-y_centre,format='(2f16.5)'
-    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2f20.4)'
+    printf,21,column-x_centre,row-y_centre,Signal,noise,format='(2f16.5,2e20)'
     
   endfor
 endfor
@@ -629,119 +629,118 @@ if setup.measure_kinematics eq 'y' then begin
   
   
   
-  ;run through each pixel, fitting the best fit to the stellar spectrum from 
-  ;before with emission lines, then create a new spectrum with the emission removed
-  fits_read,root+file+'.fits',input_galaxy,h_input
-  x=sxpar(h_input,'NAXIS1')
-  y=sxpar(h_input,'NAXIS2')
-  z=sxpar(h_input,'NAXIS3')
+;  ;run through each pixel, fitting the best fit to the stellar spectrum from 
+;  ;before with emission lines, then create a new spectrum with the emission removed
+;  fits_read,root+file+'.fits',input_galaxy,h_input
+;  x=sxpar(h_input,'NAXIS1')
+;  y=sxpar(h_input,'NAXIS2')
+;  z=sxpar(h_input,'NAXIS3')
 
-  setup.rmv_emission='n'
-  if setup.rmv_emission eq 'y' then begin
-    ;read in galaxy and best fit spectra
-    readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='f,f,f',$
-      x_pix,y_pix,bin_no,/silent,comment='#',skipline=1
-    emission_datacube=fltarr(x,y,z)
-    clean_datacube=fltarr(x,y,z)
-    for pix=0,n_elements(x_pix)-1,1 do begin
-      print,'*** now measuring the emission kinematics of spectrum number '+string(pix,format='(i4.4)')+' out of '+string(n_elements(x_pix)-1,format='(i4.4)')
-      fits_read,root+kinematics+'best_fit_spectra/stellar_bin'+string(bin_no[pix],format='(i4.4)')+'.fits',$
-        stars_in,h_stars
-      galaxy_spec_temp=input_galaxy[x_pix[pix]+x_centre,y_pix[pix]+y_centre,*]
-      galaxy_spec=fltarr(n_elements(sample))
-      for jj=0,n_elements(sample)-1,1 do galaxy_spec[jj]=galaxy_spec_temp[0,0,sample[jj]]
-      galaxy=galaxy_spec/median(galaxy_spec)
-      noise = galaxy*0 + 1           ; Assume constant noise per pixel here
-      
-      stars_templates=stars_in/median(stars_in)
-      
-      gas_templates = ppxf_emission_lines(alog(10^wavelength[sample]), FWHM_gal, LINE_NAMES=line_names, LINE_WAVE=line_wave)
-      ;ngas = (size(gas_templates,/DIM))[1] ; number of gass emission line templates
-      ngas = (size(gas_templates))[2] ; number of gass emission line templates
-      nstars=1
-      
-      templates = [[stars_templates], [gas_templates]]
-
-      Velocity=0
-      start = [[Velocity, 2*velScale],[Velocity, 2*velScale]] ; (km/s), starting guess for [V,sigma]
-      component = [replicate(0,nstars), replicate(1,ngas)]
-      
-      moments=[2,2]
-      goodPixels=indgen(n_elements(galaxy))
-      dv=0
-      
-      ppxf_v479, templates, galaxy, noise, velScale, start, sol, $
-        GOODPIXELS=goodPixels, MOMENTS=moments,DEGREE=4,$
-        VSYST=dv,  WEIGHTS=weights, REG_DIM=reg_dim, $
-        COMPONENT=component, MATRIX=matrix, BESTFIT=bestfit
-
-      w = where(component eq 1)  ; Extract weights of gas emissions only
-      print, '++++++++++++++++++++++++++++++'
-      print, FORMAT='("Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
-      print, 'Emission lines peak intensity:'
-      for j=0, ngas-1 do $
-        print, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
-      print, '------------------------------'
-      
-      close,60
-      openw,60,root+kinematics+'best_fit_spectra/emission.txt',/APPEND
-      printf,60, '#++++++++++++++++++++++++++++++'
-      printf,60, '# ',x_pix,y_pix
-      printf,60, FORMAT='("#Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
-      printf,60, '#Emission lines peak intensity:'
-      for j=0, ngas-1 do $
-        printf,60, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
-      printf,60, '#------------------------------'
-      printf,60,' '
-      close,60
-
-      close,50
-      openw,50,root+kinematics+'best_fit_spectra/kinematics_stars_emission.txt',/APPEND
-      
-      
-      if run eq 0 then printf,50, '#Component', 'V', 'sigma', 'x', 'y', FORMAT='(3A10,2A5)'
-      for j=0,1 do printf,50, j, sol[0:1,j],x_pix[pix],y_pix[pix], FORMAT='(i10,2f10.1,2A5)'
-      close,50
-
-      print, '#Component', 'V', 'sigma', 'x', 'y', FORMAT='(3A10,2A5)'
-      
-      for j=0,1 do print, j, sol[0:1,j], FORMAT='(i10,2f10.1)';,string(pix)+'/'+string(n_elements(x_pix)-1), FORMAT='(i10,2f10.1)'
-      ;for j=0,1 do print, j, sol[0:1,j],string(pix)+'/'+string(n_elements(x_pix)-1), FORMAT='(i10,2f10.1)'
-      print,' '
-      
-      set_plot,'ps'
-      !p.multi=0;[0,1,2]
-      device,file=root+kinematics+'best_fit_spectra/kinematics_pixel_'+string(pix,format='(i5.5)')+'.eps',/color,xoffset=0,yoffset=0
-      cgplot, wave, galaxy, color='black', XTITLE='Observed Wavelength A', $
-        YTITLE='Relative Flux', /XSTYLE, YRANGE=[-0.1, 1.8]
-      cgoplot, wave, bestfit, color='orange'
-      cgOPlot, wave, galaxy - bestfit, PSYM=4, COLOR='limegreen'
-      stars = matrix[*, 0:nstars] # weights[0:nstars]
-      cgoplot, wave, stars, COLOR='red'  ; overplot stellar templates alone
-      gas = matrix[*, -ngas:*] # weights[-ngas:*]
-      cgoplot, wave, gas + 0.15, COLOR='blue'  ; overplot emission lines alone
-      
-;      ; Plot mass weights as a function of age and metallicity
-;      ;
-;      loadct, 3
-;      s = size(templates)
-;      ages = cap_range(0.0631, 17.7828, s[2], /LOG)
-;      metal = cap_range(-1.9, 0.45, s[3]) ; This axis is approximate
-;      image_plot, reform(weights[0:nstars-1], reg_dim[0], reg_dim[1]), ages, metal, $
-;        XTITLE='Age (Gyr)', YTITLE='[M/H]', /XLOG, $
-;        AXISCOLOR='dark grey', TITLE='Mass Fraction'
-      !P.MULTI=0
-      
-      
-      device,/close
-      
-      emission_datacube[x_pix[pix]+x_centre,y_pix[pix]+y_centre,sample]=gas
-      clean_datacube[x_pix[pix]+x_centre,y_pix[pix]+y_centre,sample]=(galaxy-gas)*median(galaxy_spec)
-;      input_galaxy[x_pix[pix]+x_centre,y_pix[pix]+y_centre,*]-gas
-    endfor
-    ;write out fits datacube containing emission spectra, and then subtract it from the original datacube
-    fits_write,root+decomp+galaxy_ref+'_no_emission.fits',clean_datacube,h_input
-  endif
+;  if setup.rmv_emission eq 'y' then begin
+;    ;read in galaxy and best fit spectra
+;    readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='f,f,f',$
+;      x_pix,y_pix,bin_no,/silent,comment='#',skipline=1
+;    emission_datacube=fltarr(x,y,z)
+;    clean_datacube=fltarr(x,y,z)
+;    for pix=0,n_elements(x_pix)-1,1 do begin
+;      print,'*** now measuring the emission kinematics of spectrum number '+string(pix,format='(i4.4)')+' out of '+string(n_elements(x_pix)-1,format='(i4.4)')
+;      fits_read,root+kinematics+'best_fit_spectra/stellar_bin'+string(bin_no[pix],format='(i4.4)')+'.fits',$
+;        stars_in,h_stars
+;      galaxy_spec_temp=input_galaxy[x_pix[pix]+x_centre,y_pix[pix]+y_centre,*]
+;      galaxy_spec=fltarr(n_elements(sample))
+;      for jj=0,n_elements(sample)-1,1 do galaxy_spec[jj]=galaxy_spec_temp[0,0,sample[jj]]
+;      galaxy=galaxy_spec/median(galaxy_spec)
+;      noise = galaxy*0 + 1           ; Assume constant noise per pixel here
+;      
+;      stars_templates=stars_in/median(stars_in)
+;      
+;      gas_templates = ppxf_emission_lines(alog(10^wavelength[sample]), FWHM_gal, LINE_NAMES=line_names, LINE_WAVE=line_wave)
+;      ;ngas = (size(gas_templates,/DIM))[1] ; number of gass emission line templates
+;      ngas = (size(gas_templates))[2] ; number of gass emission line templates
+;      nstars=1
+;      
+;      templates = [[stars_templates], [gas_templates]]
+;
+;      Velocity=0
+;      start = [[Velocity, 2*velScale],[Velocity, 2*velScale]] ; (km/s), starting guess for [V,sigma]
+;      component = [replicate(0,nstars), replicate(1,ngas)]
+;      
+;      moments=[2,2]
+;      goodPixels=indgen(n_elements(galaxy))
+;      dv=0
+;      
+;      ppxf_v479, templates, galaxy, noise, velScale, start, sol, $
+;        GOODPIXELS=goodPixels, MOMENTS=moments,DEGREE=4,$
+;        VSYST=dv,  WEIGHTS=weights, REG_DIM=reg_dim, $
+;        COMPONENT=component, MATRIX=matrix, BESTFIT=bestfit
+;
+;      w = where(component eq 1)  ; Extract weights of gas emissions only
+;      print, '++++++++++++++++++++++++++++++'
+;      print, FORMAT='("Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
+;      print, 'Emission lines peak intensity:'
+;      for j=0, ngas-1 do $
+;        print, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
+;      print, '------------------------------'
+;      
+;      close,60
+;      openw,60,root+kinematics+'best_fit_spectra/emission.txt',/APPEND
+;      printf,60, '#++++++++++++++++++++++++++++++'
+;      printf,60, '# ',x_pix,y_pix
+;      printf,60, FORMAT='("#Gas V=", G0.4, " and sigma=", G0.2, " km/s")', sol[0:1, 1]  ; component=1
+;      printf,60, '#Emission lines peak intensity:'
+;      for j=0, ngas-1 do $
+;        printf,60, FORMAT='(A12, ": ", G0.3)', line_names[j], weights[w[j]]*max(matrix[*, w[j]])
+;      printf,60, '#------------------------------'
+;      printf,60,' '
+;      close,60
+;
+;      close,50
+;      openw,50,root+kinematics+'best_fit_spectra/kinematics_stars_emission.txt',/APPEND
+;      
+;      
+;      if run eq 0 then printf,50, '#Component', 'V', 'sigma', 'x', 'y', FORMAT='(3A10,2A5)'
+;      for j=0,1 do printf,50, j, sol[0:1,j],x_pix[pix],y_pix[pix], FORMAT='(i10,2f10.1,2A5)'
+;      close,50
+;
+;      print, '#Component', 'V', 'sigma', 'x', 'y', FORMAT='(3A10,2A5)'
+;      
+;      for j=0,1 do print, j, sol[0:1,j], FORMAT='(i10,2f10.1)';,string(pix)+'/'+string(n_elements(x_pix)-1), FORMAT='(i10,2f10.1)'
+;      ;for j=0,1 do print, j, sol[0:1,j],string(pix)+'/'+string(n_elements(x_pix)-1), FORMAT='(i10,2f10.1)'
+;      print,' '
+;      
+;      set_plot,'ps'
+;      !p.multi=0;[0,1,2]
+;      device,file=root+kinematics+'best_fit_spectra/kinematics_pixel_'+string(pix,format='(i5.5)')+'.eps',/color,xoffset=0,yoffset=0
+;      cgplot, wave, galaxy, color='black', XTITLE='Observed Wavelength A', $
+;        YTITLE='Relative Flux', /XSTYLE, YRANGE=[-0.1, 1.8]
+;      cgoplot, wave, bestfit, color='orange'
+;      cgOPlot, wave, galaxy - bestfit, PSYM=4, COLOR='limegreen'
+;      stars = matrix[*, 0:nstars] # weights[0:nstars]
+;      cgoplot, wave, stars, COLOR='red'  ; overplot stellar templates alone
+;      gas = matrix[*, -ngas:*] # weights[-ngas:*]
+;      cgoplot, wave, gas + 0.15, COLOR='blue'  ; overplot emission lines alone
+;      
+;;      ; Plot mass weights as a function of age and metallicity
+;;      ;
+;;      loadct, 3
+;;      s = size(templates)
+;;      ages = cap_range(0.0631, 17.7828, s[2], /LOG)
+;;      metal = cap_range(-1.9, 0.45, s[3]) ; This axis is approximate
+;;      image_plot, reform(weights[0:nstars-1], reg_dim[0], reg_dim[1]), ages, metal, $
+;;        XTITLE='Age (Gyr)', YTITLE='[M/H]', /XLOG, $
+;;        AXISCOLOR='dark grey', TITLE='Mass Fraction'
+;      !P.MULTI=0
+;      
+;      
+;      device,/close
+;      
+;      emission_datacube[x_pix[pix]+x_centre,y_pix[pix]+y_centre,sample]=gas
+;      clean_datacube[x_pix[pix]+x_centre,y_pix[pix]+y_centre,sample]=(galaxy-gas)*median(galaxy_spec)
+;;      input_galaxy[x_pix[pix]+x_centre,y_pix[pix]+y_centre,*]-gas
+;    endfor
+;    ;write out fits datacube containing emission spectra, and then subtract it from the original datacube
+;    fits_write,root+decomp+galaxy_ref+'_no_emission.fits',clean_datacube,h_input
+;  endif
  
 
 endif
@@ -1023,7 +1022,10 @@ if setup.correct_kinematics eq 'y' then begin
       format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#',/SILENT
   
   fits_read,root+file+'.fits',input_IFU,header_IFU
+  ;print,'***'
   if sigma_TF eq 'T' then fits_read,root+sigma_cube+'.fits',input_sigma,header_sigma
+  
+  ;print,'***'
   if badpix_TF eq 'T' then begin
     fits_read,root+badpix_cube+'.fits',input_badpix,header_badpix
     
@@ -1150,10 +1152,14 @@ if setup.correct_kinematics eq 'y' then begin
   
   result = FILE_TEST(root+decomp, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+decomp
-  h_temp=headfits(root+file+'_FLUX.fits') 
+  
+  h_temp=headfits(root+file+'.fits') 
+  sxaddpar,h_temp,'CRVAL3',setup.wave0
+  sxaddpar,h_temp,'CDELT3',setup.step
+  sxaddpar,h_temp,'CD3_3',setup.step
   fits_write, root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU,extname='FLUX'
   modfits,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',0,h_temp
-  temp=mrdfits(root+file+'_FLUX.fits',1,h_flux)
+  temp=mrdfits(root+file+'.fits',1,h_flux)
   modfits,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',1,h_flux,extname='FLUX'
 
   
@@ -1162,7 +1168,7 @@ if setup.correct_kinematics eq 'y' then begin
 ;    modfits,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits',0,h_temp
 ;    temp=mrdfits(root+file+'_SIGMA.fits',1,h_sigma)
 ;    modfits,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits',1,h_sigma,extname='SIGMA'
-     spawn,'cp '+root+file+'_SIGMA.fits '+root+decomp+galaxy_ref+'_smoothed_SIGMA.fits'
+     spawn,'cp '+root+sigma_cube+'.fits '+root+decomp+galaxy_ref+'_smoothed_SIGMA.fits'
   endif
   
   if badpix_TF eq 'T' then begin
@@ -1170,7 +1176,7 @@ if setup.correct_kinematics eq 'y' then begin
 ;    modfits,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits',0,h_temp
 ;    temp=mrdfits(root+file+'_BADPIX.fits',1,h_bp)
 ;    modfits,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits',1,h_bp,extname='BADPIX'
-     spawn,'cp '+root+file+'_BADPIX.fits '+root+decomp+galaxy_ref+'_smoothed_BADPIX.fits'
+     spawn,'cp '+root+badpix_cube+'.fits '+root+decomp+galaxy_ref+'_smoothed_BADPIX.fits'
   endif
 
   set_plot,'ps'
@@ -1254,11 +1260,11 @@ if setup.decompose_median_image eq 'y' then begin
   endfor
   
   if sigma_TF eq 'T' then begin
-    fits_read,directory+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
+    fits_read,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
     sigma_image=sigma_in[*,*,100]
   endif 
   if badpix_TF eq 'T' then begin
-    fits_read,directory+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
+    fits_read,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
     badpix_image=badpix_in[*,*,100]
   endif
 
@@ -1269,37 +1275,38 @@ if setup.decompose_median_image eq 'y' then begin
   fits_read,root+file+'.fits',temp_input,h
   
   
-;  mkhdr, hdr0,median_image;,/IMAGE
+;  fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,extname='FLUX';,hdr0
 ;  
-;  sxaddpar,hdr0,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-;  sxaddpar,hdr0,'NCOMBINE',sxpar(h,'NEXP')
-  fits_write, root+decomp+median_dir+galaxy_ref+'_median_image.fits',median_image,extname='FLUX';,hdr0
-  temp=mrdfits(directory+file+'_smoothed_FLUX.fits',0,h_temp)
-  tempf=mrdfits(directory+file+'_smoothed_FLUX.fits',1,h_flux)
-  sxaddpar,h_temp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-  sxaddpar,h_temp,'NCOMBINE',sxpar(h,'NEXP')
-  sxaddpar,h_flux,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-  sxaddpar,h_flux,'NCOMBINE',sxpar(h,'NEXP')
-  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',0,h_temp
-  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',1,h_flux,extname='FLUX'
-  
-  if sigma_TF eq 'T' then begin
-    fits_write, root+decomp+median_dir+'sigma.fits',sigma_image,extname='SIGMA'
-    tempf=mrdfits(directory+file+'_smoothed_SIGMA.fits',1,h_sigma)
-    sxaddpar,h_sigma,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-    sxaddpar,h_sigma,'NCOMBINE',sxpar(h,'NEXP')
-    modfits,root+decomp+median_dir+'sigma.fits',0,h_temp
-    modfits,root+decomp+median_dir+'sigma.fits',1,h_sigma,extname='SIGMA'
-  endif
+;  h_temp=headfits(root+file+'_FLUX.fits')
+;  h_flux=headfits(root+file+'_FLUX.fits',exten=1)
+;  ;temp=mrdfits(root+file+'_smoothed_FLUX.fits',0,h_temp)
+;  ;tempf=mrdfits(root+file+'_smoothed_FLUX.fits',1,h_flux,extname='FLUX')
+;  sxaddpar,h_temp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+;  sxaddpar,h_temp,'NCOMBINE',sxpar(h,'NEXP')
+;  sxaddpar,h_flux,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+;  sxaddpar,h_flux,'NCOMBINE',sxpar(h,'NEXP')
+;  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',0,h_temp
+;  modfits,root+decomp+median_dir+galaxy_ref+'_median_image.fits',1,h_flux,extname='FLUX'
+;  
+;  if sigma_TF eq 'T' then begin
+;    fits_write, root+decomp+median_dir+'sigma.fits',sigma_image,extname='SIGMA'
+;    h_sigma=headfits(root+file+'_SIGMA.fits',exten=1)
+;    ;tempf=mrdfits(root+file+'_smoothed_SIGMA.fits',1,h_sigma)
+;    sxaddpar,h_sigma,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+;    sxaddpar,h_sigma,'NCOMBINE',sxpar(h,'NEXP')
+;    modfits,root+decomp+median_dir+'sigma.fits',0,h_temp
+;    modfits,root+decomp+median_dir+'sigma.fits',1,h_sigma,extname='SIGMA'
+;  endif
 
-  if badpix_TF eq 'T' then begin
-    fits_write, root+decomp+median_dir+'badpix.fits',badpix_image,extname='BADPIX'
-    tempf=mrdfits(directory+file+'_smoothed_BADPIX.fits',1,h_bp)
-    sxaddpar,h_bp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
-    sxaddpar,h_bp,'NCOMBINE',sxpar(h,'NEXP')
-    modfits,root+decomp+median_dir+'badpix.fits',0,h_temp
-    modfits,root+decomp+median_dir+'badpix.fits',1,h_bp,extname='BADPIX'
-  endif
+;  if badpix_TF eq 'T' then begin
+;    fits_write, root+decomp+median_dir+'badpix.fits',badpix_image,extname='BADPIX'
+;    h_bp=headfits(root+file+'_BADPIX.fits',exten=1)
+;    ;tempf=mrdfits(root+file+'_smoothed_BADPIX.fits',1,h_bp)
+;    sxaddpar,h_bp,'EXPTIME',sxpar(h,'EXPTIME')/sxpar(h,'NEXP')
+;    sxaddpar,h_bp,'NCOMBINE',sxpar(h,'NEXP')
+;    modfits,root+decomp+median_dir+'badpix.fits',0,h_temp
+;    modfits,root+decomp+median_dir+'badpix.fits',1,h_bp,extname='BADPIX'
+;  endif
   
   
   
@@ -1363,6 +1370,8 @@ endif
 if setup.decompose_binned_images eq 'y' then begin
   output=root+decomp
   
+  orig_setup=setup
+  
   fits_read,root+file+'.fits',temp_input,h
   scale=[abs(sxpar(h,'CD1_1')*3600),abs(sxpar(h,'CD2_2')*3600)]
   
@@ -1379,12 +1388,13 @@ if setup.decompose_binned_images eq 'y' then begin
     result=file_test(root+decomp+binned_dir+'imgblock_free.fits')
     if result eq 1 and rep eq 1 then rep=2
     
-    if rep eq 1 then $
+    if rep eq 1 then begin
+      setup=orig_setup
       galfitm_multiband,setup,info,x_centre,$
           y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
-          rep,stars_file,/binned,/header
-    
-    
+          rep,/binned,/header
+    endif
+        
     if rep ne 1 then begin
       ;if doing constrained fits, allow user to determine whether to use 
       ;results from median fit or free fit as starting parameters
@@ -1394,42 +1404,83 @@ if setup.decompose_binned_images eq 'y' then begin
       print,'  a) results from the input file'
       print,'  b) results from the free binned fit'
       print,'  c) results from the median fit (not yet incorporated)'
+      print,'  d) Manual Input'
       print,'  q) quit'
       while decision ne 'a' and decision ne 'b' and decision ne 'c' and decision ne 'q' do $
-        READ, decision, PROMPT='Please select "a", "b", "c" or "q": '
+        READ, decision, PROMPT='Please select "a", "b", "c", "d" or "q": '
       
       if decision eq 'q' then rep=999
       if decision eq 'a' then begin
+        setup=orig_setup
         galfitm_multiband,setup,info,x_centre,$
           y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
-          rep,stars_file,/binned,/header,/file
+          rep,/binned,/header,/file
 
       endif else if decision eq 'b' then begin
-        read_input, input_file, setup
-        disk_re_polynomial=setup.disk_re_polynomial
-        disk_mag_polynomial=setup.disk_mag_polynomial
-        disk_n_polynomial=setup.disk_n_polynomial
-        if n_comp ge 1100 or n_comp eq 1010 or n_comp eq 1011 then begin
-          bulge_re_polynomial=setup.bulge_re_polynomial
-          bulge_mag_polynomial=setup.bulge_mag_polynomial
-          bulge_n_polynomial=setup.bulge_n_polynomial
-        endif else begin 
-          bulge_re_polynomial=99
-          bulge_mag_polynomial=99
-          bulge_n_polynomial=99
-        endelse
+        setup=orig_setup
 
-        
+
+        setup.median_dir=orig_setup.binned_dir
         galfitm_multiband,setup,info,x_centre,$
           y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
-          rep,stars_file,/binned,/header
+          rep,/binned,/header
 
         
       endif else if decision eq 'c' then begin
+        setup=orig_setup
         galfitm_multiband,setup,info,x_centre,$
           y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
-          rep,stars_file,/binned,/file
+          rep,/binned,/header
 
+      endif else if decision eq 'd' then begin
+        setup=orig_setup
+        decision='n'
+        print,'Which parameter do you want to change? '
+        print,'Please enter the F code form the input file, e.g. enter "F16" to change the Re polynomial for component 1'
+        print,'When you are happy, enter "q" '
+       while decision ne 'q' do begin
+          READ, decision, PROMPT='Please enter code or "q": '
+          if decision ne 'q' then READ, content, PROMPT='Please enter new value: '
+          if decision eq 'F00' then setup.n_comp = float(content) $
+          else if decision eq 'F01' then  setup.constraint = content $
+          else if decision eq 'F02' then  setup.magzpt = content $
+          else if decision eq 'F10' then  setup.disk_type = content $
+          else if decision eq 'F11' then  setup.disk_mag = float(content) $
+          else if decision eq 'F12' then  setup.disk_re = float(content) $
+          else if decision eq 'F13' then  setup.disk_n = float(content) $
+          else if decision eq 'F14' then  setup.disk_q = float(content) $
+          else if decision eq 'F15' then  setup.disk_pa = float(content) $
+          else if decision eq 'F16' then  setup.disk_re_polynomial = float(content) $
+          else if decision eq 'F17' then  setup.disk_mag_polynomial = float(content) $
+          else if decision eq 'F18' then  setup.disk_n_polynomial = float(content) $
+          ;        if setup.n_comp gt 1 then begin
+          else if decision eq 'F20' then  setup.bulge_type = content $
+          else if decision eq 'F21' then  setup.bulge_mag = float(content) $
+          else if decision eq 'F22' then  setup.bulge_re = float(content) $
+          else if decision eq 'F23' then  setup.bulge_n = float(content) $
+          else if decision eq 'F24' then  setup.bulge_q = float(content) $
+          else if decision eq 'F25' then  setup.bulge_pa = float(content) $
+          else if decision eq 'F26' then  setup.bulge_re_polynomial = float(content) $
+          else if decision eq 'F27' then  setup.bulge_mag_polynomial = float(content) $
+          else if decision eq 'F28' then  setup.bulge_n_polynomial = float(content) $
+          ;          if setup.n_comp gt 2 then begin
+          else if decision eq 'F30' then  setup.comp3_type = content $
+          else if decision eq 'F31' then  setup.comp3_mag = float(content) $
+          else if decision eq 'F32' then  setup.comp3_re = float(content) $
+          else if decision eq 'F33' then  setup.comp3_n = float(content) $
+          else if decision eq 'F34' then  setup.comp3_q = float(content) $
+          else if decision eq 'F35' then  setup.comp3_pa = float(content) $
+          else if decision eq 'F36' then  setup.comp3_re_polynomial = float(content) $
+          else if decision eq 'F37' then  setup.comp3_mag_polynomial = float(content) $
+          else if decision eq 'F38' then  setup.comp3_n_polynomial = float(content) $
+          else if content eq 'q' then  decision='q' $
+          else decision='q'
+       endwhile
+        
+        galfitm_multiband,setup,info,x_centre,$
+          y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+          rep,/binned,/file
+          
       endif
 
     endif
@@ -1554,9 +1605,9 @@ if setup.decompose_binned_images eq 'y' then begin
         endif
         sky1=res.sky_galfit_band
 
-          
+      result=file_search(root+decomp+binned_dir+'summary_plots_*',count=rep_max)   
       set_plot,'ps'
-      device,file=root+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
+      device,file=root+decomp+binned_dir+'summary_plots_'+string(rep_max+1,format='(I2.2)')+'.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
       !P.thick=2
       !p.charthick=2
       !p.charsize=1
@@ -1683,8 +1734,10 @@ if setup.decompose_binned_images eq 'y' then begin
       ;user inpiut to determine if polynomials are ok
       print,'******************************************************'
       print,'The latest fit has been plotted and saved as'
-      print,root+decomp+binned_dir+'summary_plots_'+string(rep,format='(I2.2)')+'.eps'
+      print,root+decomp+binned_dir+'summary_plots_'+string(rep_max+1,format='(I2.2)')+'.eps'
       print,'******************************************************'
+      
+      spawn,'cp galfitm.feedme galfitm_'+string(rep_max+1,format='(I2.2)')+'.feedme'
       
       decision='0'
       while decision ne 'y' and decision ne 'n' do $
@@ -1695,49 +1748,22 @@ if setup.decompose_binned_images eq 'y' then begin
         delay='n'
 ;        print,delay,'Please update the input file, and type "y" when done.  '
   
-        ;;*** Initial estimates for Galfit single Sersic fit
-        if setup.disk_type eq 'sersic' or setup.disk_type eq 'Sersic' then disk_type=0 else disk_type=1
-        estimates_disk=[disk_type,setup.disk_mag,setup.disk_re,setup.disk_n,setup.disk_q,setup.disk_pa]
-        disk_re_polynomial=setup.disk_re_polynomial
-        disk_mag_polynomial=setup.disk_mag_polynomial
-        disk_n_polynomial=setup.disk_n_polynomial
-        if n_comp ge 1100 or n_comp eq 1010 or n_comp eq 1011 then begin
-          if setup.bulge_type eq 'sersic' or setup.bulge_type eq 'Sersic' then bulge_type=0 else bulge_type=1
-          estimates_bulge=[bulge_type,setup.bulge_mag,setup.bulge_re,setup.bulge_n,setup.bulge_q,setup.bulge_pa] 
-          bulge_re_polynomial=setup.bulge_re_polynomial
-          bulge_mag_polynomial=setup.bulge_mag_polynomial
-          bulge_n_polynomial=setup.bulge_n_polynomial
-        endif else begin 
-          estimates_bulge=0
-          bulge_re_polynomial=99
-          bulge_mag_polynomial=99
-          bulge_n_polynomial=99
-        endelse
-        
-        if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          if setup.comp3_type eq 'sersic' or setup.comp3_type eq 'Sersic' then comp3_type=0 else comp3_type=1
-          estimates_comp3=[comp3_type,setup.comp3_mag,setup.comp3_re,setup.comp3_n,setup.comp3_q,setup.comp3_pa] 
-          comp3_re_polynomial=setup.comp3_re_polynomial
-          comp3_mag_polynomial=setup.comp3_mag_polynomial
-          comp3_n_polynomial=setup.comp3_n_polynomial
-        endif else begin 
-          estimates_comp3=0
-          comp3_re_polynomial=99
-          comp3_mag_polynomial=99
-          comp3_n_polynomial=99
-        endelse
-  
         
       endif
     endif
   endfor
   
   
-  ;clear up memory
+  ;clear up memory\
+  setup=orig_setup
   delvarx, res, mag_disk1,mag_bulge1, Re_disk1,Re_bulge1, n_disk1,n_bulge1, pa_disk1,pa_bulge1
   delvarx, q_disk1,q_bulge1
   
 endif
+
+
+
+
 
 ;4a. Read in the imgblock for the binned images to get chebychev polynomials.
 ;4b. Prepare galfitm readme file and run galfitm with all free parameters
@@ -1745,9 +1771,10 @@ endif
 if setup.decompose_image_slices eq 'y' then begin
   output=root+decomp
   comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
-  galfitm_multiband,root,decomp,median_dir,binned_dir,slices_dir,galaxy_ref,info,x_centre,$
-    y_centre,scale,magzpt,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,n_comp,no_slices,disk_re_polynomial, $
-    disk_mag_polynomial,disk_n_polynomial,bulge_re_polynomial,bulge_mag_polynomial,bulge_n_polynomial,comp3_poly,galfitm,1,stars_file,/slices
+  galfitm_multiband,setup,info,x_centre,$
+    y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+    1,/slices
+
 
   result = FILE_TEST(root+decomp+slices_dir+'galfit.*') 
   if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
@@ -1760,7 +1787,6 @@ if setup.decompose_image_slices eq 'y' then begin
   spawn,'chmod a+x run_galfitm.sh'
   
   spawn,'./run_galfitm.sh'
-  print,'***Note: PSF binning and implementation has not yet been coded***'
   
   CD,root
  
@@ -1772,7 +1798,7 @@ endif
 if setup.create_subcomps eq 'y' then begin
 ;  print,'if you see this, then the code has not hung'
 
-  subcomps,root+decomp,slices_dir,decomp,decomp_dir,info,no_slices,n_comp,setup.comp3_type,setup.comp4_type,wavelength,galfitm,/MANGA
+  subcomps,setup,info,wavelength,/MANGA
 
   CD,root+decomp+slices_dir;+'models/';decomp+median_dir
   spawn,'pwd'
@@ -1789,8 +1815,8 @@ endif
 ;say in the case that galfitm crashes for that feedme file
 
 if setup.create_decomposed_cubes eq 'y' then begin
-  fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
-  datacube_creator,root,decomp,decomp_dir,kinematics,galaxy_ref,file,slices_dir,info,n_comp,setup.comp3_type,setup.comp4_type,no_slices,wavelength,/MANGA
+  fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
+  datacube_creator,setup,info,wavelength,/MANGA
 endif
 delvarx,datacube
 
@@ -1799,8 +1825,8 @@ delvarx,datacube
 ;
 
 if setup.visualise_results eq 'y' then begin
-  fits_read,root+decomp+galaxy_ref+'_smoothed_kinematics.fits',corrected_IFU, header_IFU
-  result_visualiser,root,decomp,galaxy_ref,slices_dir,binned_dir,decomp_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,setup.comp3_type,setup.comp4_type,setup.comp4_x,setup.comp4_y,no_slices,/MANGA
+  fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
+  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,/MANGA
 endif
 
 

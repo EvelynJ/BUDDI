@@ -22,8 +22,8 @@ pro Galfitm_single_band,setup,info,x,y,$
   y_centre=fix(setup.y_centre-1)             ;y position of centre of galaxy, -1 to convert to position in array
   magzpt=setup.magzpt
   n_comp=setup.n_comp
-  disc_n_poly=setup.disc_n_poly
-  bulge_n_poly=setup.bulge_n_poly
+  disc_n_poly=setup.disk_n_polynomial
+  bulge_n_poly=setup.bulge_n_polynomial
   stars_file=setup.stars_file
   
   
@@ -59,7 +59,7 @@ if keyword_set(median) then begin
   
   printf,60,'#==============================================================================='
   printf,60,'# IMAGE and GALFIT CONTROL PARAMETERS';+$
-  printf, 60, 'A) '+galaxy_ref+'_median_image.fits             # Input data image (FITS file)'
+  printf, 60, 'A) image.fits             # Input data image (FITS file)'
   printf, 60, 'A1) MaNGA             # Band labels (can be omitted if fitting a single band)'
   printf, 60, 'A2) '+string(0.5*(start_wavelength+end_wavelength))+'             # Band wavelengths'
   printf, 60, 'B) imgblock_'+s_d+'.fits       # Output data image block
@@ -229,7 +229,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       for j=0,n_elements(x_star)-1,1 do begin
         printf, 60, '  '
         printf, 60, ' # Object number:  '+string(j)
-        printf, 60, '  0) '+prof'+                 #  object type'
+        printf, 60, '  0) '+prof+'                 #  object type'
         printf, 60, ' 1) '+string(setup.x_star[j])+'   1 band  #  position x'
         printf, 60, ' 2) '+string(setup.y_star[j])+'   1 band  #  position y'
         printf, 60, ' 3) '+string(setup.mag_star[j])+'   1 band  #  Integrated magnitude'     

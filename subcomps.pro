@@ -4,19 +4,21 @@
 ; imgblocks to produce Galfit feedme files for each 
 ; slice, and run those to create subcomps images.
 ; 
-; ************************************************************
-; *** Note: there is an issue with creating the subcomps   ***
-; *** file with GalfitM. the galfit.xx files produced      ***
-; *** during the fits don't list the correct magnitudes,   ***
-; *** which can seriously affect the flux levels in the    ***
-; *** subcomps images for each component. Although the     ***
-; *** spectra look fine, the flux levels are several       ***
-; *** orders of magnitude out. Therefore, until that issue ***
-; *** has been fixed, we must resort to using Galfit to    ***
-; *** create the subcomps images.  NOW FIXED               ***
-; ************************************************************
 ; 
-pro subcomps,dir,slices_dir,decomp,decomp_dir,info,no_slices,n_comp,comp3_type,comp4_type,wavelength,galfitm,CALIFA=califa,MANGA=manga
+pro subcomps,setup,info,wavelength,CALIFA=califa,MANGA=manga
+
+  root=setup.root
+  decomp=setup.decomp
+  slices_dir=setup.slices_dir
+  decomp_dir=setup.decomp_dir
+  no_slices=setup.no_slices
+  n_comp=setup.n_comp
+  comp3_type=setup.comp3_type
+  comp4_type=setup.comp4_type
+  galfitm=setup.galfitm
+
+  dir=root+decomp
+
 first_image=info[0]
 final_image=info[1]
 no_bins=info[2]
