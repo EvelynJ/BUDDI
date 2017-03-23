@@ -1,7 +1,9 @@
 
 
 
-pro datacube_creator,setup,info,wavelength,MANGA=manga,CALIFA=califa
+pro datacube_creator,setup,info,wavelength,original_datacube,bestfit_datacube,$
+  residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,$
+  comp3_datacube,MANGA=manga,CALIFA=califa,KEEP_CUBES=keep_cubes
 
 
   root=setup.root
@@ -170,41 +172,46 @@ if galfit_or_galfitm eq 'galfitm' then begin
   s=size(bestfit_datacube)
   sxaddpar,h_flux,'NAXIS3',s[3]
   
+  if keyword_set(keep_cubes) then begin
+    fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'original.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'original.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'bestfit.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'bestfit.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'residuals.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'residuals.fits',1,h_flux,extname='FLUX'
   
-  fits_write,root+decomp+decomp_dir+'original.fits',original_datacube,extname='FLUX'
-  modfits,root+decomp+decomp_dir+'original.fits',0,h_temp
-  modfits,root+decomp+decomp_dir+'original.fits',1,h_flux,extname='FLUX'
-  fits_write,root+decomp+decomp_dir+'bestfit.fits',bestfit_datacube,extname='FLUX'
-  modfits,root+decomp+decomp_dir+'bestfit.fits',0,h_temp
-  modfits,root+decomp+decomp_dir+'bestfit.fits',1,h_flux,extname='FLUX'
-  fits_write,root+decomp+decomp_dir+'residuals.fits',residual_datacube,extname='FLUX'
-  modfits,root+decomp+decomp_dir+'residuals.fits',0,h_temp
-  modfits,root+decomp+decomp_dir+'residuals.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'disk.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'disk.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,extname='FLUX'
+    modfits,root+decomp+decomp_dir+'residual_sky.fits',0,h_temp
+    modfits,root+decomp+decomp_dir+'residual_sky.fits',1,h_flux,extname='FLUX'
+    if n_comp ge 1100 then begin
+      fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'bulge.fits',0,h_temp
+      modfits,root+decomp+decomp_dir+'bulge.fits',1,h_flux,extname='FLUX'
+    endif
+    if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+      fits_write,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'comp3.fits',0,h_temp
+      modfits,root+decomp+decomp_dir+'comp3.fits',1,h_flux,extname='FLUX'
+    endif
+    if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+      fits_write,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,extname='FLUX'
+      modfits,root+decomp+decomp_dir+'comp4.fits',0,h_temp
+      modfits,root+decomp+decomp_dir+'comp4.fits',1,h_flux,extname='FLUX'
+    endif
+  endif else begin
+    fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,extname='FLUX'
+    mwrfits,0,root+decomp+decomp_dir+'disk.fits',h_temp
+    modfits,root+decomp+decomp_dir+'disk.fits',0,h_flux,extname='FLUX'
+  endelse
   
-  fits_write,root+decomp+decomp_dir+'disk.fits',disk_datacube,extname='FLUX'
-  modfits,root+decomp+decomp_dir+'disk.fits',0,h_temp
-  modfits,root+decomp+decomp_dir+'disk.fits',1,h_flux,extname='FLUX'
-  fits_write,root+decomp+decomp_dir+'residual_sky.fits',residual_sky_datacube,extname='FLUX'
-  modfits,root+decomp+decomp_dir+'residual_sky.fits',0,h_temp
-  modfits,root+decomp+decomp_dir+'residual_sky.fits',1,h_flux,extname='FLUX'
-  if n_comp ge 1100 then begin
-    fits_write,root+decomp+decomp_dir+'bulge.fits',bulge_datacube,extname='FLUX'
-    modfits,root+decomp+decomp_dir+'bulge.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'bulge.fits',1,h_flux,extname='FLUX'
-  endif
-  if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-    fits_write,root+decomp+decomp_dir+'comp3.fits',comp3_datacube,extname='FLUX'
-    modfits,root+decomp+decomp_dir+'comp3.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'comp3.fits',1,h_flux,extname='FLUX'
-  endif
-  if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-    fits_write,root+decomp+decomp_dir+'comp4.fits',comp4_datacube,extname='FLUX'
-    modfits,root+decomp+decomp_dir+'comp4.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'comp4.fits',1,h_flux,extname='FLUX'
-  endif
-
-  delvarx,comp4_datacube,comp3_datacube,disk_datacube,bulge_datacube,residual_sky_datacube
-  delvarx,residual_datacube,original_datacube,original_in,bestfit_in,residuals_in,comp4_in
+  
+  delvarx,original_in,bestfit_in,residuals_in,comp4_in
   delvarx,comp3_in,bulge_in,disk_in
 
 ;======================================================================

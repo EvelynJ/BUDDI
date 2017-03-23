@@ -110,7 +110,7 @@ END
 ;##############################################################
 ;##############################################################
 ;##############################################################
-pro BUDDI,input_file
+pro BUDDI,input_file,KEEP_CUBES=keep_cubes
 
 ;***read in necessary information
 ;input_file='IFU_wrapper_input.txt'
@@ -1613,6 +1613,13 @@ if setup.decompose_binned_images eq 'y' then begin
       !p.charsize=1
       !p.multi=0;[0,2,3] 
       
+      result2=file_search(root+decomp+binned_dir+'image_*',count=nfiles)
+      wave_short=fltarr(nfiles)
+      for xxx=0,nfiles-1,1 do begin
+        h_temp=headfits(result2[xxx])
+        wave_short[xxx]=sxpar(h_temp,'WAVELENG')
+      endfor
+      
       if n_comp eq 1110 or n_comp eq 1101 then number=3  $
         else if n_comp eq 1100 then number=2 $
         else if n_comp eq 1000 then number=1
@@ -1636,95 +1643,97 @@ if setup.decompose_binned_images eq 'y' then begin
         PA_min=min(pa_disk1[1:-2])-10
         PA_max=max(pa_disk1[1:-2])+10
       endelse
-      plot,mag_disk1,yrange=[mag_max,mag_min],$
+      x1=wave_short[0]-0.05*(wave_short[-1]-wave_short[0])
+      x2=wave_short[-1]+0.05*(wave_short[-1]-wave_short[0])
+      plot,wave_short,mag_disk1,yrange=[mag_max,mag_min],xrange=[x1,x2],$
         ytitle='m!ITot!N',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Disc'
-      if rep gt 1 then oplot,mag_disk,linestyle=0
+      if rep gt 1 then oplot,wave_short,mag_disk,linestyle=0
       multiplot
       if n_comp ge 1100 then begin
-        plot,mag_bulge1,yrange=[mag_max,mag_min],$
+        plot,wave_short,mag_bulge1,yrange=[mag_max,mag_min],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
           title='Bulge'
-        if rep gt 1 then oplot,mag_bulge,linestyle=0
+        if rep gt 1 then oplot,wave_short,mag_bulge,linestyle=0
         multiplot
       endif
       if n_comp gt 1100 then begin
-        plot,mag_comp3_1,yrange=[mag_max,mag_min],$
+        plot,wave_short,mag_comp3_1,yrange=[mag_max,mag_min],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,title='Component 3'
-        if rep gt 1 and n_comp gt 1100 then oplot,mag_comp3,linestyle=0
+        if rep gt 1 and n_comp gt 1100 then oplot,wave_short,mag_comp3,linestyle=0
         multiplot
       endif
       
-      plot,Re_disk1,yrange=[0,Re_max],$
+      plot,wave_short,Re_disk1,yrange=[0,Re_max],xrange=[x1,x2],$
         ytitle='R!Ie!N!C(arcsec)',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize
-      if rep gt 1 then oplot,Re_disk,linestyle=0
+      if rep gt 1 then oplot,wave_short,Re_disk,linestyle=0
       multiplot
       if n_comp ge 1100 then begin
-        plot,Re_bulge1,yrange=[0,Re_max],$
+        plot,wave_short,Re_bulge1,yrange=[0,Re_max],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize
-        if rep gt 1 then oplot,Re_bulge,linestyle=0
+        if rep gt 1 then oplot,wave_short,Re_bulge,linestyle=0
         multiplot
       endif
       if n_comp gt 1100 and setup.comp3_type eq 'sersic' then begin
-        plot,Re_comp3_1,yrange=[0,Re_max],$
+        plot,wave_short,Re_comp3_1,yrange=[0,Re_max],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize
-        if rep gt 1 then oplot,Re_comp3,linestyle=0
+        if rep gt 1 then oplot,wave_short,Re_comp3,linestyle=0
         multiplot
       endif else if n_comp gt 1100 and setup.comp3_type eq 'psf' then multiplot
       
-      plot,n_disk1,yrange=[0,n_max],$
+      plot,wave_short,n_disk1,yrange=[0,n_max],xrange=[x1,x2],$
         ytitle='n',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=1
-      if rep gt 1 then oplot,n_disk,linestyle=0
+      if rep gt 1 then oplot,wave_short,n_disk,linestyle=0
       multiplot
       if n_comp ge 1100 then begin
-        plot,n_bulge1,yrange=[0,n_max],$
+        plot,wave_short,n_bulge1,yrange=[0,n_max],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),$
           ytickinterval=1
-         if rep gt 1 then oplot,n_bulge,linestyle=0
+         if rep gt 1 then oplot,wave_short,n_bulge,linestyle=0
          multiplot
       endif
       if n_comp gt 1100 and setup.comp3_type eq 'sersic' then begin
-        plot,n_comp3_1,yrange=[0,n_max],$
+        plot,wave_short,n_comp3_1,yrange=[0,n_max],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=1
-        if rep gt 1 then oplot,n_comp3,linestyle=0
+        if rep gt 1 then oplot,wave_short,n_comp3,linestyle=0
         multiplot
       endif else if n_comp gt 1100 and setup.comp3_type eq 'psf' then multiplot
       
-      plot,pa_disk1,yrange=[PA_min,PA_max],$
+      plot,wave_short,pa_disk1,yrange=[PA_min,PA_max],xrange=[x1,x2],$
         ytitle='PA!C(degrees)',/xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
-      if rep gt 1 then oplot,pa_disk,linestyle=0
+      if rep gt 1 then oplot,wave_short,pa_disk,linestyle=0
       multiplot
       
       if n_comp ge 1100 then begin 
-        plot,pa_bulge1,yrange=[PA_min,PA_max],$
+        plot,wave_short,pa_bulge1,yrange=[PA_min,PA_max],xrange=[x1,x2],$
          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
          ytickinterval=20
-         if rep gt 1 then oplot,pa_bulge,linestyle=0
+         if rep gt 1 then oplot,wave_short,pa_bulge,linestyle=0
          multiplot
        endif
        if n_comp gt 1100 and setup.comp3_type eq 'sersic' then begin
-         plot,pa_comp3_1,yrange=[PA_min,PA_max],$
+         plot,wave_short,pa_comp3_1,yrange=[PA_min,PA_max],xrange=[x1,x2],$
            /xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
-         if rep gt 1 then oplot,pa_comp3,linestyle=0
+         if rep gt 1 then oplot,wave_short,pa_comp3,linestyle=0
          multiplot
        endif else if n_comp gt 1100 and setup.comp3_type eq 'psf' then multiplot
        
-       plot,q_disk1,yrange=[0,1],$
+       plot,wave_short,q_disk1,yrange=[0,1],xrange=[x1,x2],$
          ytitle='q',/xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.2
-       if rep gt 1 then oplot,q_disk,linestyle=0
+       if rep gt 1 then oplot,wave_short,q_disk,linestyle=0
        ;multiplot,/reset,/default
       if n_comp ge 1100 then begin
         multiplot
-        plot,q_bulge1,yrange=[0,1],$
+        plot,wave_short,q_bulge1,yrange=[0,1],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
           ytickinterval=0.2
-        if rep gt 1 then oplot,q_bulge,linestyle=0
+        if rep gt 1 then oplot,wave_short,q_bulge,linestyle=0
         
       endif
       if n_comp gt 1100 and setup.comp3_type eq 'sersic' then begin
         multiplot
-        plot,q_comp3_1,yrange=[0,1],$
+        plot,wave_short,q_comp3_1,yrange=[0,1],xrange=[x1,x2],$
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=0.2
-        if rep gt 1 then oplot,q_comp3,linestyle=0
+        if rep gt 1 then oplot,wave_short,q_comp3,linestyle=0
       endif else if n_comp gt 1100 and setup.comp3_type eq 'psf' then multiplot
       multiplot,/reset,/default
       device,/close      
@@ -1809,25 +1818,44 @@ if setup.create_subcomps eq 'y' then begin
   CD,root
 endif
 
+
 ;6. create bulge and disc data cubes
-
-;need to make sure the code can identify where no subcomps file exists, 
-;say in the case that galfitm crashes for that feedme file
-
-if setup.create_decomposed_cubes eq 'y' then begin
-  fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  datacube_creator,setup,info,wavelength,/MANGA
-endif
-delvarx,datacube
-
-;7. Analysis of the datacubes.
-;7a. Use datacubes to create !D bulge and disc spectra, and ps file to visualise results.
-;
-
 if setup.visualise_results eq 'y' then begin
   fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,/MANGA
+  if keyword_set(keep_cubes) then datacube_creator,setup,info,wavelength,$
+    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA,/KEEP_CUBES $
+  else datacube_creator,setup,info,wavelength,$
+    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA 
+
+  ;fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
+  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
+    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA
+  
+  delvarx,datacube
+  delvarx,original_datacube,bestfit_datacube,residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,comp3_datacube
+  spawn,'rm '+root+decomp+decomp_dir+'disk.fits'
 endif
+
+
+
+;;6. create bulge and disc data cubes
+;if setup.create_decomposed_cubes eq 'y' then begin
+;  fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
+;  datacube_creator,setup,info,wavelength,/MANGA
+;endif
+;delvarx,datacube
+;
+;;7. Analysis of the datacubes.
+;;7a. Use datacubes to create !D bulge and disc spectra, and ps file to visualise results.
+;;
+;
+;if setup.visualise_results eq 'y' then begin
+;  fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
+;  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,/MANGA
+;endif
 
 
 
