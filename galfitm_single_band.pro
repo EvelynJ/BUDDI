@@ -102,7 +102,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
 
   printf, 60, '# Object number: 1'
   printf, 60, ' 0) sky                    #  object type'
-  printf, 60, '  1) 0   1 band #  sky background at center of fitting region [ADUs]'
+  printf, 60, '  1) '+string(setup.sky_input)+'   1 band #  sky background at center of fitting region [ADUs]'
   printf, 60, '  2) 0      0 band  #  dsky/dx (sky gradient in x)'
   printf, 60, '  3) 0      0 band  #  dsky/dy (sky gradient in y)'
   printf, 60, '  Z) 0                      #  output option (0 = resid., 1 = Dont subtract) '

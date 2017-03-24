@@ -72,6 +72,7 @@ PRO read_input, setup_file, setup
                         'n_comp', 0., $
                         'constraint', '', $
                         'magzpt', 0, $
+                        'sky_input', 0., $
                         'disk_type', '', $
                         'disk_mag', 0., $
                         'disk_re', 0., $
@@ -204,6 +205,7 @@ PRO read_input, setup_file, setup
         'F00)': setup.n_comp = float(content)
         'F01)': setup.constraint = content
         'F02)': setup.magzpt = content
+        'F03)': setup.sky_input = content
         
         'F10)': setup.disk_type = content
         'F11)': setup.disk_mag = float(content)

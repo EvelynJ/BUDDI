@@ -333,7 +333,10 @@ device,/close
 
 ;create bulge and disc spectra using integrated magnitudes
 zz=n_elements(disk_mag)
-disk_mag=10^((disk_mag-8.9)/(-2.5))
+stop
+disk_mag_in=disk_mag
+for n=0,zz-1,1 do disk_mag[n]=10^((disk_mag_in[n]-8.9)/(-2.5))
+
 if n_comp ge 1100 then bulge_mag=10^((bulge_mag-8.9)/(-2.5))
 if n_comp eq 1110 or n_comp eq 1010 then comp3_mag=10^((comp3_mag-8.9)/(-2.5))
 

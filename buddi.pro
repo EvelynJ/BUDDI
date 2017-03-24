@@ -1231,6 +1231,9 @@ if setup.bin_datacube eq 'y' then begin
     bin_datacube,corrected_IFU, setup,$
       file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,$
       /galaxy,/PSF,/MANGA
+    ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
+    badpixelmask, setup
+
 endif
 
 ;2a. Download and decompose an sdss image of the galaxy
@@ -1316,8 +1319,6 @@ if setup.decompose_median_image eq 'y' then begin
   scale=[abs(sxpar(h,'CD1_1')*3600),abs(sxpar(h,'CD2_2')*3600)]
   
   
-  ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
-  badpixelmask, setup,badpix
   
   ;write a constraints file, initially constraining the centres of the bulge 
   ;and disc fits to be together

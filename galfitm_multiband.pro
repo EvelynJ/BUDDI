@@ -142,7 +142,7 @@ if keyword_set(binned) then begin
       sky_grad='0.0'
       x_D=string(mean(res.X_GALFIT_BAND_D),format='(F07.2)')
       y_D=string(mean(res.Y_GALFIT_BAND_D),format='(F07.2)')
-      mag_D=string(mean(res.MAG_GALFIT_BAND_D),format='(F05.2)')
+      mag_D=string(mean(res.MAG_GALFIT_BAND_D),format='(F06.2)')
       Re_D=string(mean(res.RE_GALFIT_BAND_D),format='(F07.2)')
       n_D=string(mean(res.N_GALFIT_BAND_D),format='(F06.2)')
       q_D=string(mean(res.Q_GALFIT_BAND_D),format='(F04.2)')
@@ -151,7 +151,7 @@ if keyword_set(binned) then begin
       if n_comp ge 1100 then begin
         x_B=string(mean(res.X_GALFIT_BAND_B),format='(F07.2)')
         y_B=string(mean(res.Y_GALFIT_BAND_B),format='(F07.2)')
-        mag_B=string(mean(res.MAG_GALFIT_BAND_B),format='(F05.2)')
+        mag_B=string(mean(res.MAG_GALFIT_BAND_B),format='(F06.2)')
         Re_B=string(mean(res.RE_GALFIT_BAND_B),format='(F07.2)')
         n_B=string(mean(res.N_GALFIT_BAND_B),format='(F06.2)')
         q_B=string(mean(res.Q_GALFIT_BAND_B),format='(F04.2)')
@@ -162,7 +162,7 @@ if keyword_set(binned) then begin
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin        
         x_comp3=string(mean(res.x_galfit_band_comp3),format='(F07.2)')
         y_comp3=string(mean(res.y_galfit_band_comp3),format='(F07.2)')
-        mag_comp3=string(mean(res.mag_galfit_band_comp3),format='(F05.2)')
+        mag_comp3=string(mean(res.mag_galfit_band_comp3),format='(F06.2)')
         if comp3_type eq 'sersic' then begin
             Re_comp3=string(mean(res.RE_galfit_band_comp3),format='(F06.2)')
             n_comp3=string(mean(res.N_galfit_band_comp3),format='(F06.2)')
@@ -173,7 +173,7 @@ if keyword_set(binned) then begin
       if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
         x_comp4=string(mean(res.x_galfit_band_comp4),format='(F07.2)')
         y_comp4=string(mean(res.y_galfit_band_comp4),format='(F07.2)')
-        mag_comp4=string(mean(res.mag_galfit_band_comp4),format='(F05.2)')
+        mag_comp4=string(mean(res.mag_galfit_band_comp4),format='(F06.2)')
         if comp4_type eq 'sersic' then begin
             Re_comp4=string(mean(res.RE_galfit_band_comp4),format='(F06.2)')
             n_comp4=string(mean(res.N_galfit_band_comp4),format='(F06.2)')
@@ -208,7 +208,7 @@ if keyword_set(binned) then begin
         sky_grad+=',0.0'
         x_D+=','+string(mean(res.X_GALFIT_BAND_D),format='(F07.2)')
         y_D+=','+string(mean(res.Y_GALFIT_BAND_D),format='(F07.2)')
-        mag_D+=','+string(mean(res.MAG_GALFIT_BAND_D),format='(F05.2)')
+        mag_D+=','+string(mean(res.MAG_GALFIT_BAND_D),format='(F06.2)')
         Re_D+=','+string(mean(res.RE_GALFIT_BAND_D),format='(F07.2)')
         n_D+=','+string(mean(res.N_GALFIT_BAND_D),format='(F05.2)')
         q_D+=','+string(mean(res.Q_GALFIT_BAND_D),format='(F04.2)')
@@ -218,7 +218,7 @@ if keyword_set(binned) then begin
         if n_comp ge 1100 then begin
           x_B+=','+string(mean(res.X_GALFIT_BAND_B),format='(F07.2)')
           y_B+=','+string(mean(res.Y_GALFIT_BAND_B),format='(F07.2)')
-          mag_B+=','+string(mean(res.MAG_GALFIT_BAND_B),format='(F05.2)')
+          mag_B+=','+string(mean(res.MAG_GALFIT_BAND_B),format='(F06.2)')
           Re_B+=','+string(mean(res.RE_GALFIT_BAND_B),format='(F07.2)')
           n_B+=','+string(mean(res.N_GALFIT_BAND_B),format='(F05.2)')
           q_B+=','+string(mean(res.Q_GALFIT_BAND_B),format='(F04.2)')
@@ -227,7 +227,7 @@ if keyword_set(binned) then begin
         
         ;insert parameters for 3rd galaxy component
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          mag_comp3+=','+string(mean(res.mag_galfit_band_comp3),format='(F05.2)')
+          mag_comp3+=','+string(mean(res.mag_galfit_band_comp3),format='(F06.2)')
           x_comp3+=','+string(mean(res.x_galfit_band_comp3),format='(F07.2)')
           y_comp3+=','+string(mean(res.y_galfit_band_comp3),format='(F07.2)')
           if comp3_type eq 'sersic' then begin
@@ -239,7 +239,7 @@ if keyword_set(binned) then begin
         endif
         ;insert parameters for 4th component
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-          mag_comp4+=','+string(mean(res.mag_galfit_band_comp4),format='(F05.2)')
+          mag_comp4+=','+string(mean(res.mag_galfit_band_comp4),format='(F06.2)')
           x_comp4+=','+string(mean(res.x_galfit_band_comp4),format='(F07.2)')
           y_comp4+=','+string(mean(res.y_galfit_band_comp4),format='(F07.2)')
           if comp4_type eq 'sersic' then begin
@@ -273,7 +273,7 @@ if keyword_set(binned) then begin
       sky_grad='0.0'
       x_D=string((res.X_GALFIT_BAND_D),format='(F07.2)')
       y_D=string((res.Y_GALFIT_BAND_D),format='(F07.2)')
-      mag_D=string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
+      mag_D=string((res.MAG_GALFIT_BAND_D),format='(F06.2)')
       Re_D=string((res.RE_GALFIT_BAND_D),format='(F07.2)')
       n_D=string((res.N_GALFIT_BAND_D),format='(F06.2)')
       q_D=string((res.Q_GALFIT_BAND_D),format='(F04.2)')
@@ -282,7 +282,7 @@ if keyword_set(binned) then begin
       if n_comp ge 1100 then begin
         x_B=string((res.X_GALFIT_BAND_B),format='(F07.2)')
         y_B=string((res.Y_GALFIT_BAND_B),format='(F07.2)')
-        mag_B=string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
+        mag_B=string((res.MAG_GALFIT_BAND_B),format='(F06.2)')
         Re_B=string((res.RE_GALFIT_BAND_B),format='(F07.2)')
         n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
         q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
@@ -293,7 +293,7 @@ if keyword_set(binned) then begin
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin        
         x_comp3=string((res.x_galfit_band_comp3),format='(F07.2)')
         y_comp3=string((res.y_galfit_band_comp3),format='(F07.2)')
-        mag_comp3=string((res.mag_galfit_band_comp3),format='(F05.2)')
+        mag_comp3=string((res.mag_galfit_band_comp3),format='(F06.2)')
         if comp3_type eq 'sersic' then begin
             Re_comp3=string((res.RE_galfit_band_comp3),format='(F06.2)')
             n_comp3=string((res.N_galfit_band_comp3),format='(F06.2)')
@@ -304,7 +304,7 @@ if keyword_set(binned) then begin
       if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
         x_comp4=string((res.x_galfit_band_comp4),format='(F07.2)')
         y_comp4=string((res.y_galfit_band_comp4),format='(F07.2)')
-        mag_comp4=string((res.mag_galfit_band_comp4),format='(F05.2)')
+        mag_comp4=string((res.mag_galfit_band_comp4),format='(F06.2)')
         if comp4_type eq 'sersic' then begin
             Re_comp4=string((res.RE_galfit_band_comp4),format='(F06.2)')
             n_comp4=string((res.N_galfit_band_comp4),format='(F06.2)')
@@ -341,7 +341,7 @@ if keyword_set(binned) then begin
         sky_grad+=',0.0'
         x_D+=','+string((res.X_GALFIT_BAND_D),format='(F07.2)')
         y_D+=','+string((res.Y_GALFIT_BAND_D),format='(F07.2)')
-        mag_D+=','+string((res.MAG_GALFIT_BAND_D),format='(F05.2)')
+        mag_D+=','+string((res.MAG_GALFIT_BAND_D),format='(F06.2)')
         Re_D+=','+string((res.RE_GALFIT_BAND_D),format='(F07.2)')
         n_D+=','+string((res.N_GALFIT_BAND_D),format='(F05.2)')
         q_D+=','+string((res.Q_GALFIT_BAND_D),format='(F04.2)')
@@ -351,7 +351,7 @@ if keyword_set(binned) then begin
         if n_comp ge 1100 then begin
           x_B+=','+string((res.X_GALFIT_BAND_B),format='(F07.2)')
           y_B+=','+string((res.Y_GALFIT_BAND_B),format='(F07.2)')
-          mag_B+=','+string((res.MAG_GALFIT_BAND_B),format='(F05.2)')
+          mag_B+=','+string((res.MAG_GALFIT_BAND_B),format='(F06.2)')
           Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F07.2)')
           n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
           q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
@@ -360,7 +360,7 @@ if keyword_set(binned) then begin
         
         ;insert parameters for 3rd galaxy component
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          mag_comp3+=','+string((res.mag_galfit_band_comp3),format='(F05.2)')
+          mag_comp3+=','+string((res.mag_galfit_band_comp3),format='(F06.2)')
           x_comp3+=','+string((res.x_galfit_band_comp3),format='(F07.2)')
           y_comp3+=','+string((res.y_galfit_band_comp3),format='(F07.2)')
           if comp3_type eq 'sersic' then begin
@@ -372,7 +372,7 @@ if keyword_set(binned) then begin
         endif
         ;insert parameters for 4th component
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-          mag_comp4+=','+string((res.mag_galfit_band_comp4),format='(F05.2)')
+          mag_comp4+=','+string((res.mag_galfit_band_comp4),format='(F06.2)')
           x_comp4+=','+string((res.x_galfit_band_comp4),format='(F07.2)')
           y_comp4+=','+string((res.y_galfit_band_comp4),format='(F07.2)')
           if comp4_type eq 'sersic' then begin
@@ -402,7 +402,7 @@ if keyword_set(binned) then begin
       sky_grad='0.0'
       x_D=string(x,format='(F07.2)')
       y_D=string(y,format='(F07.2)')
-      mag_D=string(estimates_disk[1],format='(F05.2)')
+      mag_D=string(estimates_disk[1],format='(F06.2)')
       Re_D=string(estimates_disk[2],format='(F07.2)')
       n_D=string(estimates_disk[3],format='(F06.2)')
       q_D=string(estimates_disk[4],format='(F04.2)')
@@ -411,7 +411,7 @@ if keyword_set(binned) then begin
       if n_comp ge 1100 then begin
           x_B=string(x,format='(F07.2)')
           y_B=string(y,format='(F07.2)')
-          mag_B=string(estimates_bulge[1],format='(F05.2)')
+          mag_B=string(estimates_bulge[1],format='(F06.2)')
           Re_B=string(estimates_bulge[2],format='(F07.2)')
           n_B=string(estimates_bulge[3],format='(F06.2)')
           q_B=string(estimates_bulge[4],format='(F04.2)')
@@ -421,7 +421,7 @@ if keyword_set(binned) then begin
        if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
           x_comp3=string(x,format='(F07.2)')
           y_comp3=string(y,format='(F07.2)')
-          mag_comp3=string(estimates_comp3[1],format='(F05.2)')
+          mag_comp3=string(estimates_comp3[1],format='(F06.2)')
           if comp3_type eq 'sersic' then begin
             Re_comp3=string(estimates_comp3[2],format='(F06.2)')
             n_comp3=string(estimates_comp3[3],format='(F06.2)')
@@ -432,7 +432,7 @@ if keyword_set(binned) then begin
        if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
           x_comp4=string(estimates_comp4[1],format='(F07.2)')
           y_comp4=string(estimates_comp4[2],format='(F07.2)')
-          mag_comp4=string(estimates_comp4[3],format='(F05.2)')
+          mag_comp4=string(estimates_comp4[3],format='(F06.2)')
           if comp4_type eq 'sersic' then begin
             Re_comp4=string(estimates_comp4[4],format='(F06.2)')
             n_comp4=string(estimates_comp4[5],format='(F06.2)')
@@ -465,7 +465,7 @@ if keyword_set(binned) then begin
         sky_grad+=',0.0'
         x_D+=','+string(x,format='(F07.2)')
         y_D+=','+string(y,format='(F07.2)')
-        mag_D+=','+string(estimates_disk[1],format='(F05.2)')
+        mag_D+=','+string(estimates_disk[1],format='(F06.2)')
         Re_D+=','+string(estimates_disk[2],format='(F07.2)')
         n_D+=','+string(estimates_disk[3],format='(F05.2)')
         q_D+=','+string(estimates_disk[4],format='(F04.2)')
@@ -474,7 +474,7 @@ if keyword_set(binned) then begin
         if n_comp ge 1100 then begin
             x_B+=','+string(x,format='(F07.2)')
             y_B+=','+string(y,format='(F07.2)')
-            mag_B+=','+string(estimates_bulge[1],format='(F05.2)')
+            mag_B+=','+string(estimates_bulge[1],format='(F06.2)')
             Re_B+=','+string(estimates_bulge[2],format='(F07.2)')
             n_B+=','+string(estimates_bulge[3],format='(F05.2)')
             q_B+=','+string(estimates_bulge[4],format='(F04.2)')
@@ -483,7 +483,7 @@ if keyword_set(binned) then begin
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
           x_comp3+=','+string(x,format='(F07.2)')
           y_comp3+=','+string(y,format='(F07.2)')
-          mag_comp3+=','+string(estimates_comp3[1],format='(F05.2)')
+          mag_comp3+=','+string(estimates_comp3[1],format='(F06.2)')
           if comp3_type eq 'sersic' then begin
             Re_comp3+=','+string(estimates_comp3[2],format='(F06.2)')
             n_comp3+=','+string(estimates_comp3[3],format='(F06.2)')
@@ -494,7 +494,7 @@ if keyword_set(binned) then begin
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
           x_comp4+=','+string(estimates_comp4[1],format='(F07.2)')
           y_comp4+=','+string(estimates_comp4[2],format='(F07.2)')
-          mag_comp4+=','+string(estimates_comp4[3],format='(F05.2)')
+          mag_comp4+=','+string(estimates_comp4[3],format='(F06.2)')
           if comp4_type eq 'sersic' then begin
             Re_comp4+=','+string(estimates_comp4[4],format='(F06.2)')
             n_comp4+=','+string(estimates_comp4[5],format='(F06.2)')
@@ -1040,7 +1040,7 @@ if keyword_set(slices) then begin
     wavelength=string(wavelength_slices[loop*no_images],format='(F09.3)')
     x_D=string(x_disk_all[x0-first_image],format='(F07.2)')
     y_D=string(y_disk_all[x0-first_image],format='(F07.2)')
-    mag_D=string(mag_disk_all[x0-first_image],format='(F05.2)')
+    mag_D=string(mag_disk_all[x0-first_image],format='(F06.2)')
     Re_D=string(Re_disk_all[x0-first_image],format='(F07.2)')
     n_D=string(n_disk_all[x0-first_image],format='(F06.3)')
     q_D=string(q_disk_all[x0-first_image],format='(F04.2)')
@@ -1049,7 +1049,7 @@ if keyword_set(slices) then begin
     if n_comp ge 1100 then begin
       x_B=string(x_bulge_all[x0-first_image],format='(F07.2)')
       y_B=string(y_bulge_all[x0-first_image],format='(F07.2)')
-      mag_B=string(mag_bulge_all[x0-first_image],format='(F05.2)')
+      mag_B=string(mag_bulge_all[x0-first_image],format='(F06.2)')
       Re_B=string(Re_bulge_all[x0-first_image],format='(F07.2)')
       n_B=string(n_bulge_all[x0-first_image],format='(F06.3)')
       q_B=string(q_bulge_all[x0-first_image],format='(F04.2)')
@@ -1059,7 +1059,7 @@ if keyword_set(slices) then begin
     if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
       x_comp3=string(x_comp3_all[x0-first_image],format='(F07.2)')
       y_comp3=string(y_comp3_all[x0-first_image],format='(F07.2)')
-      mag_comp3=string(median(mag_comp3_all),format='(F05.2)');string(mag_comp3_all[x0-first_image],format='(F05.2)')
+      mag_comp3=string(median(mag_comp3_all),format='(F06.2)');string(mag_comp3_all[x0-first_image],format='(F05.2)')
       if comp3_type eq 'sersic' then begin
         Re_comp3=string(re_comp3_all[x0-first_image],format='(F07.3)')
         n_comp3=string(n_comp3_all[x0-first_image],format='(F06.3)')
@@ -1070,7 +1070,7 @@ if keyword_set(slices) then begin
     if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
       x_comp4=string(x_comp4_all[x0-first_image],format='(F07.2)')
       y_comp4=string(y_comp4_all[x0-first_image],format='(F07.2)')
-      mag_comp4=string(median(mag_comp4_all),format='(F05.2)');string(mag_comp4_all[x0-first_image],format='(F05.2)')
+      mag_comp4=string(median(mag_comp4_all),format='(F06.2)');string(mag_comp4_all[x0-first_image],format='(F05.2)')
       if comp4_type eq 'sersic' then begin
         Re_comp4=string(re_comp4_all[x0-first_image],format='(F07.3)')
         n_comp4=string(n_comp4_all[x0-first_image],format='(F06.3)')
@@ -1136,7 +1136,7 @@ if keyword_set(slices) then begin
       wavelength+=','+string(wavelength_slices[x0-first_image+n],format='(F09.3)')
       x_D+=','+string(x_disk_all[x0-first_image+n],format='(F07.2)')
       y_D+=','+string(y_disk_all[x0-first_image+n],format='(F07.2)')
-      mag_D+=','+string(mag_disk_all[x0-first_image+n],format='(F05.2)')
+      mag_D+=','+string(mag_disk_all[x0-first_image+n],format='(F06.2)')
       Re_D+=','+string(Re_disk_all[x0-first_image+n],format='(F07.2)')
       n_D+=','+string(n_disk_all[x0-first_image+n],format='(F06.3)')
       q_D+=','+string(q_disk_all[x0-first_image+n],format='(F04.2)')
@@ -1145,7 +1145,7 @@ if keyword_set(slices) then begin
       if n_comp ge 1100 then begin
         x_B+=','+string(x_bulge_all[x0-first_image+n],format='(F07.2)')
         y_B+=','+string(y_bulge_all[x0-first_image+n],format='(F07.2)')
-        mag_B+=','+string(mag_bulge_all[x0-first_image+n],format='(F05.2)')
+        mag_B+=','+string(mag_bulge_all[x0-first_image+n],format='(F06.2)')
         Re_B+=','+string(Re_bulge_all[x0-first_image+n],format='(F07.2)')
         n_B+=','+string(n_bulge_all[x0-first_image+n],format='(F06.3)')
         q_B+=','+string(q_bulge_all[x0-first_image+n],format='(F04.2)')
@@ -1154,7 +1154,7 @@ if keyword_set(slices) then begin
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
         x_comp3+=','+string(x_comp3_all[x0-first_image+n],format='(F07.2)')
         y_comp3+=','+string(y_comp3_all[x0-first_image+n],format='(F07.2)')
-        mag_comp3+=','+string(median(mag_comp3_all),format='(F05.2)');string(mag_comp3_all[x0-first_image+n],format='(F05.2)')
+        mag_comp3+=','+string(median(mag_comp3_all),format='(F06.2)');string(mag_comp3_all[x0-first_image+n],format='(F05.2)')
         if comp3_type eq 'sersic' then begin
           Re_comp3+=','+string(re_comp3_all[x0-first_image+n],format='(F07.3)')
           n_comp3+=','+string(n_comp3_all[x0-first_image+n],format='(F06.3)')
@@ -1166,7 +1166,7 @@ if keyword_set(slices) then begin
       if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
         x_comp4+=','+string(x_comp4_all[x0-first_image+n],format='(F07.2)')
         y_comp4+=','+string(y_comp4_all[x0-first_image+n],format='(F07.2)')
-        mag_comp4+=','+string(median(mag_comp4_all),format='(F05.2)');string(mag_comp4_all[x0-first_image+n],format='(F05.2)')
+        mag_comp4+=','+string(median(mag_comp4_all),format='(F06.2)');string(mag_comp4_all[x0-first_image+n],format='(F05.2)')
         if comp4_type eq 'sersic' then begin
           Re_comp4+=','+string(re_comp4_all[x0-first_image+n],format='(F07.3)')
           n_comp4+=','+string(n_comp4_all[x0-first_image+n],format='(F06.3)')

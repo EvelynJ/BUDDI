@@ -12,7 +12,7 @@
 ; provided, or if a text file with additional masks is provided
 ; 
 
-pro badpixelmask, setup, badpix
+pro badpixelmask, setup
   root=setup.root
   decomp=setup.decomp
   binned_dir=setup.binned_dir
