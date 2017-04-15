@@ -748,6 +748,7 @@ on_error, 2
 
 ; Do extensive checking of possible input errors
 ;
+
 s1 = size(templates)
 if s1[0] ge 3 then begin
     reg_dim = s1[2:s1[0]]
@@ -834,6 +835,7 @@ if n_elements(moments) eq 0 then moments = 2 else begin
             message, 'MOMENTS should be 2, 4 or 6 (or negative to keep kinematics fixed)'
 endelse
 
+
 if ncomp gt 1 && ncomp ne (size(start,/dim))[1] then $
     message, 'Each component must have a starting guess in START'
 if s2[0] eq 2 then goodPixels = [goodPixels,s2[1]-1+goodPixels]  ; two-sided fitting of LOSVD
@@ -844,6 +846,7 @@ endif
 
 ngh = total(absmom)
 npars = ngh + mdegree*s2[0] + n_elements(reddening)
+
 
 ; Explicitly specify the step for the numerical derivatives
 ; in MPFIT routine and force safety limits on the fitting parameters.

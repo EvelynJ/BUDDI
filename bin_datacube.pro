@@ -49,8 +49,43 @@ if result eq 1 then badpix_TF='T' else badpix_TF='F'
 ;read in corrected data cube
 if keyword_set(galaxy) then begin
   fits_read,directory+decomp+galaxy_ref+'_smoothed_FLUX.fits', spec_in, header1
-  if sigma_TF eq 'T' then fits_read,directory+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
-  if badpix_TF eq 'T' then fits_read,directory+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
+  ;;  set all NAN values to 0
+  index = WHERE(Finite(spec_in) EQ 0)
+  s = SIZE(spec_in)
+  ncol = s[1]
+  nrow = s[2]
+  col = index mod ncol
+  row = (index / ncol) mod nrow
+  frame = index / (nrow*ncol)
+  spec_in[col,row,frame]=0
+  
+  
+  
+  if sigma_TF eq 'T' then begin
+    fits_read,directory+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
+    ;  set all NAN values to 0
+    index = WHERE(Finite(sigma_in) EQ 0)
+    s = SIZE(sigma_in)
+    ncol = s[1]
+    nrow = s[2]
+    col = index mod ncol
+    row = (index / ncol) mod nrow
+    frame = index / (nrow*ncol)
+    sigma_in[col,row,frame]=99999999
+
+  endif
+  if badpix_TF eq 'T' then begin
+    fits_read,directory+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
+    ;set all masked pixels to value 1
+    index = WHERE(badpix_in gt 0)
+    s = SIZE(badpix_in)
+    ncol = s[1]
+    nrow = s[2]
+    col = index mod ncol
+    row = (index / ncol) mod nrow
+    frame = index / (nrow*ncol)
+    badpix_in[col,row,frame]=1
+  endif
   side1=sxpar(header1,'NAXIS1')
   side2=sxpar(header1,'NAXIS2')
   images=sxpar(header1,'NAXIS3')
@@ -248,18 +283,18 @@ if keyword_set(galaxy) then begin
         for y=0,side2-1,1 do begin
             ;binned_image[x,y]=total(image[x,y,*])
             
-            RESISTANT_Mean,image[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
+            RESISTANT_Mean,image[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
             binned_image[x,y]=mean_temp
             
             if sigma_TF eq 'T' then begin
               temp_val=where(finite(sig[x,y,*]))
               if n_elements(temp_val) eq 1 then temp_val=[0,1,2]
-              if n_elements(temp_val) gt 1 then RESISTANT_Mean,sig[x,y,temp_val],3,mean_temp     ;don't include pixels with values >3sigma from mean
+              if n_elements(temp_val) gt 1 then RESISTANT_Mean,sig[x,y,temp_val],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
               binned_sigma[x,y]=mean_temp
             endif
             
             if badpix_TF eq 'T' then begin
-              RESISTANT_Mean,bp[x,y,*],3,mean_temp     ;don't include pixels with values >3sigma from mean
+              RESISTANT_Mean,bp[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
               binned_badpix[x,y]=mean_temp
             endif
         endfor
@@ -354,7 +389,7 @@ endif
 result = FILE_TEST(directory+decomp+median_dir, /DIRECTORY) 
 if result eq 0 then file_mkdir,directory+decomp+median_dir
 
-wavelength=10^(median(wavelength_arr[first_image:final_image]))
+wavelength=10^(median(wavelength_arr[first_image+10:final_image-10]))
 sxaddpar,h_temp,'Wavelength',wavelength
 sxaddpar,h_flux,'Wavelength',wavelength
 sxaddpar,h_sigma,'Wavelength',wavelength
@@ -363,7 +398,7 @@ sxaddpar,h_bp,'Wavelength',wavelength
 
 for x=0,side1-1,1 do begin
   for y=0,side2-1,1 do begin
-    RESISTANT_Mean,spec_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+    RESISTANT_Mean,spec_in[x,y,first_image+20:final_image-20],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
     binned_image[x,y]=mean_temp
   endfor
 endfor
@@ -378,7 +413,7 @@ fits_write,directory+decomp+median_dir+'image.fits', binned_image,hdr0;,extname=
 if badpix_TF eq 'T' then begin
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
-      RESISTANT_Mean,badpix_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+      RESISTANT_Mean,badpix_in[x,y,first_image:final_image],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
       binned_badpix[x,y]=mean_temp
     endfor
   endfor
@@ -390,7 +425,7 @@ endif
 if sigma_TF eq 'T' then begin
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
-      RESISTANT_Mean,sigma_in[x,y,first_image:final_image],3,mean_temp     ;don't include pixels with values >3sigma from mean
+      RESISTANT_Mean,sigma_in[x,y,first_image:final_image],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
       binned_sigma[x,y]=mean_temp
     endfor
   endfor
@@ -412,9 +447,22 @@ endif
 result = FILE_TEST(directory+psf_cube) 
 if result eq 1 then begin
   fits_read,directory+psf_cube,psf_cube_input,h_psf
-  sxdelpar,h_psf,'CRVAL3'
-  sxdelpar,h_psf,'CDELT3'
-  sxdelpar,h_psf,'CD3_3'
+  mkhdr,h_psf,psf_cube_input
+  ;sxdelpar,h_psf,'CRVAL3'
+  ;sxdelpar,h_psf,'CDELT3'
+  ;sxdelpar,h_psf,'CD3_3'
+  
+  
+  ;  set all NAN values to 0
+  index = WHERE(Finite(psf_cube_input) EQ 0)
+  s = SIZE(psf_cube_input)
+  ncol = s[1]
+  nrow = s[2]
+  col = index mod ncol
+  row = (index / ncol) mod nrow
+  frame = index / (nrow*ncol)
+  psf_cube_input[col,row,frame]=0
+
   
   ;***median PSF image***
   fits_read,directory+file+'.fits',temp_input,h

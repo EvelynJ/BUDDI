@@ -67,8 +67,7 @@ if keyword_set(median) then begin
   printf, 60, 'D) psf.fits           # Input PSF image and (optional) diffusion kernel
   printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
   printf, 60, 'F) badpix.fits                # Bad pixel mask (FITS image or ASCII coord list)
-if keyword_set(single) then  printf, 60, 'G) none                # File with parameter constraints (ASCII file)' 
-if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
+  printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
   printf, 60, 'H) 1    '+string(x,format='(I4.4)')+'   1  '+string(y,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
   printf, 60, 'I) '+string(x,format='(I4.4)')+'    '+string(x,format='(I4.4)')+'          # Size of the convolution box (x y)'
   printf, 60, 'J) '+string(magzpt,format='(F4.1)')+'            # Magnitude photometric zeropoint '
@@ -131,19 +130,7 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
       printf, 60, ' '
  
        
-      if n_comp eq 1001 or n_comp eq 1011 or n_comp eq 1111 then begin
-      printf, 60, '0) '+comp4_type+'                # object type'
-      printf, 60, ' 1) '+string(estimates_comp4[1],format='(f6.2)')+'  1  band #  position x, y'
-      printf, 60, ' 2) '+string(estimates_comp4[2],format='(f6.2)')+'   1 band  #  position x, y'
-      printf, 60, '3) '+string(estimates_comp4[3],format='(f5.2)')+'      1  band     # Integrated magnitude   '  
-      if comp4_type eq 'sersic' then begin
-        printf, 60, '4) '+string(estimates_comp4[4],format='(f5.2)')+'      1  band     # R_e (half-light radius)   [pix] '  
-        printf, 60, '5) '+string(estimates_comp4[5],format='(f5.2)')+'      1  band     # Sersic index n (de Vaucouleurs n=4)  '  
-        printf, 60, '9) '+string(estimates_comp4[6],format='(f5.2)')+'      1  band     # axis ratio (b/a)    '  
-        printf, 60, '10) '+string(estimates_comp4[7],format='(f5.2)')+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
-        printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
-      endif
-    endif  
+ 
   endif
   if keyword_set(DOUBLE) then begin 
 ;      res=read_sersic_results_2comp(output+median_dir+'imgblock_single.fits', 1, bd=0)
@@ -211,14 +198,14 @@ if keyword_set(double) then  printf, 60, 'G) galfitm.constraints                
 
     if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
       printf, 60, '0) '+comp4_type+'                # object type'
-      printf, 60, ' 1) '+string(estimates_comp4[1],format='(f6.2)')+'  1  band #  position x, y'
-      printf, 60, ' 2) '+string(estimates_comp4[2],format='(f6.2)')+'   1 band  #  position x, y'
-      printf, 60, '3) '+string(estimates_comp4[3],format='(f5.2)')+'      1  band     # Integrated magnitude   '  
+      printf, 60, ' 1) '+string(x_centre)+'   1 band  #  position x'
+      printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
+      printf, 60, '3) '+string(estimates_comp4[1],format='(f5.2)')+'      1  band     # Integrated magnitude   '  
       if comp4_type eq 'sersic' then begin
-        printf, 60, '4) '+string(estimates_comp4[4],format='(f5.2)')+'      1  band     # R_e (half-light radius)   [pix] '  
-        printf, 60, '5) '+string(estimates_comp4[5],format='(f5.2)')+'      1  band     # Sersic index n (de Vaucouleurs n=4)  '  
-        printf, 60, '9) '+string(estimates_comp4[6],format='(f5.2)')+'      1  band     # axis ratio (b/a)    '  
-        printf, 60, '10) '+string(estimates_comp4[7],format='(f5.2)')+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
+        printf, 60, '4) '+string(estimates_comp4[2],format='(f5.2)')+'      1  band     # R_e (half-light radius)   [pix] '  
+        printf, 60, '5) '+string(estimates_comp4[3],format='(f5.2)')+'      1  band     # Sersic index n (de Vaucouleurs n=4)  '  
+        printf, 60, '9) '+string(estimates_comp4[4],format='(f5.2)')+'      1  band     # axis ratio (b/a)    '  
+        printf, 60, '10) '+string(estimates_comp4[5],format='(f5.2)')+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
       endif
       printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
     endif  

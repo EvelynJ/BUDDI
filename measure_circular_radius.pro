@@ -57,7 +57,7 @@ for n=0,n_elements(bin)-1,1 do begin
     x_prime=r*cos(theta)    ;x-distance of bin along major axis
     a=(x_prime)/cos(theta)
  
-    if y lt y_minor then radii[n]=-a else radii[n]=a
+    if y lt y_minor then radii[n]=a else radii[n]=-a
        
   endif else begin
     PA_r=PA/360*2*!pi                 ;convert PA to radians

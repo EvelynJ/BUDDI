@@ -36,6 +36,9 @@ pro galfitm_multiband,setup,info,x,y,scale,$
   comp3_re_polynomial_in=setup.comp3_re_polynomial
   comp3_mag_polynomial_in=setup.comp3_mag_polynomial
   comp3_n_polynomial_in=setup.comp3_n_polynomial
+  comp4_re_polynomial_in=setup.comp4_re_polynomial
+  comp4_mag_polynomial_in=setup.comp4_mag_polynomial
+  comp4_n_polynomial_in=setup.comp4_n_polynomial
 
 
 
@@ -101,9 +104,12 @@ if keyword_set(binned) then begin
   if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1 else bulge_re_polynomial=bulge_re_polynomial_in
   if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1 else bulge_n_polynomial=bulge_n_polynomial_in
   
-  if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=bulge_n_polynomial_in
+  if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=comp3_Re_polynomial_in
   if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
 
+  if comp4_re_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_re_polynomial=x1 else comp4_re_polynomial=comp4_Re_polynomial_in
+  if comp4_n_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_n_polynomial=x1 else comp4_n_polynomial=comp4_n_polynomial_in
+  
 
   
   
@@ -120,8 +126,12 @@ if keyword_set(binned) then begin
 
   if disk_n_polynomial_in eq 0 then res.N_GALFIT_BAND_D[*]=estimates_disk[3]
   if disk_Re_polynomial_in eq 0 then res.RE_GALFIT_BAND_D[*]=estimates_disk[2]
-  if bulge_n_polynomial_in eq 0 then res.N_GALFIT_BAND_B[*]=estimates_bulge[3]
-  if bulge_Re_polynomial_in eq 0 then res.RE_GALFIT_BAND_B[*]=estimates_bulge[2]
+  if bulge_type eq 'sersic' then begin
+    if bulge_n_polynomial_in eq 0 and n_comp eq 1100 then res.N_GALFIT_BAND_B[*]=estimates_bulge[3]
+    if bulge_n_polynomial_in eq 0 and n_comp eq 1010 then res.N_GALFIT_BAND_COMP3[*]=estimates_bulge[3]
+    if bulge_Re_polynomial_in eq 0 and n_comp eq 1100 then res.RE_GALFIT_BAND_B[*]=estimates_bulge[2]
+    if bulge_Re_polynomial_in eq 0 and n_comp eq 1010 then res.RE_GALFIT_BAND_COMP3[*]=estimates_bulge[2]
+  endif
   
   if input eq 'header' and rep ne 1 then begin
       ;determine the psf file to be used first.
@@ -137,48 +147,48 @@ if keyword_set(binned) then begin
       temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
       
-      magzpt=string(magzpt_in,format='(F04.1)')
-      sky=string(mean(res.SKY_GALFIT_BAND),format='(F010.0)')
+      magzpt=string(magzpt_in,format='(F05.2)')
+      sky=string(mean(res.SKY_GALFIT_BAND[1:-2]),format='(F010.0)')
       sky_grad='0.0'
-      x_D=string(mean(res.X_GALFIT_BAND_D),format='(F07.2)')
-      y_D=string(mean(res.Y_GALFIT_BAND_D),format='(F07.2)')
-      mag_D=string(mean(res.MAG_GALFIT_BAND_D),format='(F06.2)')
-      Re_D=string(mean(res.RE_GALFIT_BAND_D),format='(F07.2)')
-      n_D=string(mean(res.N_GALFIT_BAND_D),format='(F06.2)')
-      q_D=string(mean(res.Q_GALFIT_BAND_D),format='(F04.2)')
-      pa_D=string(mean(res.PA_GALFIT_BAND_D),format='(F06.2)')
+      x_D=string(mean(res.X_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+      y_D=string(mean(res.Y_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+      mag_D=string(mean(res.MAG_GALFIT_BAND_D[1:-2]),format='(F06.2)')
+      Re_D=string(mean(res.RE_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+      n_D=string(mean(res.N_GALFIT_BAND_D[1:-2]),format='(F06.2)')
+      q_D=string(mean(res.Q_GALFIT_BAND_D[1:-2]),format='(F04.2)')
+      pa_D=string(mean(res.PA_GALFIT_BAND_D[1:-2]),format='(F06.2)')
       
       if n_comp ge 1100 then begin
-        x_B=string(mean(res.X_GALFIT_BAND_B),format='(F07.2)')
-        y_B=string(mean(res.Y_GALFIT_BAND_B),format='(F07.2)')
-        mag_B=string(mean(res.MAG_GALFIT_BAND_B),format='(F06.2)')
-        Re_B=string(mean(res.RE_GALFIT_BAND_B),format='(F07.2)')
-        n_B=string(mean(res.N_GALFIT_BAND_B),format='(F06.2)')
-        q_B=string(mean(res.Q_GALFIT_BAND_B),format='(F04.2)')
-        pa_B=string(mean(res.PA_GALFIT_BAND_B),format='(F06.2)')
+        x_B=string(mean(res.X_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+        y_B=string(mean(res.Y_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+        mag_B=string(mean(res.MAG_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+        Re_B=string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+        n_B=string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+        q_B=string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
+        pa_B=string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
       endif
       
       
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin        
-        x_comp3=string(mean(res.x_galfit_band_comp3),format='(F07.2)')
-        y_comp3=string(mean(res.y_galfit_band_comp3),format='(F07.2)')
-        mag_comp3=string(mean(res.mag_galfit_band_comp3),format='(F06.2)')
+        x_comp3=string(mean(res.x_galfit_band_comp3[1:-2]),format='(F07.2)')
+        y_comp3=string(mean(res.y_galfit_band_comp3[1:-2]),format='(F07.2)')
+        mag_comp3=string(mean(res.mag_galfit_band_comp3[1:-2]),format='(F06.2)')
         if comp3_type eq 'sersic' then begin
-            Re_comp3=string(mean(res.RE_galfit_band_comp3),format='(F06.2)')
-            n_comp3=string(mean(res.N_galfit_band_comp3),format='(F06.2)')
-            q_comp3=string(mean(res.Q_galfit_band_comp3),format='(F04.2)')
-            pa_comp3=string(mean(res.PA_galfit_band_comp3),format='(F06.2)')
+            Re_comp3=string(mean(res.RE_galfit_band_comp3[1:-2]),format='(F06.2)')
+            n_comp3=string(mean(res.N_galfit_band_comp3[1:-2]),format='(F06.2)')
+            q_comp3=string(mean(res.Q_galfit_band_comp3[1:-2]),format='(F04.2)')
+            pa_comp3=string(mean(res.PA_galfit_band_comp3[1:-2]),format='(F06.2)')
         endif  
       endif
       if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-        x_comp4=string(mean(res.x_galfit_band_comp4),format='(F07.2)')
-        y_comp4=string(mean(res.y_galfit_band_comp4),format='(F07.2)')
-        mag_comp4=string(mean(res.mag_galfit_band_comp4),format='(F06.2)')
+        x_comp4=string(mean(res.x_galfit_band_comp4[1:-2]),format='(F07.2)')
+        y_comp4=string(mean(res.y_galfit_band_comp4[1:-2]),format='(F07.2)')
+        mag_comp4=string(mean(res.mag_galfit_band_comp4[1:-2]),format='(F06.2)')
         if comp4_type eq 'sersic' then begin
-            Re_comp4=string(mean(res.RE_galfit_band_comp4),format='(F06.2)')
-            n_comp4=string(mean(res.N_galfit_band_comp4),format='(F06.2)')
-            q_comp4=string(mean(res.Q_galfit_band_comp4),format='(F04.2)')
-            pa_comp4=string(mean(res.PA_galfit_band_comp4),format='(F06.2)')
+            Re_comp4=string(mean(res.RE_galfit_band_comp4[1:-2]),format='(F06.2)')
+            n_comp4=string(mean(res.N_galfit_band_comp4[1:-2]),format='(F06.2)')
+            q_comp4=string(mean(res.Q_galfit_band_comp4[1:-2]),format='(F04.2)')
+            pa_comp4=string(mean(res.PA_galfit_band_comp4[1:-2]),format='(F06.2)')
         endif  
       endif
 
@@ -203,50 +213,50 @@ if keyword_set(binned) then begin
         else badpix=badpix+',badpix_end.fits'
 
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'         
-        magzpt+=','+string(magzpt_in,format='(F04.1)')
-        sky+=','+string(mean(res.SKY_GALFIT_BAND),format='(F010.0)')
+        magzpt+=','+string(magzpt_in,format='(F05.2)')
+        sky+=','+string(mean(res.SKY_GALFIT_BAND[1:-2]),format='(F010.0)')
         sky_grad+=',0.0'
-        x_D+=','+string(mean(res.X_GALFIT_BAND_D),format='(F07.2)')
-        y_D+=','+string(mean(res.Y_GALFIT_BAND_D),format='(F07.2)')
-        mag_D+=','+string(mean(res.MAG_GALFIT_BAND_D),format='(F06.2)')
-        Re_D+=','+string(mean(res.RE_GALFIT_BAND_D),format='(F07.2)')
-        n_D+=','+string(mean(res.N_GALFIT_BAND_D),format='(F05.2)')
-        q_D+=','+string(mean(res.Q_GALFIT_BAND_D),format='(F04.2)')
-        pa_D+=','+string(mean(res.PA_GALFIT_BAND_D),format='(F06.2)')
+        x_D+=','+string(mean(res.X_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+        y_D+=','+string(mean(res.Y_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+        mag_D+=','+string(mean(res.MAG_GALFIT_BAND_D[1:-2]),format='(F06.2)')
+        Re_D+=','+string(mean(res.RE_GALFIT_BAND_D[1:-2]),format='(F07.2)')
+        n_D+=','+string(mean(res.N_GALFIT_BAND_D[1:-2]),format='(F05.2)')
+        q_D+=','+string(mean(res.Q_GALFIT_BAND_D[1:-2]),format='(F04.2)')
+        pa_D+=','+string(mean(res.PA_GALFIT_BAND_D[1:-2]),format='(F06.2)')
         
         ;insert parameters for bulge
         if n_comp ge 1100 then begin
-          x_B+=','+string(mean(res.X_GALFIT_BAND_B),format='(F07.2)')
-          y_B+=','+string(mean(res.Y_GALFIT_BAND_B),format='(F07.2)')
-          mag_B+=','+string(mean(res.MAG_GALFIT_BAND_B),format='(F06.2)')
-          Re_B+=','+string(mean(res.RE_GALFIT_BAND_B),format='(F07.2)')
-          n_B+=','+string(mean(res.N_GALFIT_BAND_B),format='(F05.2)')
-          q_B+=','+string(mean(res.Q_GALFIT_BAND_B),format='(F04.2)')
-          pa_B+=','+string(mean(res.PA_GALFIT_BAND_B),format='(F06.2)')
+          x_B+=','+string(mean(res.X_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+          y_B+=','+string(mean(res.Y_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+          mag_B+=','+string(mean(res.MAG_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+          Re_B+=','+string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+          n_B+=','+string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F05.2)')
+          q_B+=','+string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
+          pa_B+=','+string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
         endif
         
         ;insert parameters for 3rd galaxy component
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
-          mag_comp3+=','+string(mean(res.mag_galfit_band_comp3),format='(F06.2)')
-          x_comp3+=','+string(mean(res.x_galfit_band_comp3),format='(F07.2)')
-          y_comp3+=','+string(mean(res.y_galfit_band_comp3),format='(F07.2)')
+          mag_comp3+=','+string(mean(res.mag_galfit_band_comp3[1:-2]),format='(F06.2)')
+          x_comp3+=','+string(mean(res.x_galfit_band_comp3[1:-2]),format='(F07.2)')
+          y_comp3+=','+string(mean(res.y_galfit_band_comp3[1:-2]),format='(F07.2)')
           if comp3_type eq 'sersic' then begin
-            Re_comp3+=','+string(mean(res.RE_galfit_band_comp3),format='(F06.2)')
-            n_comp3+=','+string(mean(res.N_galfit_band_comp3),format='(F06.2)')
-            q_comp3+=','+string(mean(res.Q_galfit_band_comp3),format='(F04.2)')
-            pa_comp3+=','+string(mean(res.PA_galfit_band_comp3),format='(F06.2)') 
+            Re_comp3+=','+string(mean(res.RE_galfit_band_comp3[1:-2]),format='(F06.2)')
+            n_comp3+=','+string(mean(res.N_galfit_band_comp3[1:-2]),format='(F06.2)')
+            q_comp3+=','+string(mean(res.Q_galfit_band_comp3[1:-2]),format='(F04.2)')
+            pa_comp3+=','+string(mean(res.PA_galfit_band_comp3[1:-2]),format='(F06.2)') 
           endif
         endif
         ;insert parameters for 4th component
         if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-          mag_comp4+=','+string(mean(res.mag_galfit_band_comp4),format='(F06.2)')
-          x_comp4+=','+string(mean(res.x_galfit_band_comp4),format='(F07.2)')
-          y_comp4+=','+string(mean(res.y_galfit_band_comp4),format='(F07.2)')
+          mag_comp4+=','+string(mean(res.mag_galfit_band_comp4[1:-2]),format='(F06.2)')
+          x_comp4+=','+string(mean(res.x_galfit_band_comp4[1:-2]),format='(F07.2)')
+          y_comp4+=','+string(mean(res.y_galfit_band_comp4[1:-2]),format='(F07.2)')
           if comp4_type eq 'sersic' then begin
-            Re_comp4+=','+string(mean(res.RE_galfit_band_comp4),format='(F06.2)')
-            n_comp4+=','+string(mean(res.N_galfit_band_comp4),format='(F06.2)')
-            q_comp4+=','+string(mean(res.Q_galfit_band_comp4),format='(F04.2)')
-            pa_comp4+=','+string(mean(res.PA_galfit_band_comp4),format='(F06.2)') 
+            Re_comp4+=','+string(mean(res.RE_galfit_band_comp4[1:-2]),format='(F06.2)')
+            n_comp4+=','+string(mean(res.N_galfit_band_comp4[1:-2]),format='(F06.2)')
+            q_comp4+=','+string(mean(res.Q_galfit_band_comp4[1:-2]),format='(F04.2)')
+            pa_comp4+=','+string(mean(res.PA_galfit_band_comp4[1:-2]),format='(F06.2)') 
           endif
         endif
           
@@ -268,7 +278,7 @@ if keyword_set(binned) then begin
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
 
       
-      magzpt=string(magzpt_in,format='(F04.1)')
+      magzpt=string(magzpt_in,format='(F05.2)')
       sky=string((res.SKY_GALFIT_BAND),format='(F010.0)')
       sky_grad='0.0'
       x_D=string((res.X_GALFIT_BAND_D),format='(F07.2)')
@@ -336,7 +346,7 @@ if keyword_set(binned) then begin
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits' else sigma=0
 
         
-        magzpt+=','+string(magzpt_in,format='(F04.1)')
+        magzpt+=','+string(magzpt_in,format='(F05.2)')
         sky+=','+string((res.SKY_GALFIT_BAND),format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string((res.X_GALFIT_BAND_D),format='(F07.2)')
@@ -397,8 +407,8 @@ if keyword_set(binned) then begin
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
 
       
-      magzpt=string(magzpt_in,format='(F04.1)')
-      sky=string(0,format='(F010.0)')
+      magzpt=string(magzpt_in,format='(F05.2)')
+      sky=string(setup.sky_input,format='(F010.0)')
       sky_grad='0.0'
       x_D=string(x,format='(F07.2)')
       y_D=string(y,format='(F07.2)')
@@ -430,14 +440,14 @@ if keyword_set(binned) then begin
           endif             
        endif
        if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
-          x_comp4=string(estimates_comp4[1],format='(F07.2)')
-          y_comp4=string(estimates_comp4[2],format='(F07.2)')
-          mag_comp4=string(estimates_comp4[3],format='(F06.2)')
+          x_comp4=string(x,format='(F07.2)')
+          y_comp4=string(y,format='(F07.2)')
+          mag_comp4=string(estimates_comp4[1],format='(F06.2)')
           if comp4_type eq 'sersic' then begin
-            Re_comp4=string(estimates_comp4[4],format='(F06.2)')
-            n_comp4=string(estimates_comp4[5],format='(F06.2)')
-            q_comp4=string(estimates_comp4[6],format='(F04.2)')
-            pa_comp4=string(estimates_comp4[7],format='(F06.2)') 
+            Re_comp4=string(estimates_comp4[2],format='(F06.2)')
+            n_comp4=string(estimates_comp4[3],format='(F06.2)')
+            q_comp4=string(estimates_comp4[4],format='(F04.2)')
+            pa_comp4=string(estimates_comp4[5],format='(F06.2)') 
           endif             
        endif    
       
@@ -460,7 +470,7 @@ if keyword_set(binned) then begin
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'
 
         ;badpix+=',badpix.fits'
-        magzpt+=','+string(magzpt_in,format='(F04.1)')
+        magzpt+=','+string(magzpt_in,format='(F05.2)')
         sky+=','+string(0,format='(F010.0)')
         sky_grad+=',0.0'
         x_D+=','+string(x,format='(F07.2)')
@@ -530,8 +540,7 @@ if keyword_set(binned) then begin
       printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
       
-      if n_comp ne 1000 and n_comp ne 1001 then printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)'  $
-        else printf, 60, 'G) none                # File with parameter constraints (ASCII file)'  
+      printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
       printf, 60, 'H) 1    '+string(x_size,format='(I4.4)')+'   1  '+string(y_size,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
       printf, 60, 'I) '+string(x_size,format='(I4.4)')+'    '+string(x_size,format='(I4.4)')+'      # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
@@ -700,8 +709,7 @@ if keyword_set(binned) then begin
       printf, 60, 'D) '+psf+'           # Input PSF image and (optional) diffusion kernel
       printf, 60, 'E) 1                   # PSF fine sampling factor relative to data 
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
-      if n_comp ne 1000 and n_comp ne 1001 then printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)'  $
-        else printf, 60, 'G) none                # File with parameter constraints (ASCII file)'  
+      printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
       printf, 60, 'H) 1    '+string(x_size,format='(I4.4)')+'   1  '+string(y_size,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
       printf, 60, 'I) '+string(x_size,format='(I4.4)')+'    '+string(x_size,format='(I4.4)')+'          # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
@@ -750,8 +758,10 @@ if keyword_set(binned) then begin
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
       printf, 60, ' 3) '+mag_D+'        '+string(no_bins,format='(I3.3)')+' band  #  Integrated magnitude' 
   ;   k_n_polynomial=0
-      printf, 60, ' 4) '+Re_D+'   '+string(no_bins,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_D+'             '+string(no_bins,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins
+      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins
+      printf, 60, ' 4) '+Re_D+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+n_D+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+Q_D+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
       printf, 60, '10) '+PA_D+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -768,8 +778,10 @@ if keyword_set(binned) then begin
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
         printf, 60, ' 3) '+mag_B+'        '+string(no_bins,format='(I3.3)')+' band  #  Integrated magnitude' 
-        printf, 60, ' 4) '+Re_B+'   '+string(no_bins,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+n_B+'             '+string(no_bins,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins
+        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins
+        printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
+        printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
         printf, 60, ' 9) '+q_B+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -787,8 +799,10 @@ if keyword_set(binned) then begin
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
         printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins,format='(I3.3)')+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp3+'   '+string(no_bins,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp3+'             '+string(no_bins,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins
+          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins
+          printf, 60, ' 4) '+Re_comp3+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp3+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
           printf, 60, ' 9) '+q_comp3+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
           printf, 60, '10) '+pa_comp3+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
@@ -1118,9 +1132,9 @@ if keyword_set(slices) then begin
       psf+=',PSF/'+string(x2,format='(I4.4)')+'.fits'
 ;      psf+=',psf/'+string(x2,format='(I4.4)')+'.fits'
       
-      if n ne no_bins-1 and nfiles_bp gt 1 then badpix=badpix+',badpix/badpix_'+string(x2,format='(I4.4)')+'.fits' $
-      else if n ne no_bins-1 and nfiles_bp le 1 then badpix=badpix+',badpix.fits' $
-      else badpix=badpix+',badpix/badpix_end.fits'
+      if nfiles_bp gt 1 then badpix=badpix+',badpix/badpix_'+string(x2,format='(I4.4)')+'.fits' $
+      else nfiles_bp le 1 then badpix=badpix+',badpix.fits' ;$
+      ;else badpix=badpix+',badpix/badpix_end.fits'
       
       if nfiles_sig gt 0 then sigma=sigma+',sigma/sigma_'+string(x2,format='(I4.4)')+'.fits'
       

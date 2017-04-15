@@ -51,6 +51,7 @@ PRO read_input, setup_file, setup
                         'Redshift', 0., $
                         'PA', 0., $
                         'central_wavelength', 0., $
+                        'FWHM_gal',0.,$
                         'wave0', 0., $
                         'step', 0., $
                         'start_wavelength', 0., $
@@ -71,7 +72,7 @@ PRO read_input, setup_file, setup
                         'visualise_results', '', $
                         'n_comp', 0., $
                         'constraint', '', $
-                        'magzpt', 0, $
+                        'magzpt', 0., $
                         'sky_input', 0., $
                         'disk_type', '', $
                         'disk_mag', 0., $
@@ -101,13 +102,14 @@ PRO read_input, setup_file, setup
                         'comp3_mag_polynomial', 0., $
                         'comp3_n_polynomial', 0., $
                         'comp4_type', '', $
-                        'comp4_x', 0., $
-                        'comp4_y', 0., $
                         'comp4_mag', 0., $
                         'comp4_re', 0., $
                         'comp4_n', 0., $
                         'comp4_q', 0., $
-                        'comp4_pa', 0.)
+                        'comp4_pa', 0., $
+                        'comp4_re_polynomial', 0., $
+                        'comp4_mag_polynomial', 0., $
+                        'comp4_n_polynomial', 0.)
 
 
   
@@ -177,7 +179,8 @@ PRO read_input, setup_file, setup
         'C05)': setup.Redshift = float(content)
         'C06)': setup.PA = float(content)
         'C07)': setup.central_wavelength = float(content)
-        
+        'C08)': setup.FWHM_gal = float(content)
+
         'D00)': setup.wave0 = float(content)
         'D01)': setup.step = float(content)
         'D03)': setup.start_wavelength = float(content)
@@ -240,14 +243,15 @@ PRO read_input, setup_file, setup
           'F38)': setup.comp3_n_polynomial = float(content)
 
             'F40)': setup.comp4_type = content
-            'F41)': setup.comp4_x = float(content)
-            'F42)': setup.comp4_y = float(content)
-            'F43)': setup.comp4_mag = float(content)
-            'F44)': setup.comp4_re = float(content)
-            'F45)': setup.comp4_n = float(content)
-            'F46)': setup.comp4_q = float(content)
-            'F47)': setup.comp4_pa = float(content)
-            
+            'F41)': setup.comp4_mag = float(content)
+            'F42)': setup.comp4_re = float(content)
+            'F43)': setup.comp4_n = float(content)
+            'F44)': setup.comp4_q = float(content)
+            'F45)': setup.comp4_pa = float(content)
+            'F46)': setup.comp4_re_polynomial = float(content)
+            'F47)': setup.comp4_mag_polynomial = float(content)
+            'F48)': setup.comp4_n_polynomial = float(content)
+
 ;          endif
 ;        endif
      ENDCASE

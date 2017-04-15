@@ -47,7 +47,7 @@ if badpix_TF eq 'F' then begin
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
       badpix_end[x,y]=1
-      if image_slice[x,y] eq 0.0 then badpix[x,y]=1
+      if image_slice[x,y] eq 0.0 or Finite(image_slice[x,y]) EQ 0 then badpix[x,y]=1
       if x eq 0 or y eq 0 then badpix[x,y]=1 
     endfor
   endfor
