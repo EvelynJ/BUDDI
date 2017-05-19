@@ -1133,7 +1133,7 @@ if keyword_set(slices) then begin
 ;      psf+=',psf/'+string(x2,format='(I4.4)')+'.fits'
       
       if nfiles_bp gt 1 then badpix=badpix+',badpix/badpix_'+string(x2,format='(I4.4)')+'.fits' $
-      else nfiles_bp le 1 then badpix=badpix+',badpix.fits' ;$
+      else if nfiles_bp le 1 then badpix=badpix+',badpix.fits' ;$
       ;else badpix=badpix+',badpix/badpix_end.fits'
       
       if nfiles_sig gt 0 then sigma=sigma+',sigma/sigma_'+string(x2,format='(I4.4)')+'.fits'

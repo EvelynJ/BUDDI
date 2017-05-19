@@ -116,7 +116,7 @@ COMPILE_OPT IDL2, HIDDEN
 ; Plots colored pixels with the same pixels size
 
 PLOT, [MIN(x)-pixelSize,MAX(x)+pixelSize], [MIN(y)-pixelSize,MAX(y)+pixelSize], $
-    /NODATA, /XSTYLE, /YSTYLE, XTITLE='arcsec', YTITLE='arcsec', /ISO, color=cgcolor('black'),$
+    /NODATA, /XSTYLE, /YSTYLE, XTITLE='arcsec', YTITLE='arcsec', /ISO, color=cgcolor('white'),$
     xrange=[MIN(x)-pixelSize,MAX(x)+pixelSize],yrange=[MIN(y)-pixelSize,MAX(y)+pixelSize]
 x1 = [-0.5, -0.5, +0.5, +0.5, -0.5] * pixelSize
 y1 = [+0.5, -0.5, -0.5, +0.5, +0.5] * pixelSize
@@ -301,7 +301,7 @@ if setup.bin_data eq 'y' then begin
   ;mask regions covered by backgorund/foreground object
   xy=[-100,-100]
   
-  S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
+  ;S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
   
   
   ;========================================================
@@ -340,14 +340,14 @@ if setup.bin_data eq 'y' then begin
   close,03
   openw,03,root+galaxy_ref+'_bin_centers.txt'
   printf,03,'#################################################################'
-  printf,03,'#       Bin       Xcentre        Ycentre '
+  printf,03,'#       Bin       Xcentre        Ycentre        S/N'
   printf,03,'#################################################################'
   
   for bin=0,n_bins-1, 1 do begin
   ;  print,bin
   ;  print,'xBar',xBar
   ;  print,'yBar',yBar
-    printf,03,bin,xBar[bin],yBar[bin],format='(i9,2f15.3)'
+    printf,03,bin,xBar[bin],yBar[bin],sn[bin],format='(i9,3f15.3)'
     pixels=where(binNum eq bin)       ;identify elements of array to be used for each bin
     spec=fltarr(z)
     for n=0,n_elements(pixels)-1,1 do begin
@@ -1103,7 +1103,7 @@ if setup.correct_kinematics eq 'y' then begin
   tempy=where(radius eq min(abs(radius)))
   central_bin=bin_n_in[tempy]
   vel0=velocity_bin[central_bin]
-  sigma0=400.
+  ;sigma0=400.
   
   vel_correction=fltarr(n_elements(bin_kinematics))
   sigma_correction=fltarr(n_elements(bin_kinematics))
@@ -1196,6 +1196,10 @@ if setup.correct_kinematics eq 'y' then begin
   
   result = FILE_TEST(root+decomp, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+decomp
+  openw,55,root+kinematics+'kinematics_corrections.txt'
+  for n=0,n_elements(temparray[0,*])-1,1 do printf,55,temparray[0,n],temparray[1,n],temparray[2,n]
+  cloe,55
+  
   
   h_temp=headfits(root+file+'.fits') 
   sxaddpar,h_temp,'CRVAL3',setup.wave0

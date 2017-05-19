@@ -78,12 +78,14 @@ if galfit_or_galfitm eq 'galfitm' then begin
             fits_read,subcomps,disk_in,header_in,EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
             disk_datacube[*,*,j]=disk_in
 
+
             fits_read,subcomps,sky_in,header_in,EXTNAME='COMPONENT_1_sky _'+string(m,format='(I3.3)')
             residual_sky_datacube[*,*,j]=sky_in
 
             if n_comp ge 1100 then begin
               fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
               bulge_datacube[*,*,j]=bulge_in 
+
             endif
           
           
@@ -96,6 +98,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
                 if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
               endelse
               comp3_datacube[*,*,j]=comp3_in
+
             endif
           
             if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
@@ -109,6 +112,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
                 if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_psf _'+string(m,format='(I3.3)')
               endelse  
               comp4_datacube[*,*,j]=comp4_in
+
             endif
               
               
@@ -120,6 +124,10 @@ if galfit_or_galfitm eq 'galfitm' then begin
             original_datacube[*,*,j]=original_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
             bestfit_datacube[*,*,j]=bestfit_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
             residual_datacube[*,*,j]=residuals_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
+            
+
+            
+            
             
 ;            if n ne 0 and m eq 0 then begin
 ;;              original_datacube[*,*,j-1]=0.5*(original_datacube[*,*,j-2]+original_datacube[*,*,j])
@@ -177,7 +185,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
     sxaddpar,h_temp,'Wave0',alog(wavelength0)
     sxaddpar,h_temp,'CRVAL3',(wavelength0)
     sxaddpar,h_temp,'CD3_3',step
-    sxaddpar,h_flux,'WAvE0',alog(wavelength0)
+    sxaddpar,h_flux,'WAVE0',alog(wavelength0)
     sxaddpar,h_flux,'CRVAL3',(wavelength0)
     sxaddpar,h_flux,'CD3_3',step
   endif
@@ -185,6 +193,14 @@ if galfit_or_galfitm eq 'galfitm' then begin
   sxaddpar,h_flux,'NAXIS3',s[3]
   
   if keyword_set(keep_cubes) then begin
+    
+;    s=size(bestfit_datacube)
+;    for j=9,s[3]-5,10 do bestfit_datacube[*,*,j]=0.5*(bestfit_datacube[*,*,j-1]+bestfit_datacube[*,*,j+1])
+;    for j=9,s[3]-5,10 do residual_datacube[*,*,j]=0.5*(residual_datacube[*,*,j-1]+residual_datacube[*,*,j+1])
+;    s=size(disk_datacube)
+;    for j=9,s[3]-5,10 do disk_datacube[*,*,j]=0.5*(disk_datacube[*,*,j-1]+disk_datacube[*,*,j+1])
+;    for j=9,s[3]-5,10 do residual_sky_datacube[*,*,j]=0.5*(residual_sky_datacube[*,*,j-1]+residual_sky_datacube[*,*,j+1])
+
     fits_write,root+decomp+decomp_dir+'original_cube.fits',original_datacube,extname='FLUX'
     modfits,root+decomp+decomp_dir+'original_cube.fits',0,h_temp
     modfits,root+decomp+decomp_dir+'original_cube.fits',1,h_flux,extname='FLUX'
@@ -202,16 +218,19 @@ if galfit_or_galfitm eq 'galfitm' then begin
     modfits,root+decomp+decomp_dir+'residual_sky_cube.fits',0,h_temp
     modfits,root+decomp+decomp_dir+'residual_sky_cube.fits',1,h_flux,extname='FLUX'
     if n_comp ge 1100 then begin
+;      for j=9,s[3]-5,10 do bulge_datacube[*,*,j]=0.5*(bulge_datacube[*,*,j-1]+bulge_datacube[*,*,j+1])
       fits_write,root+decomp+decomp_dir+'component2_cube.fits',bulge_datacube,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component2_cube.fits',0,h_temp
       modfits,root+decomp+decomp_dir+'component2_cube.fits',1,h_flux,extname='FLUX'
     endif
     if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+;      for j=9,s[3]-5,10 do comp3_datacube[*,*,j]=0.5*(comp3_datacube[*,*,j-1]+comp3_datacube[*,*,j+1])
       fits_write,root+decomp+decomp_dir+'component3_cube.fits',comp3_datacube,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component3_cube.fits',0,h_temp
       modfits,root+decomp+decomp_dir+'component3_cube.fits',1,h_flux,extname='FLUX'
     endif
     if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+;      for j=9,s[3]-5,10 do comp4_datacube[*,*,j]=0.5*(comp4_datacube[*,*,j-1]+comp4_datacube[*,*,j+1])
       fits_write,root+decomp+decomp_dir+'component4_cube.fits',comp4_datacube,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component4_cube.fits',0,h_temp
       modfits,root+decomp+decomp_dir+'component4_cube.fits',1,h_flux,extname='FLUX'

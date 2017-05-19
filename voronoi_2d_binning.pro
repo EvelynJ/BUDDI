@@ -544,6 +544,7 @@ if not array_equal(noise ge 0, 1) then message, 'NOISE cannot be negative'
 
 ; Perform basic tests to catch common input errors
 ;
+
 if total(signal)/sqrt(total(noise^2)) lt targetSN then $
     message, 'Not enough S/N in the whole set of pixels. ' $
         + 'Many pixels may have noise but virtually no signal. ' $

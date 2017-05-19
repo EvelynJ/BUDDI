@@ -426,17 +426,24 @@ step=sxpar(h0,'CD3_3')
 
 
   if n_comp eq 1110 or n_comp eq 1010 then begin
+;    for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component3_flux.fits',comp3_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',comp3_1D,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
   if n_comp eq 1111 then begin
+;    for j=9,n_elements(comp4_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component4_flux.fits',comp4_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp4_1D.fits',comp4_1D,h0;extname='FLUX'
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
+;  for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+;  for j=9,n_elements(disk_Re)-5,10 do disk_Re[j]=0.5*(disk_Re[j-1]+disk_Re[j+1])
+;  for j=9,n_elements(resid_sky_1D)-5,10 do resid_sky_1D[j]=0.5*(resid_sky_1D[j-1]+resid_sky_1D[j+1])
+
+  
   fits_write,root+decomp+decomp_dir+'component1_flux.fits',disk_mag,h0;extname='FLUX'
   fits_write,root+decomp+decomp_dir+'masked_flux/component1_1D.fits',disk_1D,h0;extname='FLUX'
 ;  modfits,root+decomp+decomp_dir+'masked_flux/disk_1D.fits',0,h0
@@ -448,6 +455,8 @@ step=sxpar(h0,'CD3_3')
 ;  modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',0,h0
 ;  modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',1,h_flux,extname='FLUX'
   if n_comp ge 1100 then begin
+    for j=9,n_elements(bulge_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+    for j=9,n_elements(bulge_Re)-5,10 do bulge_Re[j]=0.5*(bulge_Re[j-1]+bulge_Re[j+1])
     fits_write,root+decomp+decomp_dir+'component2_flux.fits',bulge_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/component2_1D.fits',bulge_1D,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D.fits',0,h0
@@ -608,7 +617,6 @@ device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11
 ;start_wavelength=4600
 ;end_wavelength=10300;6900
 
-for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
 
 plot,wavelength,disk_mag,/NODATA,yrange=[-0.1,1.8],$
   xrange=[start_wavelength-100,end_wavelength+100],$
