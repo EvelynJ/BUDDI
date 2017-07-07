@@ -350,16 +350,16 @@ if n_comp ge 1100 then bulge_mag=10^((bulge_mag-8.9)/(-2.5))
 if n_comp eq 1110 or n_comp eq 1010 then comp3_mag=10^((comp3_mag-8.9)/(-2.5))
 if n_comp eq 11101 then comp4_mag=10^((comp4_mag-8.9)/(-2.5))
 
-;for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
-;if n_comp ge 1100 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-;endif
-;if n_comp eq 1110 or n_comp eq 1010 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
-;endif
-;if n_comp eq 1111 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
-;endif
+for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+if n_comp ge 1100 then begin
+  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+endif
+if n_comp eq 1110 or n_comp eq 1010 then begin
+  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+endif
+if n_comp eq 1111 then begin
+  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
+endif
   
 
 
@@ -426,22 +426,22 @@ step=sxpar(h0,'CD3_3')
 
 
   if n_comp eq 1110 or n_comp eq 1010 then begin
-;    for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+    for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component3_flux.fits',comp3_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',comp3_1D,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
   if n_comp eq 1111 then begin
-;    for j=9,n_elements(comp4_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
+    for j=9,n_elements(comp4_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component4_flux.fits',comp4_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp4_1D.fits',comp4_1D,h0;extname='FLUX'
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
-;  for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
-;  for j=9,n_elements(disk_Re)-5,10 do disk_Re[j]=0.5*(disk_Re[j-1]+disk_Re[j+1])
-;  for j=9,n_elements(resid_sky_1D)-5,10 do resid_sky_1D[j]=0.5*(resid_sky_1D[j-1]+resid_sky_1D[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+  for j=9,n_elements(disk_Re)-5,10 do disk_Re[j]=0.5*(disk_Re[j-1]+disk_Re[j+1])
+  for j=9,n_elements(resid_sky_1D)-5,10 do resid_sky_1D[j]=0.5*(resid_sky_1D[j-1]+resid_sky_1D[j+1])
 
   
   fits_write,root+decomp+decomp_dir+'component1_flux.fits',disk_mag,h0;extname='FLUX'
@@ -627,21 +627,21 @@ plot,wavelength,disk_mag,/NODATA,yrange=[-0.1,1.8],$
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 
 if n_comp eq 1100 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
   oplot,wavelength,(disk_mag/median(bulge_mag+disk_mag)),color=cgcolor('blue');/10000;+60
   oplot,wavelength,(bulge_mag/median(bulge_mag+disk_mag)),color=cgcolor('red');/10000;+90
   oplot,wavelength,((bulge_mag+disk_mag)/median(bulge_mag+disk_mag)),color=cgcolor('purple');/10000;+90
 endif
   
 if n_comp eq 1010 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
   oplot,wavelength,(disk_mag/median(comp3_mag+disk_mag)),color=cgcolor('blue');/10000;+60
   oplot,wavelength,((comp3_mag+disk_mag)/median(comp3_mag+disk_mag)),color=cgcolor('purple');/10000;+90
   oplot,wavelength,(comp3_1D/median(comp3_mag+disk_mag)),color=cgcolor('skyblue')
 endif
 if n_comp eq 1110 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-;  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
   oplot,wavelength,((bulge_mag)/median(bulge_mag+disk_mag+comp3_mag)),color=cgcolor('red');/10000;+90
   oplot,wavelength,((disk_mag)/median(bulge_mag+disk_mag+comp3_mag)),color=cgcolor('blue');/10000;+90
   oplot,wavelength,((comp3_mag)/median(bulge_mag+disk_mag+comp3_mag)),color=cgcolor('skyblue');/10000;+90
@@ -649,9 +649,9 @@ if n_comp eq 1110 then begin
 endif
 
 if n_comp eq 1111 then begin
-;  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-;  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
-;  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
   oplot,wavelength,((bulge_mag)/median(bulge_mag+disk_mag+comp3_mag+comp4_mag)),color=cgcolor('red');/10000;+90
   oplot,wavelength,((disk_mag)/median(bulge_mag+disk_mag+comp3_mag+comp4_mag)),color=cgcolor('blue');/10000;+90
   oplot,wavelength,((comp3_mag)/median(bulge_mag+disk_mag+comp3_mag+comp4_mag)),color=cgcolor('skyblue');/10000;+90

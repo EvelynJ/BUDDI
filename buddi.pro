@@ -23,7 +23,7 @@ function S_N_calculator,x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limi
 ;*** Calculate S/N for each spaxel. Using the cont_wavelength and cont_range, 
 ;*** the Signal is calculated as the mean flux value within the defined wavelength 
 ;*** range, while the nise is the standard deviation in that same range. This 
-;*** calculation assumes that the SD is dominated by nise and contains n 
+;*** calculation assumes that the SD is dominated by noise and contains n 
 ;*** significant spectral features
 
 
@@ -301,7 +301,7 @@ if setup.bin_data eq 'y' then begin
   ;mask regions covered by backgorund/foreground object
   xy=[-100,-100]
   
-  ;S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
+  S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
   
   
   ;========================================================
@@ -1198,7 +1198,7 @@ if setup.correct_kinematics eq 'y' then begin
   if result eq 0 then file_mkdir,root+decomp
   openw,55,root+kinematics+'kinematics_corrections.txt'
   for n=0,n_elements(temparray[0,*])-1,1 do printf,55,temparray[0,n],temparray[1,n],temparray[2,n]
-  cloe,55
+  close,55
   
   
   h_temp=headfits(root+file+'.fits') 
@@ -1282,8 +1282,10 @@ if setup.bin_datacube eq 'y' then begin
     bin_datacube,corrected_IFU, setup,$
       file,start_wavelength, end_wavelength,  wavelength, binned_wavelengths,$
       /galaxy,/PSF,/MANGA
-    ;identify bad pixels in the MaNGA data cube. Initally stick to 0-value pixels
-    badpixelmask, setup
+    
+    ;create binned and sliced bad pixel masks, using the input cube and/or 
+    ;the input text file maskign out stars etc
+;    badpixelmask, setup
 
 endif
 
@@ -1965,6 +1967,7 @@ if setup.decompose_image_slices eq 'y' then begin
   
   
   CD,root+decomp+slices_dir;decomp+median_dir
+  stop
   spawn,'pwd'
   print,'*Now running Galfitm on image_slices*'
   spawn,'rm *galfit.01*'

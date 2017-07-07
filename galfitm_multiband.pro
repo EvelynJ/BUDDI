@@ -541,8 +541,8 @@ if keyword_set(binned) then begin
       printf, 60, 'F) '+badpix+'                # Bad pixel mask (FITS image or ASCII coord list)
       
       printf, 60, 'G) galfitm.constraints                # File with parameter constraints (ASCII file)' 
-      printf, 60, 'H) 1    '+string(x_size,format='(I4.4)')+'   1  '+string(y_size,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
-      printf, 60, 'I) '+string(x_size,format='(I4.4)')+'    '+string(x_size,format='(I4.4)')+'      # Size of the convolution box (x y)'
+      printf, 60, 'H) 1    '+string(x_size,format='(I4)')+'   1  '+string(y_size,format='(I4.4)')+'    # Image region to fit (xmin xmax ymin ymax)'
+      printf, 60, 'I) '+string(x_size,format='(I4)')+'    '+string(x_size,format='(I4.4)')+'      # Size of the convolution box (x y)'
       printf, 60, 'J) '+magzpt+'              # Magnitude photometric zeropoint '
       printf, 60, 'K) '+string(scale[0],format='(F4.2)')+'    '+string(scale[1],format='(F4.2)')+'        # Plate scale (dx dy)    [arcsec per pixel]'
       printf, 60, 'O) regular             # Display type (regular, curses, both)'
@@ -574,7 +574,7 @@ if keyword_set(binned) then begin
     
       printf, 60, '# Object number: 1'
       printf, 60, ' 0) sky                    #  object type'
-      printf, 60, '  1) '+sky+'   '+string(no_bins)+' band #  sky background at center of fitting region [ADUs]'
+      printf, 60, '  1) '+sky+'   '+string(no_bins-2)+' band #  sky background at center of fitting region [ADUs]'
       printf, 60, '  2) '+sky_grad+'      0 band  #  dsky/dx (sky gradient in x)'
       printf, 60, '  3) '+sky_grad+'      0 band  #  dsky/dy (sky gradient in y)'
       printf, 60, '  Z) 0                      #  output option (0 = resid., 1 = Dont subtract) '
@@ -590,9 +590,9 @@ if keyword_set(binned) then begin
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+x_D+'   1 band  #  position x, y'
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
-      printf, 60, ' 3) '+mag_D+'        '+string(no_bins)+' band  #  Integrated magnitude' 
-      printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial)+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial)+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
+      printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+Q_D+'        1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+PA_D+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -608,9 +608,9 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+bulge_type+'                 #  object type'
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
-        printf, 60, ' 3) '+mag_B+'        '+string(no_bins)+' band  #  Integrated magnitude' 
-        printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial)+' band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial)+' band  #  Sersic index n (de Vaucouleurs n=4) '
+        printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
+        printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+        printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
         printf, 60, ' 9) '+q_B+'        1 band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -627,10 +627,10 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2)+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp3+'   '+string(comp3_re_polynomial)+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp3+'    '+string(comp3_n_polynomial)+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 4) '+Re_comp3+'   '+string(comp3_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp3+'    '+string(comp3_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
           printf, 60, ' 9) '+q_comp3+'        1 band  #  axis ratio (b/a)  '
           printf, 60, '10) '+pa_comp3+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
@@ -645,7 +645,7 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2)+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -674,9 +674,9 @@ if keyword_set(binned) then begin
           
           printf, 60, ' # Object number:  '+string(j)
           printf, 60, ' 0) psf                 #  object type'
-          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
-          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
-          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude'
           printf, 60, ' '
           printf, 60, ' '
           printf, 60, ' '
@@ -756,14 +756,14 @@ if keyword_set(binned) then begin
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+x_D+'   1 band  #  position x, y'
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
-      printf, 60, ' 3) '+mag_D+'        '+string(no_bins,format='(I3.3)')+' band  #  Integrated magnitude' 
+      printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
   ;   k_n_polynomial=0
-      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins
-      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins
-      printf, 60, ' 4) '+Re_D+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_D+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+Q_D+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+PA_D+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins-2
+      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+      printf, 60, ' 4) '+Re_D+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+n_D+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 9) '+Q_D+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+PA_D+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
      
@@ -777,13 +777,13 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+bulge_type+'                 #  object type'
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
-        printf, 60, ' 3) '+mag_B+'        '+string(no_bins,format='(I3.3)')+' band  #  Integrated magnitude' 
-        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins
-        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins
-        printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+q_B+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+pa_B+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+        printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
+        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins-2
+        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+        printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+        printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+        printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
+        printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         ;printf, 60, 'C0) 1.2         '+string(no_bins,format='(I3.3)')+'      # traditional diskyness(-)/boxyness(+)'
       ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
@@ -797,14 +797,14 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins,format='(I3.3)')+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins
-          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins
-          printf, 60, ' 4) '+Re_comp3+'   '+string(yy,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp3+'             '+string(xx,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins,format='(I3.3)')+' band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   '+string(no_bins,format='(I3.3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins-2
+          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+          printf, 60, ' 4) '+Re_comp3+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp3+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -816,7 +816,7 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins,format='(I3.3)')+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -845,9 +845,9 @@ if keyword_set(binned) then begin
           
           printf, 60, ' # Object number:  '+string(j)
           printf, 60, ' 0) psf                 #  object type'
-          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
-          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
-          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude'
           printf, 60, ' '
           printf, 60, ' '
           printf, 60, ' '
@@ -1252,12 +1252,12 @@ if keyword_set(slices) then begin
     printf, 60, ' 0) '+disk_type+'                 #  object type'
     printf, 60, ' 1) '+x_D+'   0 band  #  position x, y'
     printf, 60, ' 2) '+y_D+'   0 band  #  position x, y'
-    printf, 60, ' 3) '+mag_D+'        '+string(disk_mag_polynomial,format='(I3.3)')+' band  #  Integrated magnitude' 
+    printf, 60, ' 3) '+mag_D+'        '+string(disk_mag_polynomial,format='(I3)')+' band  #  Integrated magnitude' 
 ;    if disk_re_polynomial eq no_images then disk_re_polynomial=x1 else disk_re_polynomial=0
 ;    if disk_n_polynomial eq no_images then disk_n_polynomial=x1 else disk_n_polynomial=0
 disk_n_polynomial=0
-    printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-    printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+    printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+    printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
     printf, 60, ' 9) '+Q_D+'        0 band  #  axis ratio (b/a)  '
     printf, 60, '10) '+PA_D+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
     printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -1273,11 +1273,11 @@ disk_n_polynomial=0
       printf, 60, ' 0) '+bulge_type+'                 #  object type'
       printf, 60, ' 1) '+x_B+'   0 band  #  position x, y'
       printf, 60, ' 2) '+y_B+'   0 band  #  position x, y'
-      printf, 60, ' 3) '+mag_B+'        '+string(bulge_mag_polynomial,format='(I3.3)')+' band  #  Integrated magnitude' 
+      printf, 60, ' 3) '+mag_B+'        '+string(bulge_mag_polynomial,format='(I3)')+' band  #  Integrated magnitude' 
 ;      if bulge_re_polynomial eq no_images then bulge_re_polynomial=x1 else bulge_re_polynomial=0
 ;      if bulge_n_polynomial eq no_images then bulge_n_polynomial=x1 else bulge_n_polynomial=0
-      printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I3.3)')+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I3.3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+q_B+'        0 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+pa_B+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
@@ -1292,7 +1292,7 @@ disk_n_polynomial=0
       printf, 60, ' 0) '+comp3_type+'                # object type'
       printf, 60, ' 1) '+x_comp3+'   0   #  position x, y'
       printf, 60, ' 2) '+y_comp3+'   0   #  position x, y'
-      printf, 60, ' 3) '+mag_comp3+'       '+string(x1+1)+'       # total magnitude   '  
+      printf, 60, ' 3) '+mag_comp3+'       '+string(x1+1,format='(I2)')+'       # total magnitude   '  
       if comp3_type eq 'sersic' then begin
         printf, 60, ' 4) '+Re_comp3+'   0 band  #  R_e (half-light radius)   [pix]'
         printf, 60, ' 5) '+n_comp3+'             0 band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -1309,7 +1309,7 @@ disk_n_polynomial=0
       printf, 60, ' 0) '+comp4_type+'                # object type'
       printf, 60, ' 1) '+x_comp4+'   0   #  position x, y'
       printf, 60, ' 2) '+y_comp4+'   0   #  position x, y'
-      printf, 60, ' 3) '+mag_comp4+'       '+string(x1+1)+'       # total magnitude   '  
+      printf, 60, ' 3) '+mag_comp4+'       '+string(x1+1,format='(I2)')+'       # total magnitude   '  
       if comp4_type eq 'sersic' then begin
         printf, 60, ' 4) '+Re_comp4+'   0 band  #  R_e (half-light radius)   [pix]'
         printf, 60, ' 5) '+n_comp4+'             0 band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -1338,9 +1338,9 @@ disk_n_polynomial=0
         
         printf, 60, ' # Object number:  '+string(j)
         printf, 60, ' 0) psf                 #  object type'
-          printf, 60, ' 1) '+x_pos+'   '+string(no_bins)+' band  #  position x'
-          printf, 60, ' 2) '+y_pos+'   '+string(no_bins)+' band  #  position y'
-          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins)+' band  #  Integrated magnitude'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins,format='(I2)')+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins,format='(I2)')+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins,format='(I2)')+' band  #  Integrated magnitude'
         printf, 60, ' '
         printf, 60, ' '
         printf, 60, ' '
