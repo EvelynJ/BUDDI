@@ -169,7 +169,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
 ;  fits_read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
   wavelength0=sxpar(h_tempy,'WAVELENG') 
   step=setup.step;sxpar(h_temp,'CD3_3')               
-  print,'***',wavelength0,step
+  ;print,'***',wavelength0,step
   
   tempf=mrdfits(root+file+'.fits',1,h_flux)
   delvarx,tempf,h_tempy
@@ -201,44 +201,44 @@ if galfit_or_galfitm eq 'galfitm' then begin
     for j=9,s[3]-5,10 do disk_datacube[*,*,j]=0.5*(disk_datacube[*,*,j-1]+disk_datacube[*,*,j+1])
     for j=9,s[3]-5,10 do residual_sky_datacube[*,*,j]=0.5*(residual_sky_datacube[*,*,j-1]+residual_sky_datacube[*,*,j+1])
 
-    fits_write,root+decomp+decomp_dir+'original_cube.fits',original_datacube,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'original_cube.fits',original_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'original_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'original_cube.fits',1,h_flux,extname='FLUX'
-    fits_write,root+decomp+decomp_dir+'bestfit_cube.fits',bestfit_datacube,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'original_cube.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'bestfit_cube.fits',bestfit_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'bestfit_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'bestfit_cube.fits',1,h_flux,extname='FLUX'
-    fits_write,root+decomp+decomp_dir+'residuals_cube.fits',residual_datacube,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'bestfit_cube.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'residuals_cube.fits',residual_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'residuals_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'residuals_cube.fits',1,h_flux,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'residuals_cube.fits',1,h_flux,extname='FLUX'
   
-    fits_write,root+decomp+decomp_dir+'component1_cube.fits',disk_datacube,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'component1_cube.fits',disk_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'component1_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'component1_cube.fits',1,h_flux,extname='FLUX'
-    fits_write,root+decomp+decomp_dir+'residual_sky_cube.fits',residual_sky_datacube,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'component1_cube.fits',1,h_flux,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'residual_sky_cube.fits',residual_sky_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'residual_sky_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'residual_sky_cube.fits',1,h_flux,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'residual_sky_cube.fits',1,h_flux,extname='FLUX'
     if n_comp ge 1100 then begin
       for j=9,s[3]-5,10 do bulge_datacube[*,*,j]=0.5*(bulge_datacube[*,*,j-1]+bulge_datacube[*,*,j+1])
-      fits_write,root+decomp+decomp_dir+'component2_cube.fits',bulge_datacube,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'component2_cube.fits',bulge_datacube,h_flux,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component2_cube.fits',0,h_temp
-      modfits,root+decomp+decomp_dir+'component2_cube.fits',1,h_flux,extname='FLUX'
+      ;modfits,root+decomp+decomp_dir+'component2_cube.fits',1,h_flux,extname='FLUX'
     endif
     if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
       for j=9,s[3]-5,10 do comp3_datacube[*,*,j]=0.5*(comp3_datacube[*,*,j-1]+comp3_datacube[*,*,j+1])
-      fits_write,root+decomp+decomp_dir+'component3_cube.fits',comp3_datacube,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'component3_cube.fits',comp3_datacube,h_flux,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component3_cube.fits',0,h_temp
-      modfits,root+decomp+decomp_dir+'component3_cube.fits',1,h_flux,extname='FLUX'
+      ;modfits,root+decomp+decomp_dir+'component3_cube.fits',1,h_flux,extname='FLUX'
     endif
     if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
       for j=9,s[3]-5,10 do comp4_datacube[*,*,j]=0.5*(comp4_datacube[*,*,j-1]+comp4_datacube[*,*,j+1])
-      fits_write,root+decomp+decomp_dir+'component4_cube.fits',comp4_datacube,extname='FLUX'
+      fits_write,root+decomp+decomp_dir+'component4_cube.fits',comp4_datacube,h_flux,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component4_cube.fits',0,h_temp
-      modfits,root+decomp+decomp_dir+'component4_cube.fits',1,h_flux,extname='FLUX'
+      ;modfits,root+decomp+decomp_dir+'component4_cube.fits',1,h_flux,extname='FLUX'
     endif
   endif else begin
-    fits_write,root+decomp+decomp_dir+'component1_cube.fits',disk_datacube,extname='FLUX'
+    fits_write,root+decomp+decomp_dir+'component1_cube.fits',disk_datacube,h_flux,extname='FLUX'
     modfits,root+decomp+decomp_dir+'component1_cube.fits',0,h_temp
-    modfits,root+decomp+decomp_dir+'component1_cube.fits',1,h_flux,extname='FLUX'
+    ;modfits,root+decomp+decomp_dir+'component1_cube.fits',1,h_flux,extname='FLUX'
   endelse
   
   

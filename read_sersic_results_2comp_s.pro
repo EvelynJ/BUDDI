@@ -1,4 +1,5 @@
 FUNCTION read_sersic_results_2comp_s, obj, nband, bd=bd
+
 IF file_test(obj[0]) THEN BEGIN
     result = mrdfits(obj[0], 'FINAL_BAND',/silent)
     res_cheb = mrdfits(obj[0], 'FINAL_CHEB',/silent)

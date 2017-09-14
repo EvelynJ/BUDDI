@@ -71,7 +71,7 @@ for n=0,npix-1,1 do wavelength[n]=10^(sxpar(h_flux,'CRVAL3')+n*sxpar(h_flux,'CD3
 result=file_test(root+galaxy_ref+'_voronoi_2d_binning_output.txt')
 
 if result eq 1 then begin
-  readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',Xpix,Ypix,BINpix,comment='#'
+  readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='F,F,F',Xpix,Ypix,BINpix,comment='#',/silent
   
   
   ;calculate integrated bulge and disc flux
@@ -224,7 +224,7 @@ endelse
 
   if n_comp ge 1100 then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
     else res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0)
-  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info
+  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
   PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
   no_slices=info[2]
   h_temp=headfits(root+decomp+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')

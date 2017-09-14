@@ -143,7 +143,7 @@ if keyword_set(binned) then begin
       band=string(n,format='(I3.3)')
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits';psf_temp
-      badpix='badpix_end.fits'
+      badpix='badpix_'+string(n,format='(I4.4)')+'.fits'
       temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
       
@@ -210,7 +210,7 @@ if keyword_set(binned) then begin
         result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
         if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
         else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
-        else badpix=badpix+',badpix_end.fits'
+        else badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits'
 
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'         
         magzpt+=','+string(magzpt_in,format='(F05.2)')
@@ -273,7 +273,7 @@ if keyword_set(binned) then begin
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
       ;psf='psf_'+string(n,format='(I4.4)')+'.fits'
-      badpix='badpix_end.fits'
+      badpix='badpix_'+string(n,format='(I4.4)')+'.fits'
       temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
 
@@ -342,7 +342,7 @@ if keyword_set(binned) then begin
         result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
         if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
         else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
-        else badpix=badpix+',badpix_end.fits'
+        else badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits'
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits' else sigma=0
 
         
@@ -402,7 +402,7 @@ if keyword_set(binned) then begin
       wavelength=string(sxpar(h,'WAVELENG'),format='(F09.3)')
       psf='PSF/'+string(n,format='(I4.4)')+'.fits'
 ;      psf='psf_'+string(n,format='(I4.4)')+'.fits'
-      badpix='badpix_end.fits'
+      badpix='badpix_'+string(n,format='(I4.4)')+'.fits'
       temp2=file_search(output+binned_dir+'sigma*.fits',COUNT=nfiles_sig)
       if nfiles_sig gt 0 then sigma='sigma_0000.fits' else sigma=0
 
@@ -466,7 +466,7 @@ if keyword_set(binned) then begin
         result=file_search(root+decomp+binned_dir+'badpix*.fits',COUNT=nfiles_bp)
         if n ne no_bins-1 and nfiles_bp gt 2 then badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits' $
         else if n ne no_bins-1 and nfiles_bp le 2 then badpix=badpix+',badpix.fits' $
-        else badpix=badpix+',badpix_end.fits'
+        else badpix=badpix+',badpix_'+string(n,format='(I4.4)')+'.fits'
         if nfiles_sig gt 0 then sigma=sigma+',sigma_'+string(n,format='(I4.4)')+'.fits'
 
         ;badpix+=',badpix.fits'
@@ -696,6 +696,7 @@ if keyword_set(binned) then begin
 ;================================================================================'
     
     endif else begin
+      
       close,60
       openw,60,output+binned_dir+'galfitm.feedme'
       

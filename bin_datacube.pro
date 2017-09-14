@@ -54,12 +54,14 @@ function badpixelmask, setup
   ;    -no text file: simply slice up
   ;    -with text file: add pixels and slice up
   if badpix_cube_TF eq 'T' then begin
-    fits_read,root+badpix_cube+'.fits', badpix, header1
+    fits_read,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix, header1
     s = SIZE(badpix)
     
     if badpix_file_TF eq 'T' then begin
       readcol,root+badpix_file,format='f,f',x_bad,y_bad,comment='#',/SILENT
-      for j=0,n_elements(x_bad)-1,1 do badpix[x_bad,y_bad]=1
+      for j=0,n_elements(x_bad)-1,1 do begin
+        if x_bad[j] le s[1] and y_bad[j] le s[2] then badpix[x_bad[j]-1,y_bad[j]-1,*]=1
+      endfor
     endif
     
     badpix_end=intarr(s[1],s[2])
@@ -354,6 +356,7 @@ if keyword_set(galaxy) then begin
   endif
   sxaddpar,h_temp,'Wavelength',wavelength
   sxaddpar,h_bp,'Wavelength',wavelength
+  badpix_in[*,*,0]=1
   fits_write,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits', badpix_in[*,*,0],hdr0
 ;    fits_write,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits', badpix_in[*,*,0],extname='BADPIX'
 ;    modfits,directory+decomp+binned_dir+badpix_name+string(0,format='(i4.4)')+'.fits',0,h_temp
@@ -395,7 +398,8 @@ if keyword_set(galaxy) then begin
             endif
             
             ;RESISTANT_Mean,bp[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
-            if total(bp[x,y,*])gt 0 then mean_temp=1 else mean_temp=0
+            ;if total(bp[x,y,*]) gt 0 then mean_temp=1 else mean_temp=0
+            if binned_image[x,y] gt 0 then mean_temp=1 else mean_temp=0
             binned_badpix[x,y]=mean_temp
         endfor
       endfor
@@ -452,6 +456,7 @@ if keyword_set(galaxy) then begin
   endif
 
   sxaddpar,h_bp,'Wavelength',wavelength
+  binned_badpix[*,*]=1
   fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,hdr0
 ;    fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX';, h
 ;    modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
@@ -507,7 +512,7 @@ fits_write,directory+decomp+median_dir+'image.fits', binned_image,hdr0;,extname=
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
 ;      RESISTANT_Mean,badpix_in[x,y,first_image:final_image],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
-      if total(badpix_in[x,y,first_image:final_image]) gt 0 then mean_temp=1 else mean_temp=0
+      if total(badpix_in[x,y,first_image+50:final_image-50]) gt 0 then mean_temp=1 else mean_temp=0
       binned_badpix[x,y]=mean_temp
     endfor
   endfor
@@ -544,7 +549,7 @@ if result eq 1 then begin
   ;sxdelpar,h_psf,'CRVAL3'
   ;sxdelpar,h_psf,'CDELT3'
   ;sxdelpar,h_psf,'CD3_3'
-  
+ 
   
   ;  set all NAN values to 0
   index = WHERE(Finite(psf_cube_input) EQ 0)
@@ -554,8 +559,15 @@ if result eq 1 then begin
   col = index mod ncol
   row = (index / ncol) mod nrow
   frame = index / (nrow*ncol)
-  psf_cube_input[col,row,frame]=0
+  psf_cube_input[col,row,frame]=0.
 
+  ;  set all negative values to 0
+  index = WHERE(psf_cube_input lt 0)
+  col = index mod ncol
+  row = (index / ncol) mod nrow
+  frame = index / (nrow*ncol)
+  psf_cube_input[col,row,frame]=0.
+  
   
   ;***median PSF image***
   fits_read,directory+file+'.fits',temp_input,h
@@ -581,7 +593,7 @@ if result eq 1 then begin
   endfor
   
   ;***binned PSF images***
-  for j=0,no_bins+2,1 do begin
+  for j=0,no_bins+1,1 do begin
     ;note- sometimes the first and last PSF images will contain no information.
     ;this will lead to a segmentation faiult in GALFIT.
     ;solution-replace with the valid PSF image before or after

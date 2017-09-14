@@ -293,6 +293,15 @@ if setup.bin_data eq 'y' then begin
   
   datacube=input_IFU
   
+  ;remove stars from kinematics measurements
+  s=size(datacube)
+  if FILE_TEST(root+badpix_file) eq 1 then begin
+    readcol,root+badpix_file,format='f,f',x_bad,y_bad,comment='#',/SILENT
+    for j=0,n_elements(x_bad)-1,1 do begin
+      if x_bad[j] le s[1] and y_bad[j] le s[2] then datacube[x_bad[j]-1,y_bad[j]-1,*]=0
+    endfor
+  endif
+
   ;========================================================
   ; *** Calculate S/N for each element in the array
   cont_array=datacube[*,*,sample]
@@ -1967,7 +1976,7 @@ if setup.decompose_image_slices eq 'y' then begin
   
   
   CD,root+decomp+slices_dir;decomp+median_dir
-  stop
+  
   spawn,'pwd'
   print,'*Now running Galfitm on image_slices*'
   spawn,'rm *galfit.01*'
@@ -2017,6 +2026,9 @@ if setup.visualise_results eq 'y' then begin
   result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
     original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
     residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA
+  
+ ;  result_visualiser_2,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
+
   
   delvarx,datacube
   delvarx,original_datacube,bestfit_datacube,residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,comp3_datacube
