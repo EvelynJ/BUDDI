@@ -26,7 +26,7 @@
 ; If a badpixel cube is provided, bin_datacube creates correct masks.
 ; This code will only create bad pixel masks if no input datacube is
 ; provided, or if a text file with additional masks is provided
-;
+;  
 
 function badpixelmask, setup
   root=setup.root
