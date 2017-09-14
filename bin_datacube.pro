@@ -157,7 +157,9 @@ if keyword_set(galaxy) then begin
   row = (index / ncol) mod nrow
   frame = index / (nrow*ncol)
   spec_in[col,row,frame]=0
-  
+  ;set first and last image slices to contain only zero value pixels.
+  spec_in[*,*,0]=0
+  spec_in[*,*,-1]=0
   
   
   if sigma_TF eq 'T' then begin
@@ -218,6 +220,9 @@ if keyword_set(galaxy) then begin
   ;extensions, which galfit and galfitm can read with no problems
   fits_read,directory+file+'.fits',temp_input,h
 ;  h = headfits(directory+file+'.fits')
+  
+  
+  
   
 
   ;print out only the image slices required for final wavelength range to save disc space
@@ -333,7 +338,8 @@ if keyword_set(galaxy) then begin
   binned_badpix=badpix_in[*,*,first_image]
   if sigma_TF eq 'T' then binned_sigma=sigma_in[*,*,first_image]
 
-    
+
+  ;print out first image slice  
   mkhdr,hdr0,spec_in[*,*,0]
   wavelength=10^(wavelength_arr[0]);sxpar(header1,'WAVELENG')
   sxaddpar,hdr0,'Wavelength',wavelength
