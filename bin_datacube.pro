@@ -33,7 +33,7 @@ function badpixelmask, setup
   decomp=setup.decomp
   binned_dir=setup.binned_dir 
   slices_dir=setup.slices_dir
-  median_dir=setup.median_dir
+  median_dir=setup.median_dir 
   galaxy_ref=setup.galaxy_ref
   badpix_cube=setup.badpix_cube  ;badpixel cube
   badpix_file=setup.badpix_file  ;bad pixel file for foreground stars
