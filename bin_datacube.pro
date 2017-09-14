@@ -37,7 +37,7 @@ function badpixelmask, setup
   galaxy_ref=setup.galaxy_ref
   badpix_cube=setup.badpix_cube  ;badpixel cube
   badpix_file=setup.badpix_file  ;bad pixel file for foreground stars
-  file=setup.file
+  file=setup.file 
   
   
   result = FILE_TEST(root+badpix_file)
