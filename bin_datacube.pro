@@ -31,7 +31,7 @@
 function badpixelmask, setup
   root=setup.root
   decomp=setup.decomp
-  binned_dir=setup.binned_dir
+  binned_dir=setup.binned_dir 
   slices_dir=setup.slices_dir
   median_dir=setup.median_dir
   galaxy_ref=setup.galaxy_ref
