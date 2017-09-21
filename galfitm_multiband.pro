@@ -1043,17 +1043,31 @@ for loop=0,no_loops,1 do begin
       band='n'
       if sky_yn eq 'n' and start eq '3)' then begin
         poly_val=setup.no_slices 
-        content_new=string(content_numbers[0],format='(f5.2)')
-        for nn=1,no_images+1,1 do content_new=content_new+','+string(content_numbers[0],format='(f5.2)')
+        content_new=string(content_elements[0],format='(f5.2)')
+        for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(f5.2)')
         band='y'
       endif  else poly_val=0
         
+      if sky_yn eq 'y' and start eq '1)' then begin
+        poly_val=setup.no_slices
+        band='y'
+        
+        if content_elements[0] lt 0.01 or content_elements[0] gt 999.9 then begin
+          content_new=string(content_elements[0],format='(e011.2)')
+          for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(e011.2)')
+        endif else begin
+          content_new=string(content_elements[0],format='(f5.2)')
+          for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(f5.2)')
+        endelse
+        
+      endif
+      
       if sky_yn eq 'y' and start eq '3)' then begin
         poly_val=0
         sky_yn='n'  ;reset to avoid problems with other fits
       endif
       
-      if band eq 'y' and start eq '3)' then printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' band      '+comment  $
+      if band eq 'y' then printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' band      '+comment  $
         else printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' cheb      '+comment
       
 
