@@ -10,7 +10,7 @@
 ;
 pro galfitm_multiband,setup,info,x,y,scale,$
   estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4,$
-  rep,BINNED=binned,SLICES=slices,FILE=file,HEADER=header
+  rep,BINNED=binned,SLICES=slices,FILE=file,HEADER=header,GC=gc
   
   
   root=setup.root
@@ -869,6 +869,248 @@ endif
 ;=======================================================================================
 
 if keyword_set(slices) then begin
+;new code. Should read in previous results from binned images, and 
+;recreate the new feedme files using those results, including 
+;number of components
+
+;identify the result form binned images. In case of no GCs, need
+;to identify the final output file when several fits are tried
+if keyword_set(GC) then begin
+    files=file_search(root+decomp+binned_dir+'imgblock_GC.galfit.*.band')   ;look for .band in case there are GC files with an addition
+    extractedStr = STRMID(files[-1],0, strlen(files[-1])-5)  ;extract .band
+    openr, filer, extractedStr, /get_lun
+;    openr, filer, root+decomp+binned_dir+'imgblock_GC.galfit.01', /get_lun $
+endif else begin
+    files=file_search(root+decomp+binned_dir+'imgblock.galfit.*.band')   ;look for .band in case there are GC files with an addition
+    extractedStr = STRMID(files[-1],0, strlen(files[-1])-5)  ;extract .band
+    openr, filer, extractedStr, /get_lun
+endelse
+line = ''
+
+
+;for each set of image slices, open a text file as the new start file, 
+;copy all the information from the cheb. results for the binned images,
+;and change the reference images/wavelength slices, number of bands etc etc
+
+openw,filew,output+slices_dir+'run_galfitm.sh', /get_lun
+
+n=0
+fits_read,output+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',crap,h_first
+x_size=sxpar(h_first,'NAXIS1')
+y_size=sxpar(h_first,'NAXIS2')
+
+no_images=no_slices                     ;no of image slices in each set
+total_images=final_image-first_image+1  ;total no of image slices
+no_loops=long(total_images/no_images)   ;calculate number of sets of images (i.e. no of feedme files to create)
+
+
+x1=no_images-1
+n_poly=0
+
+
+;NOTE- for this loop, running a total of no_loops+1. This is because
+;no_loops is an integer, giving the total number of loops with the full
+;n image slices. The final loop will catch all the remaining image slices
+wavelength_slices = fltarr(total_images)
+for bin=first_image,final_image,1 do begin
+  h_temp=headfits(output+slices_dir+'image_'+string(bin,format='(I4.4)')+'.fits')
+  wavelength_slices[bin-first_image]=sxpar(h_temp,'WAVELENG')
+endfor
+
+
+for loop=0,no_loops,1 do begin
+  x0=first_image+(loop*no_images)
+  image_array=first_image
+  for nn=0,no_images-1,1 do image_array=[image_array,x0+nn]
+  image_array=[image_array,final_image]
+  
+  ;need to take into account unusual number of images in final section
+  wave_array=wavelength_slices[0]
+  if loop eq no_loops then no_images=total_images mod no_loops
+  for nn=0,no_images-1,1 do wave_array=[wave_array,wavelength_slices[loop*no_images+nn]]
+  wave_array=[wave_array,wavelength_slices[-1]]
+  
+  openw,filew_feedme,output+slices_dir+'galfitm_'+string(loop,format='(I4.4)')+'.feedme',/get_lun
+  
+  sky_yn='n'  ;parameter to mark the sky fit, since parameter 3 is not magnitude for that fit
+  
+  ;if keyword_set(GC) then openr, filer_loop, root+decomp+binned_dir+'imgblock_GC.galfit.01', /get_lun $
+  if keyword_set(GC) then begin
+    files=file_search(root+decomp+binned_dir+'imgblock_GC.galfit.*.band')   ;look for .band in case there are GC files with an addition
+    extractedStr = STRMID(files[-1],0, strlen(files[-1])-5)  ;extract .band
+    openr, filer_loop, extractedStr, /get_lun
+  endif else begin
+    files=file_search(root+decomp+binned_dir+'imgblock.galfit.*.band')   ;look for .band in case there are GC files with an addition
+    extractedStr = STRMID(files[-1],0, strlen(files[-1])-5)  ;extract .band
+    openr, filer_loop, extractedStr, /get_lun
+  endelse
+
+  WHILE ~ EOF(filer_loop) DO BEGIN
+    ; Read a line of text:
+    readf, filer_loop, line
+    ;print,line
+    
+    ;split up into parts
+    content_numbers = ' '
+    content_descriptor = ' '
+    start = strtrim(strmid(line,0,strpos(line,')')+2),2)
+    content = strtrim(strmid(line,strpos(line,')')+2, strpos(line,'#')-strpos(line,')')-2),2)
+    comment = strtrim(strmid(line,strpos(line,'#')),2)
+    if content eq 'sky' then sky_yn='y'
+    
+    ; if line is normal setup line
+    IF strpos(content,',') EQ -1 AND strtrim(line,2) NE '# INITIAL FITTING PARAMETERS' THEN BEGIN
+      ; find output file name and change it
+      IF strpos(strtrim(line, 2), 'B) ') EQ 0 THEN BEGIN
+        post = ''
+        outfile_name = 'imgblock_'+string(loop,format='(I4.4)')+'.fits'
+        ;outfile_name = strmid(content,0,strpos(content,'.fits'))+'_'+string(loop,format='(I4.4)')+'.fits'
+        printf, filew_feedme, start+' '+outfile_name+'            '+comment
+        
+        ;print, start+' '+outfile_name+'            '+comment
+        
+      ENDIF ELSE begin
+        printf, filew_feedme, line
+        ;print, line
+      ENDELSE
+      ;        print, 'normal setup line'
+      
+    ENDIF
+ 
+    ;***Need to change this loop for the image and control parameters at top
+    IF strpos(content,',') NE -1 AND strpos(content,'cheb') EQ -1  THEN BEGIN
+      content_elements = strsplit(content,',',/extract)
+      
+      if start eq 'A)' then begin
+        content_new='image_'+string(image_array[0],format='(I4.4)')+'.fits'
+        for nn=1,no_images+1,1 do content_new=content_new+',image_'+string(image_array[nn],format='(I4.4)')+'.fits'
+      endif
+      if start eq 'A1)' then begin
+        content_new=string(0,format='(I3.3)')
+        for nn=1,no_images+1,1 do content_new=content_new+','+string(nn,format='(I3.3)')
+      endif
+      if start eq 'A2)' then begin
+        content_new=string(wave_array[0],format='(f08.2)')
+        for nn=1,no_images+1,1 do begin
+          if wave_array[nn] lt 10000 then content_new=content_new+','+string(wave_array[nn],format='(f07.2)') $
+            else content_new=content_new+','+string(wave_array[nn],format='(f08.2)')
+        endfor
+      endif
+      if start eq 'C)' then begin
+        content_new='sigma/sigma_'+string(image_array[0],format='(I4.4)')+'.fits'
+        for nn=1,no_images+1,1 do content_new=content_new+',sigma/sigma_'+string(image_array[nn],format='(I4.4)')+'.fits'
+      endif
+      if start eq 'D)' then begin
+        content_new='PSF/'+string(image_array[0],format='(I4.4)')+'.fits'
+        for nn=1,no_images+1,1 do content_new=content_new+',PSF/'+string(image_array[nn],format='(I4.4)')+'.fits'
+      endif
+      if start eq 'F)' then begin
+        content_new='badpix/badpix_end.fits'
+        for nn=1,no_images,1 do content_new=content_new+',badpix/badpix_'+string(image_array[nn],format='(I4.4)')+'.fits'
+        content_new=content_new+',badpix/badpix_end.fits'
+      endif
+      if start eq 'J)' then begin
+        content_new=string(magzpt_in,format='(F05.2)')
+        for nn=1,no_images+1,1 do content_new=content_new+','+string(magzpt_in,format='(F05.2)')
+      endif
+      if start eq 'W)' then begin
+        content_new='blank,input,model,residual'
+      endif
+
+      
+      
+      
+;      printf, filew, start+' '+content_elements+'            '+comment
+      printf, filew_feedme, start+' '+content_new+'            '+comment
+      ;print, start+' '+content_new+'            '+comment
+      ;        print, 'mwl setup line'
+    
+    ENDIF
+    
+    ; if line is mwl parameter line
+    IF strpos(content,',') NE -1 AND strpos(content,'cheb') NE -1  THEN BEGIN
+              ;print, '***'
+      content_numbers = strtrim(strmid(content,0,strpos(content,' ')),2)
+      content_elements = strsplit(content_numbers,',',/extract)
+      content_desc = strtrim(strmid(content,strpos(content,' ')),2)
+      content_desc_fit = strtrim(fix(strmid(content_desc,0, strpos(content_desc,' ')))<1,2)
+      
+      diff=setup.no_slices - setup.no_bins + 2
+      content_new=content_numbers
+      for n_diff=1,diff,1 do content_new=content_new+',0'
+      
+      ;ensure magnitude values are all the same
+      band='n'
+      if sky_yn eq 'n' and start eq '3)' then begin
+        poly_val=setup.no_slices 
+        content_new=string(content_numbers[0],format='(f5.2)')
+        for nn=1,no_images+1,1 do content_new=content_new+','+string(content_numbers[0],format='(f5.2)')
+        band='y'
+      endif  else poly_val=0
+        
+      if sky_yn eq 'y' and start eq '3)' then begin
+        poly_val=0
+        sky_yn='n'  ;reset to avoid problems with other fits
+      endif
+      
+      if band eq 'y' and start eq '3)' then printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' band      '+comment  $
+        else printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' cheb      '+comment
+      
+
+      ;print, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' cheb      '+comment
+     ;        print, 'parameter line'
+    ENDIF
+    
+    ; if line is commented line after initiation block
+    IF strtrim(line,2) EQ '# INITIAL FITTING PARAMETERS' THEN BEGIN
+      IF keyword_set(np) THEN printf, filew_feedme, 'U) 1                                         # Turn on nonparam with default options'
+      printf, filew_feedme, line
+      ;print, line
+    ENDIF
+    
+    ;print, ' '
+  ENDWHILE
+
+  
+  
+  printf,filew,galfitm+' galfitm_'+string(loop,format='(I4.4)')+'.feedme'
+  printf,filew,'mv imgblock_'+string(loop,format='(I4.4)')+'.fits imgblock_'+string(loop,format='(I4.4)')+'_fit.fits'
+  
+  close, filer_loop
+  close, filew_feedme
+  FREE_LUN, filer_loop
+  FREE_LUN, filew_feedme
+
+endfor
+
+close, filew
+FREE_LUN, filew
+
+close, filer
+FREE_LUN, filer
+
+
+
+;openw, filew, newfile, /get_lun
+
+
+endif
+
+end
+
+
+
+;==============================
+;old codes
+
+
+
+
+
+
+
+
+;old code
   nband=no_bins
 ;  res=read_sersic_results(output+binned_dir+'imgblock.fits', nband, bd=1)
   if n_comp eq 1000 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=0) $

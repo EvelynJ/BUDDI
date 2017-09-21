@@ -129,10 +129,9 @@ END
 ;##############################################################
 ;##############################################################
 ;##############################################################
-pro BUDDI,input_file,KEEP_CUBES=keep_cubes
+pro BUDDI,input_file,KEEP_CUBES=keep_cubes, GC=gc
 
 ;***read in necessary information
-;input_file='IFU_wrapper_input.txt'
 read_input, input_file, setup
 
 
@@ -1075,10 +1074,8 @@ if setup.correct_kinematics eq 'y' then begin
       format='F,F,F,X,X,X,X',bin_kinematics,velocity_bin,sigma_bin,comment='#',/SILENT
   
   fits_read,root+file+'.fits',input_IFU,header_IFU
-  ;print,'***'
   if sigma_TF eq 'T' then fits_read,root+sigma_cube+'.fits',input_sigma,header_sigma
   
-  ;print,'***'
   if badpix_TF eq 'T' then begin
     fits_read,root+badpix_cube+'.fits',input_badpix,header_badpix
     
@@ -1151,8 +1148,6 @@ if setup.correct_kinematics eq 'y' then begin
 
       ;apply kinematics corrections here
       intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
-;      if sigma_TF eq 'T' then corrected_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_sigma[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
-;      if badpix_TF eq 'T' then corrected_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*]=shift(input_badpix[x_final[m]+x_centre,y_final[m]+y_centre,*],-vel_correction[bins_final[m]])
 
       temparray[0,m]=x_final[m]+x_centre
       temparray[1,m]=y_final[m]+y_centre
@@ -1160,7 +1155,6 @@ if setup.correct_kinematics eq 'y' then begin
       if sigma_correction[bins_final[m]] gt 0 then begin
         input_spec=intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]
         corrected_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=gauss_smooth(input_spec[*],sigma_correction[bins_final[m]]) 
-;        corrected_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=gaussfold(wavelength,intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*],sigma_correction[bins_final[m]]) $
       endif else corrected_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]=intermediate_IFU[x_final[m]+x_centre,y_final[m]+y_centre,*]
 
       
@@ -1953,6 +1947,53 @@ if setup.decompose_binned_images eq 'y' then begin
 endif
 
 
+;add GC positions if the user requests them
+if setup.add_GCs eq 'y' and keyword_set(GC) then begin
+  ;read in residual images from previous binned fit, stack them and 
+  ;ask user to identify the GCs they want to include in the fit. 
+  ;Then create Galfitm start file using best result from previous fit.
+  ;**note- will use galfit.0X with maximum number
+  
+  sextractor_executable = setup.sextractor_executable
+  sextractor_setup = setup.sextractor_setup
+  ds9_executable = setup.ds9_executable
+  
+  ;detect_and_add, galfit_fits_output, new_output_filename, name_add, nostop=nostop
+  ;.run /home/ejohnsto/GitHub/BUDDI-GC/detect_and_add.pro
+  detect_and_add, root+decomp+binned_dir+'imgblock.fits', 'imgblock_GC.fits', 'GCinput'$
+    ,setup.sextractor_executable,setup.sextractor_setup,setup.ds9_executable
+
+  
+  ;Run the new fit with the GCs
+  ; find the latest galfit restart file
+  ; find all matching galfit.??.band files and select newest
+
+  spawn, 'ls '+strmid(root+decomp+binned_dir+'imgblock.fits',0,strpos(root+decomp+binned_dir+'imgblock.fits','.fits'))+'.galfit.*', list
+  
+  ;; throw away all the files ending in 'band' or 'output'
+  list = list[where(strmid(list,4,/reverse_offset) NE '.band')]
+  list = list[where(strmid(list,6,/reverse_offset) NE '_output')]
+  list = list[where(strmid(list,5,/reverse_offset,4) EQ 'fit.')]
+  
+  list2 = list
+  ; isolate counting number
+  FOR i=0,n_elements(list)-1 DO list2[i] = strmid(list[i],strpos(list[i],'.',/reverse_search)+1)
+  
+  list2 = fix(list2)
+  ; select latest file (file with highest number)
+  wh = where(list2 EQ max(list2))
+  obj = list[wh]
+  new_name = obj+'_GCinput'
+  
+  cd,root+decomp+binned_dir,current=current_dir
+  spawn,galfitm+' '+obj+'_GCinput'
+  cd,current_dir
+endif
+
+
+
+
+
 
 
 
@@ -1966,11 +2007,23 @@ if setup.decompose_image_slices eq 'y' then begin
 
   output=root+decomp
   comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
-  galfitm_multiband,setup,info,x_centre,$
+  if keyword_set(GC) then galfitm_multiband,setup,info,x_centre,$
+    y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+    1,/slices,/GC $
+  else galfitm_multiband,setup,info,x_centre,$
     y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
     1,/slices
-
-
+  
+  result=file_test(root+decomp+slices_dir+'badpix/badpix_end.fits')
+  if result eq 0 then begin
+    files=file_search(root+decomp+slices_dir+'badpix/badpix*.fits')
+    fits_read,files[0],input,h
+    input[*,*]=1
+    fits_write,root+decomp+slices_dir+'badpix/badpix_end.fits',input,h
+  endif
+  
+  
+stop
   result = FILE_TEST(root+decomp+slices_dir+'galfit.*') 
   if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
   

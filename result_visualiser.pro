@@ -173,19 +173,19 @@ nband=nbands
 
 
     exptime=sxpar(h_flux,'EXPTIME')
-    disk_Re[a:b]=res.Re_galfit_band_d[0:nbands-1]
-    disk_mag[a:b]=res.mag_galfit_band_d[0:nbands-1]
-    sky[a:b]=res.sky_galfit_band[0:nbands-1]*n_elements(Xpix)
+    disk_Re[a:b]=res.Re_galfit_band_d[1:nbands]
+    disk_mag[a:b]=res.mag_galfit_band_d[1:nbands]
+    sky[a:b]=res.sky_galfit_band[1:nbands]*n_elements(Xpix)
     
     if n_comp ge 1100 then begin
-      bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
-      bulge_mag[a:b]=res.mag_galfit_band_b[0:nbands-1]
+      bulge_Re[a:b]=res.Re_galfit_band_b[1:nbands]
+      bulge_mag[a:b]=res.mag_galfit_band_b[1:nbands]
     endif
     if n_comp eq 1010 or n_comp eq 1110 then begin
-      comp3_mag[a:b]=res.mag_galfit_band_comp3[0:nbands-1]
+      comp3_mag[a:b]=res.mag_galfit_band_comp3[1:nbands]
     endif
     if n_comp eq 1111 then begin
-      comp4_mag[a:b]=res.mag_galfit_band_comp4[0:nbands-1]
+      comp4_mag[a:b]=res.mag_galfit_band_comp4[1:nbands]
     endif
   endelse
 endfor    
@@ -225,7 +225,7 @@ endelse
   if n_comp ge 1100 then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
     else res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0)
   readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
-  PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
+  PA=res2.PA_GALFIT_BAND_D[1:nbands]
   no_slices=info[2]
   h_temp=headfits(root+decomp+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')
   wave1=sxpar(h_temp,'WAVELENG')

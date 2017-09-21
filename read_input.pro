@@ -66,6 +66,7 @@ PRO read_input, setup_file, setup
                         'bin_datacube', '', $
                         'decompose_median_image', '', $
                         'decompose_binned_images', '', $
+                        'add_GCs', '', $
                         'decompose_image_slices', '', $
                         'create_subcomps', '', $
                         'create_decomposed_cubes', '', $
@@ -109,7 +110,10 @@ PRO read_input, setup_file, setup
                         'comp4_pa', 0., $
                         'comp4_re_polynomial', 0., $
                         'comp4_mag_polynomial', 0., $
-                        'comp4_n_polynomial', 0.)
+                        'comp4_n_polynomial', 0., $
+                        'sextractor_executable', '', $
+                        'sextractor_setup', '', $
+                        'ds9_executable', '' )
 
 
   
@@ -196,14 +200,12 @@ PRO read_input, setup_file, setup
         'E05)': setup.bin_datacube = content
         'E06)': setup.decompose_median_image = content
         'E07)': setup.decompose_binned_images = content
-        'E08)': setup.decompose_image_slices = content
-        'E09)': setup.create_subcomps = content
-        'E10)': setup.create_decomposed_cubes = content
-        'E11)': setup.visualise_results = content
+        'E08)': setup.add_GCs = content
+        'E09)': setup.decompose_image_slices = content
+        'E10)': setup.create_subcomps = content
+        ;'E11)': setup.create_decomposed_cubes = content
+        'E12)': setup.visualise_results = content
         
-;        'F00)': setup.mag1 = float(content)
-;        'F01)': setup.axis_ratio1 = float(content)
-;        'F02)': setup.PA1 = float(content)
         
         'F00)': setup.n_comp = float(content)
         'F01)': setup.constraint = content
@@ -220,7 +222,6 @@ PRO read_input, setup_file, setup
         'F17)': setup.disk_mag_polynomial = float(content)
         'F18)': setup.disk_n_polynomial = float(content)
         
-;        if setup.n_comp gt 1 then begin
           'F20)': setup.bulge_type = content
           'F21)': setup.bulge_mag = float(content)
           'F22)': setup.bulge_re = float(content)
@@ -231,7 +232,6 @@ PRO read_input, setup_file, setup
           'F27)': setup.bulge_mag_polynomial = float(content)
           'F28)': setup.bulge_n_polynomial = float(content)
         
-;          if setup.n_comp gt 2 then begin
           'F30)': setup.comp3_type = content
           'F31)': setup.comp3_mag = float(content)
           'F32)': setup.comp3_re = float(content)
@@ -251,9 +251,11 @@ PRO read_input, setup_file, setup
             'F46)': setup.comp4_re_polynomial = float(content)
             'F47)': setup.comp4_mag_polynomial = float(content)
             'F48)': setup.comp4_n_polynomial = float(content)
+            
+        'G00)': setup.sextractor_executable = content
+        'G01)': setup.sextractor_setup = content
+        'G02)': setup.ds9_executable = content
 
-;          endif
-;        endif
      ENDCASE
   ENDWHILE
   close, 1
