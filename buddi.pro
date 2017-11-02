@@ -1103,7 +1103,7 @@ if setup.correct_kinematics eq 'y' then begin
 
 ;  identify binned emission spectrum for each spaxel, and subtract
   
-  sigma0=0;sigma_bin[central_bin];max(sigma_bin)
+  sigma0=sigma_bin[central_bin];max(sigma_bin)
   radius=fltarr(n_elements(bin_n_in))
   for j=0,n_elements(bin_n_in)-1,1 do begin
     radius[j]=sqrt(xbar[j]^2+ybar[j]^2)
