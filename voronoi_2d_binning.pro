@@ -593,6 +593,7 @@ if keyword_set(plot) then begin
 endif
 
 set_plot,'ps'
+loadct,34
 device,file=root+galaxy_ref+'_voronoi_2d_binning_output.ps',xoffset=0,yoffset=0,/color;,xsize=20,ysize=18
     !p.multi=[0,1,2]
     rnd = sort(randomu(seed,n_elements(xnode))) ; Randomize bin colors

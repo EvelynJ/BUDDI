@@ -173,19 +173,19 @@ nband=nbands
 
 
     exptime=sxpar(h_flux,'EXPTIME')
-    disk_Re[a:b]=res.Re_galfit_band_d[1:nbands]
-    disk_mag[a:b]=res.mag_galfit_band_d[1:nbands]
-    sky[a:b]=res.sky_galfit_band[1:nbands]*n_elements(Xpix)
+    disk_Re[a:b]=res.Re_galfit_band_d[0:nbands-1]
+    disk_mag[a:b]=res.mag_galfit_band_d[0:nbands-1]
+    sky[a:b]=res.sky_galfit_band[0:nbands-1]*n_elements(Xpix)
     
     if n_comp ge 1100 then begin
-      bulge_Re[a:b]=res.Re_galfit_band_b[1:nbands]
-      bulge_mag[a:b]=res.mag_galfit_band_b[1:nbands]
+      bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
+      bulge_mag[a:b]=res.mag_galfit_band_b[0:nbands-1]
     endif
     if n_comp eq 1010 or n_comp eq 1110 then begin
-      comp3_mag[a:b]=res.mag_galfit_band_comp3[1:nbands]
+      comp3_mag[a:b]=res.mag_galfit_band_comp3[0:nbands-1]
     endif
     if n_comp eq 1111 then begin
-      comp4_mag[a:b]=res.mag_galfit_band_comp4[1:nbands]
+      comp4_mag[a:b]=res.mag_galfit_band_comp4[0:nbands-1]
     endif
   endelse
 endfor    
@@ -224,8 +224,8 @@ endelse
 
   if n_comp ge 1100 then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
     else res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0)
-  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
-  PA=res2.PA_GALFIT_BAND_D[1:nbands]
+  readcol,root+decomp+binned_dir+'info.txt',format='X,F',info,/silent
+  PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
   no_slices=info[2]
   h_temp=headfits(root+decomp+binned_dir+'image_'+string(0,format='(I4.4)')+'.fits')
   wave1=sxpar(h_temp,'WAVELENG')
@@ -609,17 +609,23 @@ device,/close
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+;device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',xsize=26,ysize=12,/portrait;,/landscape
 !P.thick=3
 !p.charthick=3
-!p.charsize=1.0
+!p.charsize=1.2
 !p.multi=0;[0,1,4]
 ;start_wavelength=4600
 ;end_wavelength=10300;6900
+start_wavelength=4750
+end_wavelength=7270
 
+;set to rest-frame wavelength
+;offset=3810/3e5*4861
+;for j=0,n_elements(wavelength)-1,1 do wavelength[j]=wavelength[j]-(3810/3e5*wavelength[j])
 
 plot,wavelength,disk_mag,/NODATA,yrange=[-0.1,1.8],$
-  xrange=[start_wavelength-100,end_wavelength+100],$
+  xrange=[start_wavelength,end_wavelength],$
   /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
   ; ytickname=['Residuals','Galaxy + !CBest Fit','Disc','Bulge'],$
   xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
@@ -628,9 +634,9 @@ oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 
 if n_comp eq 1100 then begin
   for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-  oplot,wavelength,(disk_mag/median(bulge_mag+disk_mag)),color=cgcolor('blue');/10000;+60
-  oplot,wavelength,(bulge_mag/median(bulge_mag+disk_mag)),color=cgcolor('red');/10000;+90
-  oplot,wavelength,((bulge_mag+disk_mag)/median(bulge_mag+disk_mag)),color=cgcolor('purple');/10000;+90
+  oplot,wavelength,(disk_mag/median(bulge_mag+disk_mag+resid_1D+resid_sky_1D)),color=cgcolor('blue');/10000;+60
+  oplot,wavelength,(bulge_mag/median(bulge_mag+disk_mag+resid_1D+resid_sky_1D)),color=cgcolor('red');/10000;+90
+  oplot,wavelength,((bulge_mag+disk_mag)/median(bulge_mag+disk_mag+resid_1D+resid_sky_1D)),color=cgcolor('purple');/10000;+90
 endif
   
 if n_comp eq 1010 then begin
@@ -659,16 +665,19 @@ if n_comp eq 1111 then begin
   oplot,wavelength,((bulge_mag+disk_mag+comp3_mag+comp4_mag)/median(bulge_mag+disk_mag+comp3_mag+comp4_mag)),color=cgcolor('purple');/10000;+90
 endif
 
-oplot,wavelength,(resid_1D/median(orig_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
-oplot,wavelength,(resid_sky_1D/median(orig_1D)),color=cgcolor('dark grey');/10000,color=cgcolor('green')
+oplot,wavelength,(resid_1D/median(bulge_mag+disk_mag+resid_1D+resid_sky_1D)),color=cgcolor('olive');/10000,color=cgcolor('green')
+oplot,wavelength,(resid_sky_1D/median(bulge_mag+disk_mag+resid_1D+resid_sky_1D)),color=cgcolor('dark grey');/10000,color=cgcolor('green')
 
 
 if n_comp eq 1000 or n_comp eq 1001 then al_legend,['Integrated spectrum from datacube','Comp1','Comp1','Sky','Residuals'],linestyle=[0,0,0,0,0],$
   colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
   
-if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Comp1 + Comp2','Comp1','Comp2','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
-  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('red'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+;if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Comp1 + Comp2','Comp1','Comp2','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+;  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('red'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
   
+if n_comp eq 1100 or n_comp eq 1101 then al_legend,['Integrated spectrum from datacube','Galaxy + Halo','Galaxy','Halo','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
+  colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('red'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
+    
 if n_comp eq 1010 or n_comp eq 1011 then al_legend,['Integrated spectrum from datacube','Comp1 + Comp3','Comp1','Comp3','Sky','Residuals'],linestyle=[0,0,0,0,0,0],$
   colors=[cgcolor('black'),cgcolor('purple'),cgcolor('blue'),cgcolor('skyblue'),cgcolor('dark grey'),cgcolor('olive')],charsize=0.9,box=0,/left,/top
   

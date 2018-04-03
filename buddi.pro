@@ -71,7 +71,7 @@ for column=0,x-1,1 do begin
           noise[n]=1
           ;print,column-x_centre,row-y_centre,Signal,noise
     endif
-    if Signal[n] eq 0 then begin
+    if Signal[n] eq 0 or FINITE(Signal[n], /NAN) then begin
       Signal[n]=0.0001
       noise[n]=1
     endif    
@@ -191,7 +191,7 @@ if setup.comp4_type eq 'PSF' then setup.comp4_type='psf'
 if setup.disk_type eq 'sersic' or setup.disk_type eq 'Sersic' then disk_type=0 else disk_type=1
 estimates_disk=[disk_type,setup.disk_mag,setup.disk_re,setup.disk_n,setup.disk_q,setup.disk_pa]
 disk_re_polynomial=setup.disk_re_polynomial
-disk_mag_polynomial=setup.disk_mag_polynomial
+;disk_mag_polynomial=setup.disk_mag_polynomial
 disk_n_polynomial=setup.disk_n_polynomial
 magzpt=setup.magzpt
 
@@ -199,12 +199,12 @@ if n_comp ge 1100 or n_comp eq 1010 or n_comp eq 1011 then begin
   if setup.bulge_type eq 'sersic' or setup.bulge_type eq 'Sersic' then bulge_type=0 else bulge_type=1
   estimates_bulge=[bulge_type,setup.bulge_mag,setup.bulge_re,setup.bulge_n,setup.bulge_q,setup.bulge_pa] 
   bulge_re_polynomial=setup.bulge_re_polynomial
-  bulge_mag_polynomial=setup.bulge_mag_polynomial
+  ;bulge_mag_polynomial=setup.bulge_mag_polynomial
   bulge_n_polynomial=setup.bulge_n_polynomial
 endif else begin 
   estimates_bulge=0
   bulge_re_polynomial=99
-  bulge_mag_polynomial=99
+  ;bulge_mag_polynomial=99
   bulge_n_polynomial=99
 endelse
 
@@ -212,12 +212,12 @@ if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then beg
   if setup.comp3_type eq 'sersic' or setup.comp3_type eq 'Sersic' then comp3_type=0 else comp3_type=1
   estimates_comp3=[comp3_type,setup.comp3_mag,setup.comp3_re,setup.comp3_n,setup.comp3_q,setup.comp3_pa] 
   comp3_re_polynomial=setup.comp3_re_polynomial
-  comp3_mag_polynomial=setup.comp3_mag_polynomial
+  ;comp3_mag_polynomial=setup.comp3_mag_polynomial
   comp3_n_polynomial=setup.comp3_n_polynomial
 endif else begin 
   estimates_comp3=0
   comp3_re_polynomial=99
-  comp3_mag_polynomial=99
+  ;comp3_mag_polynomial=99
   comp3_n_polynomial=99
 endelse
 
@@ -225,12 +225,12 @@ if n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
   if setup.comp4_type eq 'sersic' or setup.comp4_type eq 'Sersic' then comp4_type=0 else comp4_type=1
   estimates_comp4=[comp4_type,setup.comp4_mag,setup.comp4_re,setup.comp4_n,setup.comp4_q,setup.comp4_pa]
   comp4_re_polynomial=setup.comp4_re_polynomial
-  comp4_mag_polynomial=setup.comp4_mag_polynomial
+  ;comp4_mag_polynomial=setup.comp4_mag_polynomial
   comp4_n_polynomial=setup.comp4_n_polynomial
 endif else begin
   estimates_comp4=0
   comp4_re_polynomial=99
-  comp4_mag_polynomial=99
+  ;comp4_mag_polynomial=99
   comp4_n_polynomial=99
 endelse
 
@@ -288,7 +288,10 @@ if setup.bin_data eq 'y' then begin
   
   
   result = FILE_TEST(root+kinematics,/DIRECTORY) 
-  if result eq 0 then spawn,'mkdir '+root+kinematics
+  if result eq 0 then begin
+    spawn,'mkdir '+root+kinematics
+    spawn,'mkdir '+root+kinematics+'best_fit_spectra/'
+  endif
   
   datacube=input_IFU
   
@@ -304,13 +307,20 @@ if setup.bin_data eq 'y' then begin
   ;========================================================
   ; *** Calculate S/N for each element in the array
   cont_array=datacube[*,*,sample]
-  limit=5           ;only include pixels with S/N above this value in the binning
+  limit=1           ;only include pixels with S/N above this value in the binning
   
   ;mask regions covered by backgorund/foreground object
   xy=[-100,-100]
   
+  ;use badpixel mask to ignore stars and other objects
+;  readcol,root+badpix_file,format='f,f',x_bad,y_bad,comment='#',/SILENT
+;  xy=fltarr(2,n_elements(x_bad))
+;  xy[0,*]=x_bad
+;  xy[1,*]=y_bad
+
   S_N_array=S_N_calculator(x,y,cont_array,root,galaxy_ref,x_centre,y_centre,xy,limit)
   
+  ;***have masked out S_N_array line and changed limit for NGC3311_lowSN
   
   ;========================================================
   ; *** Apply voronoi binning to the image
@@ -338,6 +348,7 @@ if setup.bin_data eq 'y' then begin
   astrolib
   forprint, xpix, ypix, binNum, TEXTOUT=root+galaxy_ref+'_voronoi_2d_binning_output.txt', $
       COMMENT='          X"              Y"           BIN_NUM'
+;readcol,root+galaxy_ref+'_voronoi_2d_binning_output.txt',format='f,f,f',xpix, ypix, binNum,skipline=1
   
   ; Print out fits file with binned spectra
   n_bins=max(binNum)+1
@@ -362,10 +373,13 @@ if setup.bin_data eq 'y' then begin
       m=pixels[n]
       x_new=xpix[m]+x_centre
       y_new=ypix[m]+y_centre
-      spec[*]+=datacube[x_new,y_new,*]    ;coadd relevant spectra
+      s=size(datacube[x_new,y_new,*])
+      temp=fltarr(s[3])
+      temp[*]=datacube[x_new,y_new,*]
+      spec=[[spec],[temp]]    ;make an array of 1D spec from each spaxel
     endfor
-  
-    binned_spec[*,bin]=spec[*]
+    for n=0,z-1,1 do binned_spec[n,bin]=median(spec[n,1:*])
+    ;binned_spec[*,bin]=spec[*]
     
   endfor
   close,03
@@ -378,16 +392,20 @@ if setup.bin_data eq 'y' then begin
   sxaddpar,header_IFU,'CRVAL2',n_elements(binned_spec[*,0])
   sxaddpar,header_IFU,'CD2_2',1
   sxaddpar,header_IFU,'CDELT2',1
+  sxaddpar,header_IFU,'CRPIX1',1
+  sxaddpar,header_IFU,'CRPIX2',1
   sxdelpar,header_IFU,'CRVAL3' 
   sxdelpar,header_IFU,'CDELT3' 
   sxdelpar,header_IFU,'CD3_3'
    
   fits_write,root+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU,extname='FLUX'
-  mkhdr,h0,binned_spec
-  sxaddpar,h0,'CRVAL1',sxpar(header_IFU,'CRVAL1')
-  sxaddpar,h0,'CD1_1',sxpar(header_IFU,'CD1_1')
-  sxaddpar,h0,'CDELT1',sxpar(header_IFU,'CDELT1')
-  modfits,root+kinematics+galaxy_ref+'_binned_spectra.fits',0,ho,exten_no=0
+;  mkhdr,h0,binned_spec
+;;  sxaddpar,h0,'CRVAL1',sxpar(header_IFU,'CRVAL3')
+;;  sxaddpar,h0,'CD1_1',sxpar(header_IFU,'CD3_3')
+;;  sxaddpar,h0,'CDELT1',sxpar(header_IFU,'CDELT3')
+;;  sxaddpar,h0,'CRPIX1',1
+;;  sxaddpar,h0,'CRPIX2',1
+;  modfits,root+kinematics+galaxy_ref+'_binned_spectra.fits',0,h0,exten_no=0
 
 endif else begin
   fits_read,root+kinematics+galaxy_ref+'_binned_spectra.fits',binned_spec,header_IFU
@@ -463,7 +481,7 @@ if setup.measure_kinematics eq 'y' then begin
   if end_wavelength-start_wavelength le stellib_wave2-stellib_wave1 then $
       sample = where(wavelength gt alog10(start_wavelength+10) and wavelength lt alog10(end_wavelength-10)) $
       else sample = where(wavelength gt alog10(stellib_wave1+350) and wavelength lt alog10(stellib_wave2-300)) 
-      ;sample = where(wavelength gt alog10(4830) and wavelength lt alog10(6200))
+      sample = where(wavelength gt alog10(4800) and wavelength lt alog10(6200))
 
   galaxy = flux[sample]/median(flux[sample])  ; normalize spectrum to avoid numerical issues
   NAN=where(Finite(galaxy) EQ 0)
@@ -602,8 +620,8 @@ if setup.measure_kinematics eq 'y' then begin
 ;;;;Original verison of code, no gas measurements  
 
     ppxf_v479, stars_templates, galaxy, noise, velScale, start, sol,$
-        GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
-        VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
+        GOODPIXELS=goodPixels, MOMENTS=4, DEGREE=4, $
+        VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit,WEIGHTS=weights;,MDEGREE=6, /PLOT
 
     close,50
     openw,50,output+'_kinematics.txt',/APPEND
@@ -612,6 +630,11 @@ if setup.measure_kinematics eq 'y' then begin
     if run eq 0 then printf,50, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
     printf,50, run,sol[0:5,0], FORMAT='(i5,f10.1,4f10.3,A10)'
     close,50
+
+    openw,91,root+kinematics+'best_fit_spectra/weights_'+string(run,format='(i4.4)')+'.txt';,/APPEND
+    non_zero=where(weights gt 0)
+    for n=0,n_elements(non_zero)-1,1 do printf,91,non_zero[n],weights[non_zero[n]]
+    close,91
 
     set_plot,'ps'
     !p.multi=0
@@ -649,8 +672,7 @@ if setup.measure_kinematics eq 'y' then begin
     sxaddpar,h_spec,'CDELT1',wavelength[1]-wavelength[0]
     sxaddpar,h_spec,'CD1_1',wavelength[1]-wavelength[0]
     fits_write,root+kinematics+'best_fit_spectra/stellar_bin'+string(run,format='(i4.4)')+'.fits',bestfit,h_spec
-
-
+    
 
       
 ;;moments: 2= Vel and sigma only, 4= Vel, sigma, h3 and h4
@@ -1129,11 +1151,11 @@ if setup.correct_kinematics eq 'y' then begin
     vel_correction[l]=long(vel_correction[l])
     
     ;calculate sigma corrections
+    sigma0=14/(2*sqrt(2*alog(2)))/5100*3e5  ;for corrections to 14AA for LIS system
     if sigma_bin[l] le sigma0 then FWHM_dif = SQRT((2.355*sigma0/velScale)^2 - (2.355*sigma_bin[l]/velScale)^2)  $;divide sigma by velScale to get value in pixels
       else FWHM_dif=0.
     sigma_correction[l] = FWHM_dif/2.355;*step ; Sigma difference in pixels 
   endfor
-  
   temparray=fltarr(3,n_elements(xpix_total))
   for m=0,n_elements(xpix_total)-1,1 do begin
     if signal[m]/noise[m] ge 5 then begin   ;identify pixels with known bins
@@ -1297,7 +1319,7 @@ endif
 ;   Take the median value for each pixel in the x and y plane 
 ;   within the wavelength range stipulated above
 
-if decompose eq 'y' or decompose2 eq 'y1' then readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
+;if decompose eq 'y' or decompose2 eq 'y1' then readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
 
 
 
@@ -1305,7 +1327,10 @@ if setup.decompose_median_image eq 'y' then begin
   print,'#################################'
   print,'# Fitting the white-light image #
   print,'#################################'
+  
+  readcol,root+decomp+binned_dir+'info.txt',format='X,F',info,/silent
 
+  
   ;first slice, last slice, number of bins, number of images ber bin, first wavelength, last wavelength
   x=sxpar(header_IFU,'NAXIS1')
   y=sxpar(header_IFU,'NAXIS2')
@@ -1313,22 +1338,22 @@ if setup.decompose_median_image eq 'y' then begin
   sigma_image=fltarr(x,y)
   badpix_image=fltarr(x,y)
 
-  for j=0,x-1,1 do begin
-    for k=0,y-1,1 do begin
-      if corrected_IFU[j,k,100] eq 0 then mean=0 $
-          else RESISTANT_Mean,corrected_IFU[j,k,info[0]+500:info[1]-500], 3, mean,/SILENT
-      median_image[j,k]=mean
-    endfor
-  endfor
-  
-  if sigma_TF eq 'T' then begin
-    fits_read,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
-    sigma_image=sigma_in[*,*,100]
-  endif 
-  if badpix_TF eq 'T' then begin
-    fits_read,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
-    badpix_image=badpix_in[*,*,100]
-  endif
+;  for j=0,x-1,1 do begin
+;    for k=0,y-1,1 do begin
+;      if corrected_IFU[j,k,100] eq 0 then mean=0 $
+;          else RESISTANT_Mean,corrected_IFU[j,k,info[0]+500:info[1]-500], 3, mean,/SILENT
+;      median_image[j,k]=mean
+;    endfor
+;  endfor
+;  
+;  if sigma_TF eq 'T' then begin
+;    fits_read,root+decomp+galaxy_ref+'_smoothed_SIGMA.fits', sigma_in, h_sig
+;    sigma_image=sigma_in[*,*,100]
+;  endif 
+;  if badpix_TF eq 'T' then begin
+;    fits_read,root+decomp+galaxy_ref+'_smoothed_BADPIX.fits', badpix_in, h_bp
+;    badpix_image=badpix_in[*,*,100]
+;  endif
 
   result = FILE_TEST(root+decomp+median_dir, /DIRECTORY) 
   if result eq 0 then file_mkdir,root+decomp+median_dir
@@ -1434,6 +1459,8 @@ if setup.decompose_binned_images eq 'y' then begin
   print,'# Fitting the binned images #
   print,'#############################'
 
+  readcol,root+decomp+binned_dir+'info.txt',format='X,F',info,/silent
+
   output=root+decomp
   
   orig_setup=setup
@@ -1448,7 +1475,7 @@ if setup.decompose_binned_images eq 'y' then begin
   ;update the input file, then read in the new values
   
   for rep=1,99,1 do begin
-    comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
+    ;comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
       
     ;test if a free fit has already been carried out
     result=file_test(root+decomp+binned_dir+'imgblock_free.fits')
@@ -1532,8 +1559,9 @@ if setup.decompose_binned_images eq 'y' then begin
           else if decision eq 'F14' then  setup.disk_q = float(content) $
           else if decision eq 'F15' then  setup.disk_pa = float(content) $
           else if decision eq 'F16' then  setup.disk_re_polynomial = float(content) $
-          else if decision eq 'F17' then  setup.disk_mag_polynomial = float(content) $
-          else if decision eq 'F18' then  setup.disk_n_polynomial = float(content) $
+          else if decision eq 'F17' then  setup.disk_n_polynomial = float(content) $
+          else if decision eq 'F18' then  setup.disk_q_polynomial = float(content) $
+          else if decision eq 'F18' then  setup.disk_pa_polynomial = float(content) $
           ;        if setup.n_comp gt 1 then begin
           else if decision eq 'F20' then  setup.bulge_type = content $
           else if decision eq 'F21' then  setup.bulge_mag = float(content) $
@@ -1542,8 +1570,9 @@ if setup.decompose_binned_images eq 'y' then begin
           else if decision eq 'F24' then  setup.bulge_q = float(content) $
           else if decision eq 'F25' then  setup.bulge_pa = float(content) $
           else if decision eq 'F26' then  setup.bulge_re_polynomial = float(content) $
-          else if decision eq 'F27' then  setup.bulge_mag_polynomial = float(content) $
-          else if decision eq 'F28' then  setup.bulge_n_polynomial = float(content) $
+          else if decision eq 'F27' then  setup.bulge_n_polynomial = float(content) $
+          else if decision eq 'F28' then  setup.bulge_q_polynomial = float(content) $
+          else if decision eq 'F29' then  setup.bulge_pa_polynomial = float(content) $
           ;          if setup.n_comp gt 2 then begin
           else if decision eq 'F30' then  setup.comp3_type = content $
           else if decision eq 'F31' then  setup.comp3_mag = float(content) $
@@ -1552,8 +1581,9 @@ if setup.decompose_binned_images eq 'y' then begin
           else if decision eq 'F34' then  setup.comp3_q = float(content) $
           else if decision eq 'F35' then  setup.comp3_pa = float(content) $
           else if decision eq 'F36' then  setup.comp3_re_polynomial = float(content) $
-          else if decision eq 'F37' then  setup.comp3_mag_polynomial = float(content) $
-          else if decision eq 'F38' then  setup.comp3_n_polynomial = float(content) $
+          else if decision eq 'F37' then  setup.comp3_n_polynomial = float(content) $
+          else if decision eq 'F38' then  setup.comp3_q_polynomial = float(content) $
+          else if decision eq 'F38' then  setup.comp3_pa_polynomial = float(content) $
           else if content eq 'q' then  decision='q' $
           else decision='q'
        endwhile
@@ -1840,7 +1870,7 @@ if setup.decompose_binned_images eq 'y' then begin
       multiplot
       if n_comp ge 1100 and setup.bulge_type eq 'sersic' then begin
         plot,wave_short,n_bulge1,yrange=[0,n_max],xrange=[x1,x2],$
-          /xstyle,/ystyle,psym=sym(1),$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
           ytickinterval=1
          if rep gt 1 then oplot,wave_short,n_bulge,linestyle=0
          multiplot
@@ -1985,12 +2015,12 @@ if setup.add_GCs eq 'y' and keyword_set(GC) then begin
   obj = list[wh]
   new_name = obj+'_GCinput'
   
+  ;Need to repeat the binned fits again, but without letting
+  ;the user modify the values etc. 
   cd,root+decomp+binned_dir,current=current_dir
   spawn,galfitm+' '+obj+'_GCinput'
   cd,current_dir
 endif
-
-
 
 
 
@@ -2005,8 +2035,10 @@ if setup.decompose_image_slices eq 'y' then begin
   print,'# Fitting image slices #
   print,'########################'
 
+  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
+
   output=root+decomp
-  comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
+  ;comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
   if keyword_set(GC) then galfitm_multiband,setup,info,x_centre,$
     y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
     1,/slices,/GC $
@@ -2023,11 +2055,11 @@ if setup.decompose_image_slices eq 'y' then begin
   endif
   
   
-stop
+
   result = FILE_TEST(root+decomp+slices_dir+'galfit.*') 
   if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
   
-  
+
   CD,root+decomp+slices_dir;decomp+median_dir
   
   spawn,'pwd'
@@ -2049,6 +2081,8 @@ if setup.create_subcomps eq 'y' then begin
   print,'# Creating images of each component at each wavelength #
   print,'########################################################'
 
+  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
+
   subcomps,setup,info,wavelength,/MANGA
 
   CD,root+decomp+slices_dir;+'models/';decomp+median_dir
@@ -2067,25 +2101,42 @@ if setup.visualise_results eq 'y' then begin
   print,'# Creating output #
   print,'###################'
 
+  readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
+
   fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  if keyword_set(keep_cubes) then datacube_creator,setup,info,wavelength,$
-    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA,/KEEP_CUBES $
-  else datacube_creator,setup,info,wavelength,$
-    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA 
+;  if keyword_set(keep_cubes) then datacube_creator,setup,info,wavelength,$
+;    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+;    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA,/KEEP_CUBES $
+;  else datacube_creator,setup,info,wavelength,$
+;    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+;    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA 
+
+
+;;run this line if you don't run datacube creator
+  fits_read,root+decomp+decomp_dir+'component1_cube.fits',disk_datacube
+  if n_comp ge 1100 then fits_read,root+decomp+decomp_dir+'component2_cube.fits',bulge_datacube
+  if n_comp ge 1110 then fits_read,root+decomp+decomp_dir+'component3_cube.fits',comp3_datacube
+  if n_comp ge 1111 then fits_read,root+decomp+decomp_dir+'component4_cube.fits',comp4_datacube
+  fits_read,root+decomp+decomp_dir+'residuals_cube.fits',residual_datacube
+  fits_read,root+decomp+decomp_dir+'residual_sky_cube.fits',residual_sky_datacube
+  fits_read,root+decomp+decomp_dir+'original_cube.fits',original_datacube
+  fits_read,root+decomp+decomp_dir+'bestfit_cube.fits',bestfit_datacube
 
   ;fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
+  if keyword_set(GC)  eq 0 then result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
     original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
     residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA
+
+  if keyword_set(GC) then result_visualiser_GC,setup,info,start_wavelength,end_wavelength,wavelength,$
+    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA,/GC
   
  ;  result_visualiser_2,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 
   
   delvarx,datacube
   delvarx,original_datacube,bestfit_datacube,residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,comp3_datacube
-  if keyword_set(~keep_cubes) then spawn,'rm '+root+decomp+decomp_dir+'component1_flux.fits'
+  if keyword_set(keep_cubes) eq 0 then spawn,'rm '+root+decomp+decomp_dir+'component1_flux.fits'
 endif
 
 

@@ -28,17 +28,21 @@ pro galfitm_multiband,setup,info,x,y,scale,$
   stars_file=setup.stars_file
   galfitm=setup.galfitm
   disk_re_polynomial_in=setup.disk_re_polynomial
-  disk_mag_polynomial_in=setup.disk_mag_polynomial
+  disk_q_polynomial_in=setup.disk_q_polynomial
   disk_n_polynomial_in=setup.disk_n_polynomial
+  disk_pa_polynomial_in=setup.disk_pa_polynomial
   bulge_re_polynomial_in=setup.bulge_re_polynomial
-  bulge_mag_polynomial_in=setup.bulge_mag_polynomial
+  bulge_q_polynomial_in=setup.bulge_q_polynomial
   bulge_n_polynomial_in=setup.bulge_n_polynomial
+  bulge_pa_polynomial_in=setup.bulge_pa_polynomial
   comp3_re_polynomial_in=setup.comp3_re_polynomial
-  comp3_mag_polynomial_in=setup.comp3_mag_polynomial
+  comp3_q_polynomial_in=setup.comp3_q_polynomial
   comp3_n_polynomial_in=setup.comp3_n_polynomial
+  comp3_pa_polynomial_in=setup.comp3_pa_polynomial
   comp4_re_polynomial_in=setup.comp4_re_polynomial
-  comp4_mag_polynomial_in=setup.comp4_mag_polynomial
+  comp4_q_polynomial_in=setup.comp4_q_polynomial
   comp4_n_polynomial_in=setup.comp4_n_polynomial
+  comp4_pa_polynomial_in=setup.comp4_pa_polynomial
 
 
 
@@ -95,20 +99,31 @@ if keyword_set(binned) then begin
   else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
   else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=0) 
 
-  if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1 else disk_mag_polynomial=disk_mag_polynomial_in
-  if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
-  if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
+  ;if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1 else disk_mag_polynomial=disk_mag_polynomial_in
+  disk_mag_polynomial=x1
+  bulge_mag_polynomial=x1
+  comp3_mag_polynomial=x1
+  ;if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
+  ;if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
 
   if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1 else disk_re_polynomial=disk_re_polynomial_in
   if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in
   if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1 else bulge_re_polynomial=bulge_re_polynomial_in
   if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1 else bulge_n_polynomial=bulge_n_polynomial_in
+  if bulge_q_polynomial_in lt 0 then bulge_q_polynomial=x1 else bulge_q_polynomial=bulge_q_polynomial_in
+  if disk_q_polynomial_in lt 0 then disk_q_polynomial=x1 else disk_q_polynomial=disk_q_polynomial_in
+  if bulge_pa_polynomial_in lt 0 then bulge_pa_polynomial=x1 else bulge_pa_polynomial=bulge_pa_polynomial_in
+  if disk_pa_polynomial_in lt 0 then disk_pa_polynomial=x1 else disk_pa_polynomial=disk_pa_polynomial_in
   
   if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=comp3_Re_polynomial_in
   if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
+  if comp3_q_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_q_polynomial=x1 else comp3_q_polynomial=comp3_q_polynomial_in
+  if comp3_pa_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_pa_polynomial=x1 else comp3_pa_polynomial=comp3_pa_polynomial_in
 
   if comp4_re_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_re_polynomial=x1 else comp4_re_polynomial=comp4_Re_polynomial_in
   if comp4_n_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_n_polynomial=x1 else comp4_n_polynomial=comp4_n_polynomial_in
+  if comp4_q_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_q_polynomial=x1 else comp4_q_polynomial=comp4_q_polynomial_in
+  if comp4_pa_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_pa_polynomial=x1 else comp4_pa_polynomial=comp4_pa_polynomial_in
   
 
   
@@ -590,14 +605,14 @@ if keyword_set(binned) then begin
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+x_D+'   1 band  #  position x, y'
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
-      printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
+      printf, 60, ' 3) '+mag_D+'        '+string(no_bins,format='(I2)')+' band  #  Integrated magnitude' 
       printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
       printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+Q_D+'        1 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+PA_D+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 9) '+Q_D+'        '+string(disk_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+PA_D+'   '+string(disk_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
-     print,disk_n_polynomial
+     print,disk_q_polynomial
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
@@ -608,11 +623,11 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+bulge_type+'                 #  object type'
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
-        printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
+        printf, 60, ' 3) '+mag_B+'        '+string(no_bins,format='(I2)')+' band  #  Integrated magnitude' 
         printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
         printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+q_B+'        1 band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+pa_B+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+        printf, 60, ' 9) '+q_B+'        '+string(disk_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+        printf, 60, '10) '+pa_B+'   '+string(disk_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         ;printf, 60, 'C0) 1.2         1      # traditional diskyness(-)/boxyness(+)'
     
@@ -627,12 +642,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins)+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp3+'   '+string(comp3_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp3+'    '+string(comp3_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        1 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 9) '+q_comp3+'        '+string(comp3_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'   '+string(comp3_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -645,12 +660,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2)+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins)+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp4+'        1 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp4+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 4) '+Re_comp4+'   '+string(comp4_Re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp4+'             '+string(comp4_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp4+'        '+string(comp4_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp4+'   '+string(comp4_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -674,9 +689,9 @@ if keyword_set(binned) then begin
           
           printf, 60, ' # Object number:  '+string(j)
           printf, 60, ' 0) psf                 #  object type'
-          printf, 60, ' 1) '+x_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position x'
-          printf, 60, ' 2) '+y_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  position y'
-          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude'
+          printf, 60, ' 1) '+x_pos+'   '+string(no_bins,format='(I2)')+' band  #  position x'
+          printf, 60, ' 2) '+y_pos+'   '+string(no_bins,format='(I2)')+' band  #  position y'
+          printf, 60, ' 3) '+mag_pos+'   '+string(no_bins,format='(I2)')+' band  #  Integrated magnitude'
           printf, 60, ' '
           printf, 60, ' '
           printf, 60, ' '
@@ -757,14 +772,14 @@ if keyword_set(binned) then begin
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+x_D+'   1 band  #  position x, y'
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
-      printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
+      printf, 60, ' 3) '+mag_D+'        '+string(no_bins,format='(I3)')+' band  #  Integrated magnitude' 
   ;   k_n_polynomial=0
-      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins
+      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins
       printf, 60, ' 4) '+Re_D+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
       printf, 60, ' 5) '+n_D+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+Q_D+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+PA_D+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 9) '+Q_D+'        '+string(no_bins,format='(I3)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+PA_D+'   '+string(no_bins,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
      
@@ -778,13 +793,13 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+bulge_type+'                 #  object type'
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
-        printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
-        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+        printf, 60, ' 3) '+mag_B+'        '+string(no_bins,format='(I3)')+' band  #  Integrated magnitude' 
+        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins
+        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins
         printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
         printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+        printf, 60, ' 9) '+q_B+'        '+string(no_bins,format='(I3)')+' band  #  axis ratio (b/a)  '
+        printf, 60, '10) '+pa_B+'   '+string(no_bins,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         ;printf, 60, 'C0) 1.2         '+string(no_bins,format='(I3.3)')+'      # traditional diskyness(-)/boxyness(+)'
       ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
@@ -798,14 +813,14 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp3_type+'                # object type'
         printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins,format='(I3)')+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
+          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins
+          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins
           printf, 60, ' 4) '+Re_comp3+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp3+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'   '+string(no_bins,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -817,12 +832,14 @@ if keyword_set(binned) then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins,format='(I3)')+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp4+'        1 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp4+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          if comp4_n_polynomial eq 0 then xx=0 else xx=no_bins
+          if comp4_Re_polynomial eq 0 then yy=0 else yy=no_bins
+          printf, 60, ' 4) '+Re_comp4+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp4+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp4+'        '+string(no_bins,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp4+'   '+string(no_bins,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -873,7 +890,8 @@ if keyword_set(slices) then begin
 ;recreate the new feedme files using those results, including 
 ;number of components
 
-;identify the result form binned images. In case of no GCs, need
+
+;identify the result fromm binned images. In case of no GCs, need
 ;to identify the final output file when several fits are tried
 if keyword_set(GC) then begin
     files=file_search(root+decomp+binned_dir+'imgblock_GC.galfit.*.band')   ;look for .band in case there are GC files with an addition
@@ -920,21 +938,19 @@ endfor
 
 for loop=0,no_loops,1 do begin
   x0=first_image+(loop*no_images)
-  image_array=first_image
-  for nn=0,no_images-1,1 do image_array=[image_array,x0+nn]
-  image_array=[image_array,final_image]
+  image_array=x0
+  for nn=1,no_images-1,1 do image_array=[image_array,x0+nn]
   
   ;need to take into account unusual number of images in final section
-  wave_array=wavelength_slices[0]
+  
+  wave_array=wavelength_slices[loop*no_images]
   if loop eq no_loops then no_images=total_images mod no_loops
-  for nn=0,no_images-1,1 do wave_array=[wave_array,wavelength_slices[loop*no_images+nn]]
-  wave_array=[wave_array,wavelength_slices[-1]]
+  for nn=1,no_images-1,1 do wave_array=[wave_array,wavelength_slices[loop*no_images+nn]]
   
   openw,filew_feedme,output+slices_dir+'galfitm_'+string(loop,format='(I4.4)')+'.feedme',/get_lun
   
   sky_yn='n'  ;parameter to mark the sky fit, since parameter 3 is not magnitude for that fit
   
-  ;if keyword_set(GC) then openr, filer_loop, root+decomp+binned_dir+'imgblock_GC.galfit.01', /get_lun $
   if keyword_set(GC) then begin
     files=file_search(root+decomp+binned_dir+'imgblock_GC.galfit.*.band')   ;look for .band in case there are GC files with an addition
     extractedStr = STRMID(files[-1],0, strlen(files[-1])-5)  ;extract .band
@@ -983,35 +999,37 @@ for loop=0,no_loops,1 do begin
       
       if start eq 'A)' then begin
         content_new='image_'+string(image_array[0],format='(I4.4)')+'.fits'
-        for nn=1,no_images+1,1 do content_new=content_new+',image_'+string(image_array[nn],format='(I4.4)')+'.fits'
+        for nn=1,no_images-1,1 do content_new=content_new+',image_'+string(image_array[nn],format='(I4.4)')+'.fits'
       endif
       if start eq 'A1)' then begin
         content_new=string(0,format='(I3.3)')
-        for nn=1,no_images+1,1 do content_new=content_new+','+string(nn,format='(I3.3)')
+        for nn=1,no_images-1,1 do content_new=content_new+','+string(nn,format='(I3.3)')
       endif
       if start eq 'A2)' then begin
+        input_wavelengths=float(content_elements)
         content_new=string(wave_array[0],format='(f08.2)')
-        for nn=1,no_images+1,1 do begin
+        for nn=1,no_images-1,1 do begin
           if wave_array[nn] lt 10000 then content_new=content_new+','+string(wave_array[nn],format='(f07.2)') $
             else content_new=content_new+','+string(wave_array[nn],format='(f08.2)')
         endfor
       endif
       if start eq 'C)' then begin
         content_new='sigma/sigma_'+string(image_array[0],format='(I4.4)')+'.fits'
-        for nn=1,no_images+1,1 do content_new=content_new+',sigma/sigma_'+string(image_array[nn],format='(I4.4)')+'.fits'
+        for nn=1,no_images-1,1 do content_new=content_new+',sigma/sigma_'+string(image_array[nn],format='(I4.4)')+'.fits'
       endif
       if start eq 'D)' then begin
         content_new='PSF/'+string(image_array[0],format='(I4.4)')+'.fits'
-        for nn=1,no_images+1,1 do content_new=content_new+',PSF/'+string(image_array[nn],format='(I4.4)')+'.fits'
+        for nn=1,no_images-1,1 do content_new=content_new+',PSF/'+string(image_array[nn],format='(I4.4)')+'.fits'
       endif
       if start eq 'F)' then begin
-        content_new='badpix/badpix_end.fits'
-        for nn=1,no_images,1 do content_new=content_new+',badpix/badpix_'+string(image_array[nn],format='(I4.4)')+'.fits'
-        content_new=content_new+',badpix/badpix_end.fits'
+;        content_new='badpix.fits'
+;        for nn=1,no_images-1,1 do content_new=content_new+',badpix.fits'
+        content_new='badpix/badpix_'+string(image_array[0],format='(I4.4)')+'.fits'
+        for nn=1,no_images-1,1 do content_new=content_new+',badpix/badpix_'+string(image_array[nn],format='(I4.4)')+'.fits'
       endif
       if start eq 'J)' then begin
         content_new=string(magzpt_in,format='(F05.2)')
-        for nn=1,no_images+1,1 do content_new=content_new+','+string(magzpt_in,format='(F05.2)')
+        for nn=1,no_images-1,1 do content_new=content_new+','+string(magzpt_in,format='(F05.2)')
       endif
       if start eq 'W)' then begin
         content_new='blank,input,model,residual'
@@ -1029,46 +1047,80 @@ for loop=0,no_loops,1 do begin
     
     ; if line is mwl parameter line
     IF strpos(content,',') NE -1 AND strpos(content,'cheb') NE -1  THEN BEGIN
+      
               ;print, '***'
       content_numbers = strtrim(strmid(content,0,strpos(content,' ')),2)
       content_elements = strsplit(content_numbers,',',/extract)
       content_desc = strtrim(strmid(content,strpos(content,' ')),2)
       content_desc_fit = strtrim(fix(strmid(content_desc,0, strpos(content_desc,' ')))<1,2)
       
-      diff=setup.no_slices - setup.no_bins + 2
-      content_new=content_numbers
-      for n_diff=1,diff,1 do content_new=content_new+',0'
+      elements=float(content_elements)
+
+      values=chebeval(wave_array,elements,INTERVAL=[input_wavelengths[0],input_wavelengths[-1]])
+;      content_new=string(values[0],format='(f08.3)')
+;      for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f08.2)')
+
       
       ;ensure magnitude values are all the same
-      band='n'
-      if sky_yn eq 'n' and start eq '3)' then begin
-        poly_val=setup.no_slices 
-        content_new=string(content_elements[0],format='(f5.2)')
-        for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(f5.2)')
-        band='y'
-      endif  else poly_val=0
-        
-      if sky_yn eq 'y' and start eq '1)' then begin
-        poly_val=setup.no_slices
-        band='y'
-        
-        if content_elements[0] lt 0.01 or content_elements[0] gt 999.9 then begin
-          content_new=string(content_elements[0],format='(e011.2)')
-          for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(e011.2)')
-        endif else begin
-          content_new=string(content_elements[0],format='(f5.2)')
-          for nn=1,no_images+1,1 do content_new=content_new+','+string(content_elements[0],format='(f5.2)')
-        endelse
-        
-      endif
+      if sky_yn eq 'n' then begin
+        if start eq '3)' then begin
+          
+          poly_val=setup.no_slices 
+          median_val=median(values)
+          content_new=string(median_val,format='(f5.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(median_val,format='(f5.2)')
+        endif
+        if start eq '1)' or start eq '2)' then begin
+          poly_val=0
+          content_new=string(values[0],format='(f07.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f07.2)')
+        endif
+        if start eq '4)' then begin
+          if setup.bulge_re_polynomial lt 0 or setup.disk_re_polynomial lt 0 then poly_val=setup.no_slices else poly_val=0
+          content_new=string(values[0],format='(f06.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f06.2)')
+        endif
+        if start eq '5)' then begin
+          if setup.bulge_n_polynomial lt 0 or setup.disk_n_polynomial lt 0 then poly_val=setup.no_slices else poly_val=0
+          content_new=string(values[0],format='(f04.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f04.2)')
+        endif
+        if start eq '6)' or start eq '7)' or start eq '8)' then begin
+          content_new=string(values[0],format='(f03.1)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f03.1)')
+        endif
+        if start eq '9)' then begin
+          poly_val=0
+          content_new=string(values[0],format='(f04.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f04.2)')
+        endif
+        if start eq '10)' then begin
+          poly_val=0
+          content_new=string(values[0],format='(f06.2)')
+          for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f06.2)')
+        endif
+
+      endif  else begin
+        if start eq '1)' then begin
+          poly_val=setup.no_slices
+          median_val=median(values)
+          if median_val lt 0.01 or median_val gt 999.9 then begin
+            content_new=string(median_val,format='(e011.2)')
+            for nn=1,no_images-1,1 do content_new=content_new+','+string(median_val,format='(e011.2)')
+          endif else begin
+            content_new=string(median_val,format='(f5.2)')
+            for nn=1,no_images-1,1 do content_new=content_new+','+string(median_val,format='(f5.2)')
+          endelse
+        endif else if start eq '2)' or start eq '3)' then begin
+            poly_val=0
+            content_new=string(values[0],format='(f03.1)')
+            for nn=1,no_images-1,1 do content_new=content_new+','+string(values[nn],format='(f03.1)')
+          endif
+          if start eq '3)' then sky_yn='n'
+      endelse
       
-      if sky_yn eq 'y' and start eq '3)' then begin
-        poly_val=0
-        sky_yn='n'  ;reset to avoid problems with other fits
-      endif
       
-      if band eq 'y' then printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' band      '+comment  $
-        else printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' cheb      '+comment
+      printf, filew_feedme, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' band      '+comment  
       
 
       ;print, start+' '+content_new+'     '+string(poly_val,format='(I2)')+' cheb      '+comment
