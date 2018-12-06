@@ -60,7 +60,7 @@ if keyword_set(median) then begin
   printf,60,'#==============================================================================='
   printf,60,'# IMAGE and GALFIT CONTROL PARAMETERS';+$
   printf, 60, 'A) image.fits             # Input data image (FITS file)'
-  printf, 60, 'A1) MaNGA             # Band labels (can be omitted if fitting a single band)'
+  printf, 60, 'A1) Image             # Band labels (can be omitted if fitting a single band)'
   printf, 60, 'A2) '+string(0.5*(start_wavelength+end_wavelength))+'             # Band wavelengths'
   printf, 60, 'B) imgblock_'+s_d+'.fits       # Output data image block
   printf, 60, 'C) sigma.fits                # Sigma image name (made from data if blank or "none") 
@@ -169,7 +169,9 @@ if keyword_set(median) then begin
       printf, 60, ' 9) '+string(estimates_bulge[4])+'   1 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+string(estimates_bulge[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
-      printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
+      if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then printf, 60, 'C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'  $
+      else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then printf, 60, 'C0) -0.1         1      # traditional diskyness(-)/boxyness(+)'  $
+      else printf, 60, '#C0) 0.0         0      # traditional diskyness(-)/boxyness(+)'
   
       printf, 60, ' '
       printf, 60, ' '

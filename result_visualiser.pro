@@ -2,7 +2,7 @@
  
 pro result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
   original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-  residual_sky_datacube,bulge_datacube,comp3_datacube,MANGA=manga,CALIFA=califa
+  residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,MANGA=manga,CALIFA=califa
   
   root=setup.root
   decomp=setup.decomp
@@ -181,7 +181,7 @@ nband=nbands
       bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
       bulge_mag[a:b]=res.mag_galfit_band_b[0:nbands-1]
     endif
-    if n_comp eq 1010 or n_comp eq 1110 then begin
+    if n_comp eq 1010 or n_comp eq 1110 or n_comp eq 1111 then begin
       comp3_mag[a:b]=res.mag_galfit_band_comp3[0:nbands-1]
     endif
     if n_comp eq 1111 then begin
@@ -347,19 +347,19 @@ disk_mag_in=disk_mag
 for n=0,zz-1,1 do disk_mag[n]=10^((disk_mag_in[n]-8.9)/(-2.5))
 
 if n_comp ge 1100 then bulge_mag=10^((bulge_mag-8.9)/(-2.5))
-if n_comp eq 1110 or n_comp eq 1010 then comp3_mag=10^((comp3_mag-8.9)/(-2.5))
-if n_comp eq 11101 then comp4_mag=10^((comp4_mag-8.9)/(-2.5))
+if n_comp eq 1110 or n_comp eq 1010 or n_comp eq 1111 then comp3_mag=10^((comp3_mag-8.9)/(-2.5))
+if n_comp eq 1111 then comp4_mag=10^((comp4_mag-8.9)/(-2.5))
 
-for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
-if n_comp ge 1100 then begin
-  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-endif
-if n_comp eq 1110 or n_comp eq 1010 then begin
-  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
-endif
-if n_comp eq 1111 then begin
-  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
-endif
+;for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+;if n_comp ge 1100 then begin
+;  for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
+;endif
+;if n_comp eq 1110 or n_comp eq 1010 or n_comp eq 1111 then begin
+;  for j=9,n_elements(disk_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+;endif
+;if n_comp eq 1111 then begin
+;  for j=9,n_elements(disk_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
+;endif
   
 
 
@@ -425,7 +425,7 @@ step=sxpar(h0,'CD3_3')
 
 
 
-  if n_comp eq 1110 or n_comp eq 1010 then begin
+  if n_comp eq 1110 or n_comp eq 1010 or n_comp eq 1111 then begin
     for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component3_flux.fits',comp3_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',comp3_1D,h0;extname='FLUX'
@@ -609,7 +609,7 @@ device,/close
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+decomp_dir+'Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'Spectra_integrated.eps';,/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0

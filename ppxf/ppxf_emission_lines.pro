@@ -14,9 +14,9 @@ function ppxf_emission_lines, logLam_temp, FWHM_gal, $
 ; One can fix the intensity ratio of different lines (e.g. the [OIII] doublet)
 ; by placing them in the same emission template
 ;
-;        -----[OII]-----        Hdelta   Hgamma   Hbeta   -----[OIII]-----  [NI]    [OI]    -----[NII]-----   Halpha   -----[SII]-----
-line_wave = [3726.03, 3728.82, 4101.76, 4340.47, 4861.33, 4958.92, 5006.84, 5199., 6300.30, 6548.03, 6583.41, 6562.80, 6716.47, 6730.85]
-line_names = ["[OII]", "[OII]", "Hdelta", "Hgamma", "Hbeta", "[OIII]", "[OIII]", "[NI]", "[OI]", "[NII]", "[NII]", "Halpha", "[SII]", "[SII]"]
+;        -----[OII]-----     HeI   SII  Hdelta   Hgamma   Hbeta   -----[OIII]-----  [NI]    [OI]    -----[NII]-----   Halpha   -----[SII]-----
+line_wave = [3726.03, 3728.82, 3868.7, 4101.76, 4340.47, 4861.33, 4958.92, 5006.84, 5199., 6300.30, 6548.03, 6583.41, 6562.80, 6716.47, 6730.85]
+line_names = ["[OII]", "[OII]",  "[NeIII]",  "Hdelta", "Hgamma", "Hbeta", "[OIII]", "[OIII]", "[NI]", "[OI]", "[NII]", "[NII]", "Halpha", "[SII]", "[SII]"]
 lam = exp(logLam_temp)
 sample=where((line_wave gt min(lam)) and (line_wave lt max(lam)))
 line_wave = line_wave[sample]

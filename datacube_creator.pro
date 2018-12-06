@@ -3,7 +3,7 @@
 
 pro datacube_creator,setup,info,wavelength,original_datacube,bestfit_datacube,$
   residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,$
-  comp3_datacube,MANGA=manga,CALIFA=califa,KEEP_CUBES=keep_cubes
+  comp3_datacube,comp4_datacube,MANGA=manga,CALIFA=califa,KEEP_CUBES=keep_cubes
 
 
   root=setup.root

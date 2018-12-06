@@ -41,12 +41,14 @@ IF file_test(obj[0]) THEN BEGIN
                                  'n_galfit_band_comp4', result.COMP3_N, 'nerr_galfit_band_comp4' ,result.COMP3_N_ERR, $
                                  'q_galfit_band_comp4', result.COMP3_AR, 'qerr_galfit_band_comp4', result.COMP3_AR_ERR, $
                                  'pa_galfit_band_comp4', result.COMP3_PA, 'paerr_galfit_band_comp4', result.COMP3_PA_ERR, $
+                                 'boxy_galfit_band_comp3', result.COMP3_CO, 'boxyerr_galfit_band_comp3', result.COMP3_CO_ERR, $
                                  'x_galfit_cheb_comp4', res_cheb.COMP3_XC, 'xerr_galfit_cheb_comp4',res_cheb.COMP3_XC_ERR, $
                                  'y_galfit_cheb_comp4', res_cheb.COMP3_YC, 'yerr_galfit_cheb_comp4',res_cheb.COMP3_YC_ERR, $
                                  're_galfit_cheb_comp4', res_cheb.COMP3_RE, 'reerr_galfit_cheb_comp4', res_cheb.COMP3_RE_ERR, $
                                  'n_galfit_cheb_comp4', res_cheb.COMP3_N, 'nerr_galfit_cheb_comp4' ,res_cheb.COMP3_N_ERR, $
                                  'q_galfit_cheb_comp4', res_cheb.COMP3_AR, 'qerr_galfit_cheb_comp4', res_cheb.COMP3_AR_ERR, $
                                  'pa_galfit_cheb_comp4', res_cheb.COMP3_PA, 'paerr_galfit_cheb_comp4', res_cheb.COMP3_PA_ERR, $
+                                 'boxy_galfit_cheb_comp3', res_cheb.COMP3_CO, 'boxyerr_galfit_cheb_comp3', res_cheb.COMP3_CO_ERR, $
                                  'mag_galfit_cheb_comp4', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_comp4',res_cheb.COMP3_MAG_ERR, $
                                  'sky_galfit_cheb', res_cheb.COMP1_SKY, $
                                  'initfile', strtrim(fit_info.initfile,2), $
@@ -99,6 +101,7 @@ IF file_test(obj[0]) THEN BEGIN
                                  'n_galfit_band_b', result.COMP3_N, 'nerr_galfit_band_b' ,result.COMP3_N_ERR, $
                                  'q_galfit_band_b', result.COMP3_AR, 'qerr_galfit_band_b', result.COMP3_AR_ERR, $
                                  'pa_galfit_band_b', result.COMP3_PA, 'paerr_galfit_band_b', result.COMP3_PA_ERR, $
+                                 'boxy_galfit_band_b', result.COMP3_CO, 'boxyerr_galfit_band_b', result.COMP3_CO_ERR, $
                                  'x_galfit_band_b', result.COMP3_XC, 'xerr_galfit_band_b', result.COMP3_XC_ERR, $
                                  'y_galfit_band_b', result.COMP3_YC, 'yerr_galfit_band_b', result.COMP3_YC_ERR, $
                                  'sky_galfit_band', result.COMP1_SKY, $
@@ -122,6 +125,7 @@ IF file_test(obj[0]) THEN BEGIN
                                  'n_galfit_cheb_b', res_cheb.COMP3_N, 'nerr_galfit_cheb_b' ,res_cheb.COMP3_N_ERR, $
                                  'q_galfit_cheb_b', res_cheb.COMP3_AR, 'qerr_galfit_cheb_b', res_cheb.COMP3_AR_ERR, $
                                  'pa_galfit_cheb_b', res_cheb.COMP3_PA, 'paerr_galfit_cheb_b', res_cheb.COMP3_PA_ERR, $
+                                 'boxy_galfit_cheb_b', res_cheb.COMP3_CO, 'boxyerr_galfit_cheb_b', res_cheb.COMP3_CO_ERR, $
                                  'x_galfit_cheb_b', res_cheb.COMP3_XC, 'xerr_galfit_cheb_b', res_cheb.COMP3_XC_ERR, $
                                  'y_galfit_cheb_b', res_cheb.COMP3_YC, 'yerr_galfit_cheb_b', res_cheb.COMP3_YC_ERR, $
                                  'x_galfit_cheb_comp4', res_cheb.COMP4_XC, 'xerr_galfit_cheb_comp4',res_cheb.COMP4_XC_ERR, $

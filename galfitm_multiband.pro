@@ -28,17 +28,21 @@ pro galfitm_multiband,setup,info,x,y,scale,$
   stars_file=setup.stars_file
   galfitm=setup.galfitm
   disk_re_polynomial_in=setup.disk_re_polynomial
-  disk_mag_polynomial_in=setup.disk_mag_polynomial
+  disk_q_polynomial_in=setup.disk_q_polynomial
   disk_n_polynomial_in=setup.disk_n_polynomial
+  disk_pa_polynomial_in=setup.disk_pa_polynomial
   bulge_re_polynomial_in=setup.bulge_re_polynomial
-  bulge_mag_polynomial_in=setup.bulge_mag_polynomial
+  bulge_q_polynomial_in=setup.bulge_q_polynomial
   bulge_n_polynomial_in=setup.bulge_n_polynomial
+  bulge_pa_polynomial_in=setup.bulge_pa_polynomial
   comp3_re_polynomial_in=setup.comp3_re_polynomial
-  comp3_mag_polynomial_in=setup.comp3_mag_polynomial
+  comp3_q_polynomial_in=setup.comp3_q_polynomial
   comp3_n_polynomial_in=setup.comp3_n_polynomial
+  comp3_pa_polynomial_in=setup.comp3_pa_polynomial
   comp4_re_polynomial_in=setup.comp4_re_polynomial
-  comp4_mag_polynomial_in=setup.comp4_mag_polynomial
+  comp4_q_polynomial_in=setup.comp4_q_polynomial
   comp4_n_polynomial_in=setup.comp4_n_polynomial
+  comp4_pa_polynomial_in=setup.comp4_pa_polynomial
 
 
 
@@ -75,29 +79,32 @@ if keyword_set(binned) then begin
     else if median_dir ne binned_dir and n_comp eq 1000 then imgblock='imgblock_single' $
     else imgblock='imgblock_double'
   
-  if n_comp eq 1000 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=1) $
+  boxy_yn=setup.boxy_disky
+  if boxy_yn eq 'b' or boxy_yn eq 'B' or boxy_yn eq 'd' or boxy_yn eq 'D' then boxy_yn=1 else boxy_yn=0
+  
+  if n_comp eq 1000 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=1) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=0) 
+  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) 
 
-  if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1 else disk_mag_polynomial=disk_mag_polynomial_in
-  if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
-  if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
+;  if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1 else disk_mag_polynomial=disk_mag_polynomial_in
+;  if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1 else bulge_mag_polynomial=bulge_mag_polynomial_in
+;  if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
 
   if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1 else disk_re_polynomial=disk_re_polynomial_in
   if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in
@@ -166,6 +173,9 @@ if keyword_set(binned) then begin
         n_B=string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F06.2)')
         q_B=string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
         pa_B=string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+        if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')  $
+        else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)') 
+
       endif
       
       
@@ -233,6 +243,8 @@ if keyword_set(binned) then begin
           n_B+=','+string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F05.2)')
           q_B+=','+string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
           pa_B+=','+string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+          if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')  $
+          else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')
         endif
         
         ;insert parameters for 3rd galaxy component
@@ -297,6 +309,8 @@ if keyword_set(binned) then begin
         n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
         q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
         pa_B=string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+        if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
+        else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
       endif
       
       
@@ -366,6 +380,8 @@ if keyword_set(binned) then begin
           n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
           q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
           pa_B+=','+string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+          if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
+          else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
         endif
         
         ;insert parameters for 3rd galaxy component
@@ -426,6 +442,8 @@ if keyword_set(binned) then begin
           n_B=string(estimates_bulge[3],format='(F06.2)')
           q_B=string(estimates_bulge[4],format='(F04.2)')
           pa_B=string(estimates_bulge[5],format='(F06.2)')
+          if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
+          else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
       endif
       
        if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
@@ -489,6 +507,8 @@ if keyword_set(binned) then begin
             n_B+=','+string(estimates_bulge[3],format='(F05.2)')
             q_B+=','+string(estimates_bulge[4],format='(F04.2)')
             pa_B+=','+string(estimates_bulge[5],format='(F06.2)')
+            if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
+            else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
         endif 
         if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
           x_comp3+=','+string(x,format='(F07.2)')
@@ -614,6 +634,8 @@ if keyword_set(binned) then begin
         printf, 60, ' 9) '+q_B+'        1 band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
+        if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
+          printf, 60, 'C0) '+boxy+'         1      # traditional diskyness(-)/boxyness(+)'
         ;printf, 60, 'C0) 1.2         1      # traditional diskyness(-)/boxyness(+)'
     
         printf, 60, ' '
@@ -786,6 +808,8 @@ if keyword_set(binned) then begin
         printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
         printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
+        if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
+          printf, 60, 'C0) '+boxy+'         1      # traditional diskyness(-)/boxyness(+)'
         ;printf, 60, 'C0) 1.2         '+string(no_bins,format='(I3.3)')+'      # traditional diskyness(-)/boxyness(+)'
       ;  printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
         printf, 60, ' '
@@ -871,25 +895,28 @@ endif
 if keyword_set(slices) then begin
   nband=no_bins
 ;  res=read_sersic_results(output+binned_dir+'imgblock.fits', nband, bd=1)
-  if n_comp eq 1000 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+binned_dir+'imgblock.fits', nband, bd=1) $
+  boxy_yn=setup.boxy_disky
+  if boxy_yn eq 'b' or boxy_yn eq 'B' or boxy_yn eq 'd' or boxy_yn eq 'D' then boxy_yn=1 else boxy_yn=0
+
+  if n_comp eq 1000 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+binned_dir+'imgblock.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+binned_dir+'imgblock.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+binned_dir+'imgblock.fits', nband, bd=1) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+binned_dir+'imgblock.fits', nband, bd=0) $
-  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+binned_dir+'imgblock.fits', nband, bd=0) 
+  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) 
   
 ;  test= file_search(output+slices_dir+'imgblock*',COUNT=nfiles1)
 ;  if nfiles1 gt 0 then spawn, 'rm '+output+slices_dir+'imgblock_*'
@@ -952,8 +979,9 @@ if keyword_set(slices) then begin
   mag_d_temp[0]=mag_d_temp[1]
   mag_d_temp[n_elements(mag_d_temp)-1]=mag_d_temp[n_elements(mag_d_temp)-2]
   
-  if disk_mag_polynomial_in le no_images/2 and disk_mag_polynomial_in ge 0 then mag_disk_all=chebeval(wavelength_slices,res.MAG_GALFIT_CHEB_D,INTERVAL=[wave1,wave2]) $
-    else mag_disk_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_d_temp)
+;  if disk_mag_polynomial_in le no_images/2 and disk_mag_polynomial_in ge 0 then mag_disk_all=chebeval(wavelength_slices,res.MAG_GALFIT_CHEB_D,INTERVAL=[wave1,wave2]) $
+;    else mag_disk_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_d_temp)
+  mag_disk_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_d_temp)
   if disk_re_polynomial_in le no_images/2 and disk_re_polynomial_in ge 0 then Re_disk_all=chebeval(wavelength_slices,res.RE_GALFIT_CHEB_D,INTERVAL=[wave1,wave2]) $
     else Re_disk_all=linear_interpolate(wavelength_slices,wavelength_binned,res.RE_GALFIT_BAND_D)
   ;n_disk_all=cheb_interpolate(res.X_GALFIT_CHEB_D,wavelength_binned,wavelength_slices,0)
@@ -973,13 +1001,17 @@ if keyword_set(slices) then begin
     mag_b_temp[0]=mag_b_temp[1]
     mag_b_temp[n_elements(mag_b_temp)-1]=mag_b_temp[n_elements(mag_b_temp)-2]
 
-    if bulge_mag_polynomial_in le no_images/2 and bulge_mag_polynomial_in ge 0 then mag_bulge_all=chebeval(wavelength_slices,res.MAG_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
-      else mag_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_b_temp)
+;    if bulge_mag_polynomial_in le no_images/2 and bulge_mag_polynomial_in ge 0 then mag_bulge_all=chebeval(wavelength_slices,res.MAG_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
+;      else mag_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_b_temp)
+    mag_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_b_temp)
     if bulge_re_polynomial_in le no_images/2 and bulge_re_polynomial_in ge 0 then Re_bulge_all=chebeval(wavelength_slices,res.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
       else Re_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,res.RE_GALFIT_BAND_B)
     n_bulge_all=chebeval(wavelength_slices,res.N_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
     q_bulge_all=chebeval(wavelength_slices,res.Q_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
     pa_bulge_all=chebeval(wavelength_slices,res.PA_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+    if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy_bulge_all=chebeval(wavelength_slices,res.BOXY_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])  $
+    else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy_bulge_all=chebeval(wavelength_slices,res.BOXY_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+
     ;note= cheb_interpolate doesn't work for 0th order!
   ;  n_bulge_all=fltarr(total_images)
   ;  n_bulge_all[*]=res.X_GALFIT_BAND_D[0]
@@ -1069,6 +1101,9 @@ if keyword_set(slices) then begin
       n_B=string(n_bulge_all[x0-first_image],format='(F06.3)')
       q_B=string(q_bulge_all[x0-first_image],format='(F04.2)')
       pa_B=string(pa_bulge_all[x0-first_image],format='(F07.2)')
+      if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then $
+        boxy_B=string(boxy_bulge_all[x0-first_image],format='(F07.2)') 
+
     endif  
     
     if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
@@ -1100,9 +1135,13 @@ if keyword_set(slices) then begin
     if loop eq no_loops then x1=(total_images mod no_images)-1    
     ;mod command => find remainder- this will be the number of images for the final galfitm file
     
-    if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1+1 else disk_mag_polynomial=disk_mag_polynomial_in
-    if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1+1 else bulge_mag_polynomial=bulge_mag_polynomial_in
-    if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
+;    if disk_mag_polynomial_in lt 0 then disk_mag_polynomial=x1+1 else disk_mag_polynomial=disk_mag_polynomial_in
+;    if bulge_mag_polynomial_in lt 0 then bulge_mag_polynomial=x1+1 else bulge_mag_polynomial=bulge_mag_polynomial_in
+;    if comp3_mag_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_mag_polynomial=x1+1 else comp3_mag_polynomial=comp3_mag_polynomial_in
+    disk_mag_polynomial=x1+1
+    bulge_mag_polynomial=x1+1
+    comp3_mag_polynomial=x1+1
+
 
     if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1+1 else disk_re_polynomial=0;disk_re_polynomial_in
     if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1+1 else disk_n_polynomial=0;disk_n_polynomial_in
@@ -1165,6 +1204,9 @@ if keyword_set(slices) then begin
         n_B+=','+string(n_bulge_all[x0-first_image+n],format='(F06.3)')
         q_B+=','+string(q_bulge_all[x0-first_image+n],format='(F04.2)')
         pa_B+=','+string(pa_bulge_all[x0-first_image+n],format='(F07.2)')
+        if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then $
+          boxy_B+=','+string(boxy_bulge_all[x0-first_image],format='(F07.2)')
+
       endif
       if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
         x_comp3+=','+string(x_comp3_all[x0-first_image+n],format='(F07.2)')
@@ -1281,6 +1323,8 @@ disk_n_polynomial=0
       printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
       printf, 60, ' 9) '+q_B+'        0 band  #  axis ratio (b/a)  '
       printf, 60, '10) '+pa_B+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
+        printf, 60, 'C0) '+boxy_B+'         0      # traditional diskyness(-)/boxyness(+)'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, 'C0) 1.17         0      # traditional diskyness(-)/boxyness(+)'
       printf, 60, ' '

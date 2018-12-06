@@ -404,8 +404,8 @@ if keyword_set(galaxy) then begin
             endif
             
             ;RESISTANT_Mean,bp[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
-            ;if total(bp[x,y,*]) gt 0 then mean_temp=1 else mean_temp=0
-            if binned_image[x,y] gt 0 then mean_temp=1 else mean_temp=0
+            if total(bp[x,y,*]) gt 3 then mean_temp=1 else mean_temp=0
+            ;if binned_image[x,y] gt 0 then mean_temp=1 else mean_temp=0
             binned_badpix[x,y]=mean_temp
         endfor
       endfor
@@ -585,7 +585,7 @@ if result eq 1 then begin
   endfor
   
   fits_write,directory+decomp+median_dir+'psf.fits',combined_psf,h_psf
-
+  median_PSF=combined_psf
 
 
   ;***slices PSF images***
@@ -597,6 +597,13 @@ if result eq 1 then begin
       fits_write,directory+decomp+slices_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,j], h_psf $
     else fits_write,directory+decomp+slices_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', combined_psf, h_psf
   endfor
+
+;use line below for Luis' data, when using psf from wfm-noao-n and science from wfm-noao-e
+;  for j=0,3681-1,1 do begin
+;    if total(psf_cube_input[*,*,j]) ne 0 then $
+;      fits_write,directory+decomp+slices_dir+'PSF/'+string(j+121,format='(i4.4)')+'.fits', psf_cube_input[*,*,j], h_psf $
+;    else fits_write,directory+decomp+slices_dir+'PSF/'+string(j+121,format='(i4.4)')+'.fits', combined_psf, h_psf
+;  endfor
   
   ;***binned PSF images***
   for j=0,no_bins+1,1 do begin
@@ -613,9 +620,12 @@ if result eq 1 then begin
     result = FILE_TEST(directory+decomp+binned_dir+'PSF/', /DIRECTORY) 
     if result eq 0 then file_mkdir,directory+decomp+binned_dir+'PSF/'
     
-    if total(psf_cube_input[*,*,j]) ne 0 then $
-      fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
-    else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', combined_psf, h_psf
+;    if total(psf_cube_input[*,*,j]) ne 0 then $
+;      fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
+;    else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', combined_psf, h_psf
+     if j ne 0 and j ne no_bins+1 then fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
+       else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', median_PSF, h_psf 
+     
   endfor  
 endif
 
