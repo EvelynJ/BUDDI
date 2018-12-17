@@ -34,14 +34,14 @@ IF file_test(obj[0]) THEN BEGIN
                                  'pa_galfit_cheb_d', res_cheb.COMP2_PA, 'paerr_galfit_cheb_d', res_cheb.COMP2_PA_ERR, $
                                  'x_galfit_cheb_d', res_cheb.COMP2_XC, 'xerr_galfit_cheb_d', res_cheb.COMP2_XC_ERR, $
                                  'y_galfit_cheb_d', res_cheb.COMP2_YC, 'yerr_galfit_cheb_d', res_cheb.COMP2_YC_ERR, $
-                                 'x_galfit_band_comp3', result.COMP3_XC, 'xerr_galfit_band_comp3',result.COMP3_XC_ERR, $
-                                 'y_galfit_band_comp3', result.COMP3_YC, 'yerr_galfit_band_comp3',result.COMP3_YC_ERR, $
-                                 'mag_galfit_band_comp3', result.COMP3_MAG, 'magerr_galfit_band_comp3',result.COMP3_MAG_ERR, $
-                                 'n_galfit_band_comp3', 0, 'nerr_galfit_band_comp3',0, $
-                                 're_galfit_band_comp3', 0, 'reerr_galfit_band_comp3',0, $
-                                 'x_galfit_cheb_comp3', res_cheb.COMP3_XC, 'xerr_galfit_cheb_comp3',res_cheb.COMP3_XC_ERR, $
-                                 'y_galfit_cheb_comp3', res_cheb.COMP3_YC, 'yerr_galfit_cheb_comp3',res_cheb.COMP3_YC_ERR, $
-                                 'mag_galfit_cheb_comp3', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_comp3',res_cheb.COMP3_MAG_ERR, $
+                                 'x_galfit_band_b', result.COMP3_XC, 'xerr_galfit_band_b',result.COMP3_XC_ERR, $
+                                 'y_galfit_band_b', result.COMP3_YC, 'yerr_galfit_band_b',result.COMP3_YC_ERR, $
+                                 'mag_galfit_band_b', result.COMP3_MAG, 'magerr_galfit_band_b',result.COMP3_MAG_ERR, $
+                                 'n_galfit_band_b', 0, 'nerr_galfit_band_b',0, $
+                                 're_galfit_band_b', 0, 'reerr_galfit_band_b',0, $
+                                 'x_galfit_cheb_b', res_cheb.COMP3_XC, 'xerr_galfit_cheb_b',res_cheb.COMP3_XC_ERR, $
+                                 'y_galfit_cheb_b', res_cheb.COMP3_YC, 'yerr_galfit_cheb_b',res_cheb.COMP3_YC_ERR, $
+                                 'mag_galfit_cheb_b', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_b',res_cheb.COMP3_MAG_ERR, $
                                  'sky_galfit_cheb', res_cheb.COMP1_SKY, $
                                  'initfile', strtrim(fit_info.initfile,2), $
                                  'constrnt', strtrim(fit_info.constrnt,2), $

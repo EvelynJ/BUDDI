@@ -90,14 +90,14 @@ if galfit_or_galfitm eq 'galfitm' then begin
   ;    res=read_sersic_results(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=1)
 
   if n_comp eq 1000 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1100 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1100  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1100  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
@@ -113,14 +113,14 @@ if galfit_or_galfitm eq 'galfitm' then begin
       a=n*no_slices
       b=a+nbands-1
       
-      if n_comp ge 1100 then begin
+      if n_comp ge 1100 and bulge_type eq 'sersic' then begin
         Re_bulge[a:b]=res.RE_GALFIT_BAND_B[0:nbands-1]
         n_bulge[a:b]=res.n_GALFIT_BAND_B[0:nbands-1]
       endif
       Re_disk[a:b]=res.RE_GALFIT_BAND_D[0:nbands-1]
       ;if n_comp ge 1100 then print,wavelength[a],n,a,b,Re_bulge[a],Re_disk[a],n_bulge[a]
-      if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then comp3[a:b]=10^((res.mag_galfit_band_comp3[0:nbands-1]-15)/(-2.5))*exptime
-      if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011  then comp4[a:b]=10^((res.mag_galfit_band_comp4[0:nbands-1]-15)/(-2.5))*exptime
+      if n_comp eq 1110 or n_comp eq 1111 then comp3[a:b]=10^((res.mag_galfit_band_comp3[0:nbands-1]-15)/(-2.5))*exptime
+      if n_comp eq 1111  then comp4[a:b]=10^((res.mag_galfit_band_comp4[0:nbands-1]-15)/(-2.5))*exptime
       sky[a:b]=res.sky_galfit_band[0:nbands-1]
     endif
   endfor   
@@ -145,12 +145,12 @@ plot,wavelength,Re_disk,yrange=[0.8*min(Re_disk),1.2*max(Re_disk)],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Disk Re',$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')'
-if n_comp ge 1100 then plot,wavelength,Re_bulge,yrange=[0.8*min(Re_bulge),1.2*max(Re_bulge)],$
+if n_comp ge 1100 and bulge_type eq 'sersic' then plot,wavelength,Re_bulge,yrange=[0.8*min(Re_bulge),1.2*max(Re_bulge)],$
     xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Bulge Re',$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')'
-if n_comp ge 1100 then plot,wavelength,n_bulge,yrange=[0.8*min(n_bulge),1.2*max(n_bulge)],$
+if n_comp ge 1100 and bulge_type eq 'sersic' then plot,wavelength,n_bulge,yrange=[0.8*min(n_bulge),1.2*max(n_bulge)],$
     xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Bulge n',$
@@ -162,7 +162,7 @@ plot,wavelength,sky,yrange=[0.8*min(sky),1.2*max(sky)],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Sky (ADU)',$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')'
-if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111  then begin
+if  n_comp eq 1110 or n_comp eq 1111  then begin
   resistant_mean,comp3,3,y_mean,y_sigma
   plot,wavelength,comp3,yrange=[0.8*min(comp3),1.2*max(comp3)],$
       xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
@@ -170,7 +170,7 @@ if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111  then be
       ytitle='comp3 flux',$
       xtitle='Wavelength ('+cgSymbol("angstrom")+')'
 endif
-if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011  then begin
+if  n_comp eq 1111   then begin
   resistant_mean,comp4,3,y_mean,y_sigma
   plot,wavelength,comp4,yrange=[0.8*min(comp4),1.2*max(comp4)],$
       xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
@@ -181,7 +181,7 @@ endif
 
 device,/close
 
-if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+if  n_comp eq 1111 then begin
   device,file=dir+'decomposed_data/decomp_parameters_comp4.eps',/landscape;xoffset=0,yoffset=0,xsize=11,ysize=8,/inches,/color;,/landscape
   !P.thick=3
   !p.charthick=3

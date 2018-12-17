@@ -89,26 +89,26 @@ if galfit_or_galfitm eq 'galfitm' then begin
             endif
           
           
-            if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+            if  n_comp eq 1110 or n_comp eq 1111 then begin
               if comp3_type eq 'sersic' then begin
-                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
+;                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
                 if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_sersic _'+string(m,format='(I3.3)')
               endif else begin
-                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
+;                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
                 if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
               endelse
               comp3_datacube[*,*,j]=comp3_in
 
             endif
           
-            if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+            if n_comp eq 1111 then begin
               if comp4_type eq 'sersic' then begin
-                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
-                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_sersic _'+string(m,format='(I3.3)')
+;                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
+;                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_sersic _'+string(m,format='(I3.3)')
                 if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_sersic _'+string(m,format='(I3.3)')
               endif else begin
-                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
-                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
+;                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
+;                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
                 if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_psf _'+string(m,format='(I3.3)')
               endelse  
               comp4_datacube[*,*,j]=comp4_in
@@ -223,13 +223,13 @@ if galfit_or_galfitm eq 'galfitm' then begin
       modfits,root+decomp+decomp_dir+'component2_cube.fits',0,h_temp
       ;modfits,root+decomp+decomp_dir+'component2_cube.fits',1,h_flux,extname='FLUX'
     endif
-    if n_comp eq 1010 or n_comp eq 1011 or n_comp eq 1110 or n_comp eq 1111 then begin
+    if  n_comp eq 1110 or n_comp eq 1111 then begin
       for j=9,s[3]-5,10 do comp3_datacube[*,*,j]=0.5*(comp3_datacube[*,*,j-1]+comp3_datacube[*,*,j+1])
       fits_write,root+decomp+decomp_dir+'component3_cube.fits',comp3_datacube,h_flux,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component3_cube.fits',0,h_temp
       ;modfits,root+decomp+decomp_dir+'component3_cube.fits',1,h_flux,extname='FLUX'
     endif
-    if n_comp eq 1001 or n_comp eq 1101 or n_comp eq 1111 or n_comp eq 1011 then begin
+    if n_comp eq 1111 then begin
       for j=9,s[3]-5,10 do comp4_datacube[*,*,j]=0.5*(comp4_datacube[*,*,j-1]+comp4_datacube[*,*,j+1])
       fits_write,root+decomp+decomp_dir+'component4_cube.fits',comp4_datacube,h_flux,extname='FLUX'
       modfits,root+decomp+decomp_dir+'component4_cube.fits',0,h_temp
@@ -303,18 +303,18 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       if n eq 0 then a=0 else a=1
       if n eq nfiles-1 then z=x1 else z=no_images
       
-      fits_open,root+decomp+slices_dir+'models/subcomps_'+string(n+first_image,format='(I4.4)')+'.fits',subcomps
+      fits_open,root+decomp+slices_dir+'models/subcomps_'+string(n+first_image,format='(I4.4)')+'.fits',sub_comps
       print,'loop2, run ',n
       
       
-      fits_read,subcomps,disk_in,header_in,EXTEN_NO=2;EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
+      fits_read,sub_comps,disk_in,header_in,EXTEN_NO=2;EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
       disk_datacube[*,*,n]=disk_in
       if n_comp eq 110 or n_comp eq 111 then begin
-        fits_read,subcomps,bulge_in,header_in,EXTEN_NO=3;EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
+        fits_read,sub_comps,bulge_in,header_in,EXTEN_NO=3;EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
         bulge_datacube[*,*,n]=bulge_in
       endif
         
-      fits_close,subcomps
+      fits_close,sub_comps
       
   endfor  
   

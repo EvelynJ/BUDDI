@@ -626,6 +626,11 @@ plot,wavelength,disk_mag,/NODATA,yrange=[-0.1,1.8],$
 
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 
+if n_comp eq 1000 then begin
+  oplot,wavelength,(disk_mag/median(disk_mag)),color=cgcolor('blue');/10000;+60
+  oplot,wavelength,((disk_mag)/median(disk_mag)),color=cgcolor('purple');/10000;+90
+endif
+
 if n_comp eq 1100 then begin
   for j=9,n_elements(disk_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
   oplot,wavelength,(disk_mag/median(bulge_mag+disk_mag)),color=cgcolor('blue');/10000;+60

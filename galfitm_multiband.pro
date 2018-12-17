@@ -83,14 +83,14 @@ if keyword_set(binned) then begin
   if boxy_yn eq 'b' or boxy_yn eq 'B' or boxy_yn eq 'd' or boxy_yn eq 'D' then boxy_yn=1 else boxy_yn=0
   
   if n_comp eq 1000 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1100 and bulge_type eq 'sersic' then res=read_sersic_results_2comp(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1100 and bulge_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+median_dir+imgblock+'.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+median_dir+imgblock+'.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
+;  else if n_comp eq 1100  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=0,boxy=boxy_yn) $
   else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+median_dir+imgblock+'.fits', nband, bd=1,boxy=boxy_yn) $
@@ -108,14 +108,22 @@ if keyword_set(binned) then begin
 
   if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1 else disk_re_polynomial=disk_re_polynomial_in
   if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1 else disk_n_polynomial=disk_n_polynomial_in
+  if disk_pa_polynomial_in lt 0 then disk_pa_polynomial=x1 else disk_pa_polynomial=disk_pa_polynomial_in
+  if disk_q_polynomial_in lt 0 then disk_q_polynomial=x1 else disk_q_polynomial=disk_q_polynomial_in
   if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1 else bulge_re_polynomial=bulge_re_polynomial_in
   if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1 else bulge_n_polynomial=bulge_n_polynomial_in
+  if bulge_pa_polynomial_in lt 0 then bulge_pa_polynomial=x1 else bulge_pa_polynomial=bulge_pa_polynomial_in
+  if bulge_q_polynomial_in lt 0 then bulge_q_polynomial=x1 else bulge_q_polynomial=bulge_q_polynomial_in
   
   if comp3_re_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_re_polynomial=x1 else comp3_re_polynomial=comp3_Re_polynomial_in
   if comp3_n_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_n_polynomial=x1 else comp3_n_polynomial=comp3_n_polynomial_in
+  if comp3_pa_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_pa_polynomial=x1 else comp3_pa_polynomial=comp3_pa_polynomial_in
+  if comp3_q_polynomial_in lt 0 and comp3_type eq 'sersic' then comp3_q_polynomial=x1 else comp3_q_polynomial=comp3_q_polynomial_in
 
   if comp4_re_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_re_polynomial=x1 else comp4_re_polynomial=comp4_Re_polynomial_in
   if comp4_n_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_n_polynomial=x1 else comp4_n_polynomial=comp4_n_polynomial_in
+  if comp4_pa_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_pa_polynomial=x1 else comp4_pa_polynomial=comp4_pa_polynomial_in
+  if comp4_q_polynomial_in lt 0 and comp4_type eq 'sersic' then comp4_q_polynomial=x1 else comp4_q_polynomial=comp4_q_polynomial_in
   
 
   
@@ -169,10 +177,12 @@ if keyword_set(binned) then begin
         x_B=string(mean(res.X_GALFIT_BAND_B[1:-2]),format='(F07.2)')
         y_B=string(mean(res.Y_GALFIT_BAND_B[1:-2]),format='(F07.2)')
         mag_B=string(mean(res.MAG_GALFIT_BAND_B[1:-2]),format='(F06.2)')
-        Re_B=string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
-        n_B=string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F06.2)')
-        q_B=string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
-        pa_B=string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+        if bulge_type eq 'sersic' then begin
+          Re_B=string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+          n_B=string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+          q_B=string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
+          pa_B=string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+        endif
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')  $
         else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)') 
 
@@ -239,10 +249,13 @@ if keyword_set(binned) then begin
           x_B+=','+string(mean(res.X_GALFIT_BAND_B[1:-2]),format='(F07.2)')
           y_B+=','+string(mean(res.Y_GALFIT_BAND_B[1:-2]),format='(F07.2)')
           mag_B+=','+string(mean(res.MAG_GALFIT_BAND_B[1:-2]),format='(F06.2)')
-          Re_B+=','+string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
-          n_B+=','+string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F05.2)')
-          q_B+=','+string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
-          pa_B+=','+string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+          if bulge_type eq 'sersic' then begin
+            Re_B+=','+string(mean(res.RE_GALFIT_BAND_B[1:-2]),format='(F07.2)')
+          
+            n_B+=','+string(mean(res.N_GALFIT_BAND_B[1:-2]),format='(F05.2)')
+            q_B+=','+string(mean(res.Q_GALFIT_BAND_B[1:-2]),format='(F04.2)')
+            pa_B+=','+string(mean(res.PA_GALFIT_BAND_B[1:-2]),format='(F06.2)')
+          endif
           if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')  $
           else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(mean(res.BOXY_GALFIT_BAND_B[1:-2]),format='(F06.2)')
         endif
@@ -305,10 +318,12 @@ if keyword_set(binned) then begin
         x_B=string((res.X_GALFIT_BAND_B),format='(F07.2)')
         y_B=string((res.Y_GALFIT_BAND_B),format='(F07.2)')
         mag_B=string((res.MAG_GALFIT_BAND_B),format='(F06.2)')
-        Re_B=string((res.RE_GALFIT_BAND_B),format='(F07.2)')
-        n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
-        q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
-        pa_B=string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+        if bulge_type eq 'sersic' then begin
+          Re_B=string((res.RE_GALFIT_BAND_B),format='(F07.2)')
+          n_B=string((res.N_GALFIT_BAND_B),format='(F06.2)')
+          q_B=string((res.Q_GALFIT_BAND_B),format='(F04.2)')
+          pa_B=string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+        endif
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
         else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
       endif
@@ -376,10 +391,12 @@ if keyword_set(binned) then begin
           x_B+=','+string((res.X_GALFIT_BAND_B),format='(F07.2)')
           y_B+=','+string((res.Y_GALFIT_BAND_B),format='(F07.2)')
           mag_B+=','+string((res.MAG_GALFIT_BAND_B),format='(F06.2)')
-          Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F07.2)')
-          n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
-          q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
-          pa_B+=','+string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+          if bulge_type eq 'sersic' then begin
+            Re_B+=','+string((res.RE_GALFIT_BAND_B),format='(F07.2)')
+            n_B+=','+string((res.N_GALFIT_BAND_B),format='(F05.2)')
+            q_B+=','+string((res.Q_GALFIT_BAND_B),format='(F04.2)')
+            pa_B+=','+string((res.PA_GALFIT_BAND_B),format='(F06.2)')
+          endif
           if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
           else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
         endif
@@ -438,10 +455,12 @@ if keyword_set(binned) then begin
           x_B=string(x,format='(F07.2)')
           y_B=string(y,format='(F07.2)')
           mag_B=string(estimates_bulge[1],format='(F06.2)')
-          Re_B=string(estimates_bulge[2],format='(F07.2)')
-          n_B=string(estimates_bulge[3],format='(F06.2)')
-          q_B=string(estimates_bulge[4],format='(F04.2)')
-          pa_B=string(estimates_bulge[5],format='(F06.2)')
+          if bulge_type eq 'sersic' then begin
+            Re_B=string(estimates_bulge[2],format='(F07.2)')
+            n_B=string(estimates_bulge[3],format='(F06.2)')
+            q_B=string(estimates_bulge[4],format='(F04.2)')
+            pa_B=string(estimates_bulge[5],format='(F06.2)')
+          endif
           if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
           else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy=string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
       endif
@@ -503,10 +522,12 @@ if keyword_set(binned) then begin
             x_B+=','+string(x,format='(F07.2)')
             y_B+=','+string(y,format='(F07.2)')
             mag_B+=','+string(estimates_bulge[1],format='(F06.2)')
-            Re_B+=','+string(estimates_bulge[2],format='(F07.2)')
-            n_B+=','+string(estimates_bulge[3],format='(F05.2)')
-            q_B+=','+string(estimates_bulge[4],format='(F04.2)')
-            pa_B+=','+string(estimates_bulge[5],format='(F06.2)')
+            if bulge_type eq 'sersic' then begin
+              Re_B+=','+string(estimates_bulge[2],format='(F07.2)')
+              n_B+=','+string(estimates_bulge[3],format='(F05.2)')
+              q_B+=','+string(estimates_bulge[4],format='(F04.2)')
+              pa_B+=','+string(estimates_bulge[5],format='(F06.2)')
+            endif
             if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')  $
             else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy+=','+string(res.BOXY_GALFIT_BAND_B,format='(F06.2)')
         endif 
@@ -613,8 +634,8 @@ if keyword_set(binned) then begin
       printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
       printf, 60, ' 4) '+Re_D+'   '+string(disk_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
       printf, 60, ' 5) '+n_D+'             '+string(disk_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+Q_D+'        1 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+PA_D+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 9) '+Q_D+'        '+string(disk_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+PA_D+'   '+string(disk_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
      print,disk_n_polynomial
@@ -629,10 +650,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
         printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I2)')+' band  #  Integrated magnitude' 
-        printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+q_B+'        1 band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+pa_B+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+        if bulge_type eq 'sersic' then begin
+          printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_B+'        '+string(bulge_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_B+'   '+string(bulge_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+        endif
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
           printf, 60, 'C0) '+boxy+'         1      # traditional diskyness(-)/boxyness(+)'
@@ -653,8 +676,8 @@ if keyword_set(binned) then begin
         if comp3_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp3+'   '+string(comp3_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp3+'    '+string(comp3_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        1 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 9) '+q_comp3+'         '+string(comp3_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'    '+string(comp3_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -669,10 +692,10 @@ if keyword_set(binned) then begin
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
         printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2)+'       # total magnitude   '  
         if comp4_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp4+'   1 band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp4+'             1 band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp4+'        1 band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp4+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+          printf, 60, ' 4) '+Re_comp4+'    '+string(comp4_Re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp4+'              '+string(comp4_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp4+'         '+string(comp4_q_polynomial,format='(I2)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp4+'    '+string(comp4_pa_polynomial,format='(I2)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -803,10 +826,12 @@ if keyword_set(binned) then begin
         printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
         if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins-2
         if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
-        printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+        if bulge_type eq 'sersic' then begin
+          printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+        endif
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
           printf, 60, 'C0) '+boxy+'         1      # traditional diskyness(-)/boxyness(+)'
@@ -899,14 +924,14 @@ if keyword_set(slices) then begin
   if boxy_yn eq 'b' or boxy_yn eq 'B' or boxy_yn eq 'd' or boxy_yn eq 'D' then boxy_yn=1 else boxy_yn=0
 
   if n_comp eq 1000 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+;  else if n_comp eq 1100 then res=read_sersic_results_2comp(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1100  and bulge_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
+  else if n_comp eq 1100  and bulge_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(output+binned_dir+'imgblock.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(output+binned_dir+'imgblock.fits', nband, bd=0) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=0,boxy=boxy_yn) $
   else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
   else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(output+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
@@ -1004,11 +1029,13 @@ if keyword_set(slices) then begin
 ;    if bulge_mag_polynomial_in le no_images/2 and bulge_mag_polynomial_in ge 0 then mag_bulge_all=chebeval(wavelength_slices,res.MAG_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
 ;      else mag_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_b_temp)
     mag_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,mag_b_temp)
-    if bulge_re_polynomial_in le no_images/2 and bulge_re_polynomial_in ge 0 then Re_bulge_all=chebeval(wavelength_slices,res.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
-      else Re_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,res.RE_GALFIT_BAND_B)
-    n_bulge_all=chebeval(wavelength_slices,res.N_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
-    q_bulge_all=chebeval(wavelength_slices,res.Q_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
-    pa_bulge_all=chebeval(wavelength_slices,res.PA_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+    if bulge_type eq 'sersic' then begin
+      if bulge_re_polynomial_in le no_images/2 and bulge_re_polynomial_in ge 0 then Re_bulge_all=chebeval(wavelength_slices,res.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2]) $
+        else Re_bulge_all=linear_interpolate(wavelength_slices,wavelength_binned,res.RE_GALFIT_BAND_B)
+      n_bulge_all=chebeval(wavelength_slices,res.N_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+      q_bulge_all=chebeval(wavelength_slices,res.Q_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+      pa_bulge_all=chebeval(wavelength_slices,res.PA_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+    endif
     if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then boxy_bulge_all=chebeval(wavelength_slices,res.BOXY_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])  $
     else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then boxy_bulge_all=chebeval(wavelength_slices,res.BOXY_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
 
@@ -1097,10 +1124,12 @@ if keyword_set(slices) then begin
       x_B=string(x_bulge_all[x0-first_image],format='(F07.2)')
       y_B=string(y_bulge_all[x0-first_image],format='(F07.2)')
       mag_B=string(mag_bulge_all[x0-first_image],format='(F06.2)')
-      Re_B=string(Re_bulge_all[x0-first_image],format='(F07.2)')
-      n_B=string(n_bulge_all[x0-first_image],format='(F06.3)')
-      q_B=string(q_bulge_all[x0-first_image],format='(F04.2)')
-      pa_B=string(pa_bulge_all[x0-first_image],format='(F07.2)')
+      if bulge_type eq 'sersic' then begin
+        Re_B=string(Re_bulge_all[x0-first_image],format='(F07.2)')
+        n_B=string(n_bulge_all[x0-first_image],format='(F06.3)')
+        q_B=string(q_bulge_all[x0-first_image],format='(F04.2)')
+        pa_B=string(pa_bulge_all[x0-first_image],format='(F07.2)')
+      endif
       if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then $
         boxy_B=string(boxy_bulge_all[x0-first_image],format='(F07.2)') 
 
@@ -1145,8 +1174,8 @@ if keyword_set(slices) then begin
 
     if disk_re_polynomial_in lt 0 then disk_re_polynomial=x1+1 else disk_re_polynomial=0;disk_re_polynomial_in
     if disk_n_polynomial_in lt 0 then disk_n_polynomial=x1+1 else disk_n_polynomial=0;disk_n_polynomial_in
-    if bulge_re_polynomial_in lt 0 then bulge_re_polynomial=x1+1 else bulge_re_polynomial=0;bulge_re_polynomial_in
-    if bulge_n_polynomial_in lt 0 then bulge_n_polynomial=x1+1  else bulge_n_polynomial=0;bulge_n_polynomial_in
+    if bulge_re_polynomial_in lt 0 and bulge_type eq 'sersic' then bulge_re_polynomial=x1+1 else bulge_re_polynomial=0;bulge_re_polynomial_in
+    if bulge_n_polynomial_in lt 0 and bulge_type eq 'sersic' then bulge_n_polynomial=x1+1  else bulge_n_polynomial=0;bulge_n_polynomial_in
 ;    if disk_re_polynomial_in lt 0 and mean(Re_bulge_all) ge 3 then disk_re_polynomial=x1+1 else disk_re_polynomial=0
 ;    if disk_n_polynomial_in lt 0 and mean(n_bulge_all) ge 3 then disk_n_polynomial=x1+1 else disk_n_polynomial=0
 ;    if bulge_re_polynomial_in lt 0 and mean(Re_disk_all) ge 3 then bulge_re_polynomial=x1+1 else bulge_re_polynomial=0
@@ -1200,10 +1229,12 @@ if keyword_set(slices) then begin
         x_B+=','+string(x_bulge_all[x0-first_image+n],format='(F07.2)')
         y_B+=','+string(y_bulge_all[x0-first_image+n],format='(F07.2)')
         mag_B+=','+string(mag_bulge_all[x0-first_image+n],format='(F06.2)')
-        Re_B+=','+string(Re_bulge_all[x0-first_image+n],format='(F07.2)')
-        n_B+=','+string(n_bulge_all[x0-first_image+n],format='(F06.3)')
-        q_B+=','+string(q_bulge_all[x0-first_image+n],format='(F04.2)')
-        pa_B+=','+string(pa_bulge_all[x0-first_image+n],format='(F07.2)')
+        if bulge_type eq 'sersic' then begin
+          Re_B+=','+string(Re_bulge_all[x0-first_image+n],format='(F07.2)')
+          n_B+=','+string(n_bulge_all[x0-first_image+n],format='(F06.3)')
+          q_B+=','+string(q_bulge_all[x0-first_image+n],format='(F04.2)')
+          pa_B+=','+string(pa_bulge_all[x0-first_image+n],format='(F07.2)')
+        endif
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then $
           boxy_B+=','+string(boxy_bulge_all[x0-first_image],format='(F07.2)')
 
@@ -1319,10 +1350,12 @@ disk_n_polynomial=0
       printf, 60, ' 3) '+mag_B+'        '+string(bulge_mag_polynomial,format='(I3)')+' band  #  Integrated magnitude' 
 ;      if bulge_re_polynomial eq no_images then bulge_re_polynomial=x1 else bulge_re_polynomial=0
 ;      if bulge_n_polynomial eq no_images then bulge_n_polynomial=x1 else bulge_n_polynomial=0
-      printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+q_B+'        0 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+pa_B+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      if bulge_type eq 'sersic' then begin
+        printf, 60, ' 4) '+Re_B+'   '+string(bulge_re_polynomial,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+        printf, 60, ' 5) '+n_B+'             '+string(bulge_n_polynomial,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+        printf, 60, ' 9) '+q_B+'        0 band  #  axis ratio (b/a)  '
+        printf, 60, '10) '+pa_B+'   0 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      endif
       if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
         printf, 60, 'C0) '+boxy_B+'         0      # traditional diskyness(-)/boxyness(+)'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
