@@ -36,7 +36,7 @@ function badpixelmask, setup
   median_dir=setup.median_dir
   galaxy_ref=setup.galaxy_ref
   badpix_cube=setup.badpix_cube  ;badpixel cube
-  badpix_file=setup.badpix_file  ;bad pixel file for foreground stars
+  badpix_file=setup.badpix_file  ;bad pixel file 
   file=setup.file
   
   
@@ -101,7 +101,7 @@ function badpixelmask, setup
     
   endif
   
-  
+;  if galaxy_ref eq 'CCC_43' then badpix[0:325,*,*]=1
   
   
   delvarx,input,output,index,temp
@@ -242,6 +242,7 @@ if keyword_set(galaxy) then begin
   if sigma_TF eq 'T' then temps=mrdfits(directory+sigma_cube+'.fits',1,h_sig)
   if badpix_TF eq 'T' then tempb=mrdfits(directory+badpix_cube+'.fits',1,h_bp)
   
+  
   sxaddpar,h_flux,'NAXIS',2
   sxdelpar,h_flux,'NAXIS3'
   if sigma_TF eq 'T' then sxaddpar,h_sigma,'NAXIS',2
@@ -378,14 +379,20 @@ if keyword_set(galaxy) then begin
   ;bin remaining image slices
   bins_no_images_orig=bins_no_images
   b=first_image-1
+  b_arr=fltarr(no_bins)
+  a_arr=fltarr(no_bins)
   for run=0,no_bins-1,1 do begin
+      ;print,run
       if run lt divisible then bins_no_images=bins_no_images_orig+1 $
         else bins_no_images=bins_no_images_orig
       
       a=b+1;first_image+(run*bins_no_images)
       if run ne no_bins then b=a+bins_no_images-1 $
         else b=final_image-1
-        
+      
+      a_arr[run]=a
+      b_arr[run]=b
+
       image=spec_in[*,*,a:b]
       if sigma_TF eq 'T' then sig=sigma_in[*,*,a:b]
       bp=badpix_in[*,*,a:b]
@@ -404,7 +411,15 @@ if keyword_set(galaxy) then begin
             endif
             
             ;RESISTANT_Mean,bp[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
-            if total(bp[x,y,*]) gt 3 then mean_temp=1 else mean_temp=0
+;            NaN=~FINITE(image[150,150,*])
+;            if total(NaN) gt 0 then val=total(NaN)+3 else val=3
+;            if total(bp[x,y,*]) gt val then mean_temp=1 else mean_temp=0
+;            if run eq 3 then stop
+
+            NaN=where(image[150,150,*] eq 0)
+            if n_elements(NaN) gt 1 then val=n_elements(NaN)+3 else val=3
+            val=b-a-3;3
+            if total(bp[x,y,*]) gt val then mean_temp=1 else mean_temp=0
             ;if binned_image[x,y] gt 0 then mean_temp=1 else mean_temp=0
             binned_badpix[x,y]=mean_temp
         endfor
@@ -434,7 +449,7 @@ if keyword_set(galaxy) then begin
 ;        fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX'
 ;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
 ;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
-      
+;      print,badpix_name+string(run+1,format='(i4.4)')+'.fits'
  endfor  
 
   ;finally print last image slice
@@ -517,8 +532,11 @@ fits_write,directory+decomp+median_dir+'image.fits', binned_image,hdr0;,extname=
 
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
-;      RESISTANT_Mean,badpix_in[x,y,first_image:final_image],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
-      if total(badpix_in[x,y,first_image+50:final_image-50]) gt 0 then mean_temp=1 else mean_temp=0
+      NaN=where(badpix_in[150,150,first_image+50:final_image-50] eq 1)
+      
+      ;if total(badpix_in[x,y,first_image+50:final_image-50]) gt n_elements(NaN)+2 then mean_temp=1 else mean_temp=0
+      val=(final_image-50)-(first_image+50)-10
+      if total(badpix_in[x,y,first_image+50:final_image-50]) gt val then mean_temp=1 else mean_temp=0
       binned_badpix[x,y]=mean_temp
     endfor
   endfor
@@ -623,7 +641,7 @@ if result eq 1 then begin
 ;    if total(psf_cube_input[*,*,j]) ne 0 then $
 ;      fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
 ;    else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', combined_psf, h_psf
-     if j ne 0 and j ne no_bins+1 then fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', psf_cube_input[*,*,element[0]], h_psf $
+     if j ne 0 and j ne no_bins+1 then fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', median(psf_cube_input[*,*,a:b],dimension=3), h_psf $
        else fits_write,directory+decomp+binned_dir+'PSF/'+string(j,format='(i4.4)')+'.fits', median_PSF, h_psf 
      
   endfor  

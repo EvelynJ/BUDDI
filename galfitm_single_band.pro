@@ -207,21 +207,21 @@ if keyword_set(median) then begin
         printf, 60, '4) '+string(estimates_comp4[2],format='(f5.2)')+'      1  band     # R_e (half-light radius)   [pix] '  
         printf, 60, '5) '+string(estimates_comp4[3],format='(f5.2)')+'      1  band     # Sersic index n (de Vaucouleurs n=4)  '  
         printf, 60, '9) '+string(estimates_comp4[4],format='(f5.2)')+'      1  band     # axis ratio (b/a)    '  
-        printf, 60, '10) '+string(estimates_comp4[5],format='(f5.2)')+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
+        printf, 60, '10) '+string(estimates_comp4[5])+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
       endif
       printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
     endif  
 
 
     if file_test(root+stars_file) eq 1 then begin
-      readcol,root+stars_file,format='f,f,f,s',x_star,y_star,mag_star,prof,comment='#',/SILENT
+      readcol,root+stars_file,format='f,f,f,a',x_star,y_star,mag_star,prof,comment='#',/SILENT
       for j=0,n_elements(x_star)-1,1 do begin
         printf, 60, '  '
         printf, 60, ' # Object number:  '+string(j)
         printf, 60, '  0) '+prof+'                 #  object type'
-        printf, 60, ' 1) '+string(setup.x_star[j])+'   1 band  #  position x'
-        printf, 60, ' 2) '+string(setup.y_star[j])+'   1 band  #  position y'
-        printf, 60, ' 3) '+string(setup.mag_star[j])+'   1 band  #  Integrated magnitude'     
+        printf, 60, ' 1) '+string(x_star[j])+'   1 band  #  position x'
+        printf, 60, ' 2) '+string(y_star[j])+'   1 band  #  position y'
+        printf, 60, ' 3) '+string(mag_star[j])+'   1 band  #  Integrated magnitude'     
         if prof ne 'psf' then begin
           printf, 60, '4) 5      1  band     # R_e (half-light radius)   [pix] '
           printf, 60, '5) 1      1  band     # Sersic index n (de Vaucouleurs n=4)  '

@@ -89,21 +89,35 @@ if galfit_or_galfitm eq 'galfitm' then begin
 ;      else if n_comp eq 101 and comp3_type eq 'sersic' then res=read_sersic_results_3sersic(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=0) 
   ;    res=read_sersic_results(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nbands, bd=1)
 
+
+  bulge_type=setup.bulge_type
   if n_comp eq 1000 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
 ;  else if n_comp eq 1100 then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1100  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1100  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1100  and bulge_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1100  and bulge_type eq 'sersic' then res=read_sersic_results_2comp(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1110  and bulge_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1110  and bulge_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110  and bulge_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110  and bulge_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+
+  else if n_comp eq 1111 and bulge_type eq 'psf' and comp3_type eq 'psf' and comp4_type eq 'psf' then res=read_sersic_results_4psf_p_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and bulge_type eq 'sersic' and comp3_type eq 'psf' and comp4_type eq 'psf' then res=read_sersic_results_4psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and bulge_type eq 'sersic' and comp3_type eq 'psf' and comp4_type eq 'sersic' then res=read_sersic_results_3psf_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and bulge_type eq 'sersic' and comp3_type eq 'sersic' and comp4_type eq 'psf' then res=read_sersic_results_4sersic_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and bulge_type eq 'sersic' and comp3_type eq 'sersic' and comp4_type eq 'sersic' then res=read_sersic_results_3sersic_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+
+
+;  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(dir+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
@@ -113,7 +127,7 @@ if galfit_or_galfitm eq 'galfitm' then begin
       a=n*no_slices
       b=a+nbands-1
       
-      if n_comp ge 1100 and bulge_type eq 'sersic' then begin
+      if n_comp ge 1100 and setup.bulge_type eq 'sersic' then begin
         Re_bulge[a:b]=res.RE_GALFIT_BAND_B[0:nbands-1]
         n_bulge[a:b]=res.n_GALFIT_BAND_B[0:nbands-1]
       endif
@@ -145,12 +159,12 @@ plot,wavelength,Re_disk,yrange=[0.8*min(Re_disk),1.2*max(Re_disk)],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Disk Re',$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')'
-if n_comp ge 1100 and bulge_type eq 'sersic' then plot,wavelength,Re_bulge,yrange=[0.8*min(Re_bulge),1.2*max(Re_bulge)],$
+if n_comp ge 1100 and setup.bulge_type eq 'sersic' then plot,wavelength,Re_bulge,yrange=[0.8*min(Re_bulge),1.2*max(Re_bulge)],$
     xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Bulge Re',$
     xtitle='Wavelength ('+cgSymbol("angstrom")+')'
-if n_comp ge 1100 and bulge_type eq 'sersic' then plot,wavelength,n_bulge,yrange=[0.8*min(n_bulge),1.2*max(n_bulge)],$
+if n_comp ge 1100 and setup.bulge_type eq 'sersic' then plot,wavelength,n_bulge,yrange=[0.8*min(n_bulge),1.2*max(n_bulge)],$
     xrange=[wavelength[0]-100,wavelength[total_images-1]+100],$
     /xstyle,/ystyle,xthick=3,ythick=3,$
     ytitle='Bulge n',$

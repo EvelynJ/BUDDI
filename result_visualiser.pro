@@ -2,7 +2,7 @@
  
 pro result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
   original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-  residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,MANGA=manga,CALIFA=califa
+  residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,MANGA=manga,CALIFA=califa,GC=gc
   
   root=setup.root
   decomp=setup.decomp
@@ -115,6 +115,8 @@ endif else begin
     resid_1D[aaa]=total(residual_datacube[*,*,aaa]*badpix)
     resid_sky_1D[aaa]=total(residual_sky_datacube[*,*,aaa]*badpix)
     if n_comp ge 1100  then bulge_1D[aaa]=total(bulge_datacube[*,*,aaa]*badpix)
+    if n_comp ge 1110  then comp3_1D[aaa]=total(comp3_datacube[*,*,aaa]*badpix)
+    if n_comp ge 1111  then comp4_1D[aaa]=total(comp4_datacube[*,*,aaa]*badpix)
   endfor
 endelse
 ;convert magnitude units into flux units where necessary, Magzp is 15 in the feedme files
@@ -152,20 +154,30 @@ for n=0,nfiles-1,1 do begin
     
 nband=nbands
   if n_comp eq 1000 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1100 then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1100  and setup.bulge_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+  else if n_comp eq 1100  and setup.bulge_type eq 'sersic' then res=read_sersic_results_2comp(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1101 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1001 and comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1001 and comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
+
+  else if n_comp eq 1110 and setup.bulge_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1110 and setup.bulge_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110 and setup.bulge_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1110 and setup.bulge_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and setup.bulge_type eq 'psf' and comp3_type eq 'psf' and comp4_type eq 'psf' then res=read_sersic_results_4psf_p_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and comp3_type eq 'psf' and comp4_type eq 'psf' then res=read_sersic_results_4psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+  else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and comp3_type eq 'psf' and comp4_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and comp3_type eq 'sersic' and comp4_type eq 'psf' then res=read_sersic_results_4sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
+  else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and comp3_type eq 'sersic' and comp4_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1,boxy=boxy_yn) $
   
-  else if n_comp eq 1010  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1010  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
-  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
-  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1110  and comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1110  and comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
+;  else if n_comp eq 1111 and comp4_type eq 'sersic' and comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=1) $
   else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1011 and comp4_type eq 'psf' and comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
   else if n_comp eq 1011 and comp4_type eq 'sersic' and comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits', nband, bd=0) $
@@ -178,10 +190,10 @@ nband=nbands
     sky[a:b]=res.sky_galfit_band[0:nbands-1]*n_elements(Xpix)
     
     if n_comp ge 1100 then begin
-      bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
+      if setup.bulge_type eq 'sersic' then bulge_Re[a:b]=res.Re_galfit_band_b[0:nbands-1]
       bulge_mag[a:b]=res.mag_galfit_band_b[0:nbands-1]
     endif
-    if n_comp eq 1010 or n_comp eq 1110 or n_comp eq 1111 then begin
+    if n_comp ge 1110  then begin
       comp3_mag[a:b]=res.mag_galfit_band_comp3[0:nbands-1]
     endif
     if n_comp eq 1111 then begin
@@ -222,7 +234,8 @@ endelse
 
 ;obtain new bulge spectrum within 3Re
 
-  if n_comp ge 1100 then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
+  if n_comp ge 1100 and setup.bulge_type eq 'sersic' then res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=1) $
+    else if n_comp ge 1100 and setup.bulge_type eq 'psf' then res2=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0) $
     else res2=read_sersic_results_2comp(root+decomp+binned_dir+'imgblock.fits', no_bins, bd=0)
   readcol,root+decomp+slices_dir+'info.txt',format='X,F',info,/silent
   PA=res2.PA_GALFIT_BAND_D[0:nbands-1]
@@ -232,15 +245,16 @@ endelse
   h_temp=headfits(root+decomp+binned_dir+'image_'+string(no_slices-1,format='(I4.4)')+'.fits')
   wave2=sxpar(h_temp,'WAVELENG')
   wavelength_Re=5500
-  measure_circular_radius,indgen(n_elements(Xpix)),Xpix,Ypix,0,0,PA[0], radii
-if n_comp ge 1100 then begin
-  Re_b=chebeval(wavelength_Re,res2.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
-  bulge_1D_small=fltarr(n_elements(bulge_1D))
-;stop
-  FOR n=0,n_elements(Xpix)-1,1 do begin
-    if n_comp ge 1100 and radii[n] le 3*Re_b then bulge_1D_small[*]+=bulge_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
-  endfor
-endif
+
+;  measure_circular_radius,indgen(n_elements(Xpix)),Xpix,Ypix,0,0,PA[0], radii
+;if n_comp ge 1100 then begin
+;  Re_b=chebeval(wavelength_Re,res2.RE_GALFIT_CHEB_B,INTERVAL=[wave1,wave2])
+;  bulge_1D_small=fltarr(n_elements(bulge_1D))
+;;stop
+;  FOR n=0,n_elements(Xpix)-1,1 do begin
+;    if n_comp ge 1100 and radii[n] le 3*Re_b then bulge_1D_small[*]+=bulge_datacube[Xpix[n]+x_centre,Ypix[n]+y_centre,*]
+;  endfor
+;endif
 
 ;print,bulge_1D
 ;plot results for comparison
@@ -268,7 +282,7 @@ if n_comp ge 1100 then oplot,wavelength,(bulge_1D/median(orig_1D)),color=cgcolor
 oplot,wavelength,(disk_1D/median(orig_1D)),color=cgcolor('red');/10000;+60
 oplot,wavelength,(orig_1D/median(orig_1D));/10000;+30
 if n_comp eq 1100 then oplot,wavelength,((bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
-if n_comp eq 1010 then oplot,wavelength,((comp3_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
+;if n_comp eq 1010 then oplot,wavelength,((comp3_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 if n_comp eq 1110 then oplot,wavelength,((comp3_1D+bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 if n_comp eq 1111 then oplot,wavelength,((comp4_1D+comp3_1D+bulge_1D+disk_1D)/median(orig_1D)),color=cgcolor('purple');/10000;+30,color=cgcolor('red')
 ;oplot,wavelength,((bulge_1D+disk_1D)-median(bulge_1D+disk_1D))/10+10,color=cgcolor('red')
@@ -426,22 +440,22 @@ step=sxpar(h0,'CD3_3')
 
 
   if n_comp eq 1110 or n_comp eq 1010 or n_comp eq 1111 then begin
-    for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
+;    for j=9,n_elements(comp3_mag)-5,10 do comp3_mag[j]=0.5*(comp3_mag[j-1]+comp3_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component3_flux.fits',comp3_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',comp3_1D,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
 ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
   if n_comp eq 1111 then begin
-    for j=9,n_elements(comp4_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
+;    for j=9,n_elements(comp4_mag)-5,10 do comp4_mag[j]=0.5*(comp4_mag[j-1]+comp4_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component4_flux.fits',comp4_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/comp4_1D.fits',comp4_1D,h0;extname='FLUX'
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',0,h0
     ;    modfits,root+decomp+decomp_dir+'masked_flux/comp3_1D.fits',1,h_flux,extname='FLUX'
   endif
-  for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
-  for j=9,n_elements(disk_Re)-5,10 do disk_Re[j]=0.5*(disk_Re[j-1]+disk_Re[j+1])
-  for j=9,n_elements(resid_sky_1D)-5,10 do resid_sky_1D[j]=0.5*(resid_sky_1D[j-1]+resid_sky_1D[j+1])
+;  for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+;  for j=9,n_elements(disk_Re)-5,10 do disk_Re[j]=0.5*(disk_Re[j-1]+disk_Re[j+1])
+;  for j=9,n_elements(resid_sky_1D)-5,10 do resid_sky_1D[j]=0.5*(resid_sky_1D[j-1]+resid_sky_1D[j+1])
 
   
   fits_write,root+decomp+decomp_dir+'component1_flux.fits',disk_mag,h0;extname='FLUX'
@@ -455,8 +469,7 @@ step=sxpar(h0,'CD3_3')
 ;  modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',0,h0
 ;  modfits,root+decomp+decomp_dir+'masked_flux/residual_sky_1D.fits',1,h_flux,extname='FLUX'
   if n_comp ge 1100 then begin
-    for j=9,n_elements(bulge_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
-    for j=9,n_elements(bulge_Re)-5,10 do bulge_Re[j]=0.5*(bulge_Re[j-1]+bulge_Re[j+1])
+    ;for j=9,n_elements(bulge_mag)-5,10 do bulge_mag[j]=0.5*(bulge_mag[j-1]+bulge_mag[j+1])
     fits_write,root+decomp+decomp_dir+'component2_flux.fits',bulge_mag,h0;extname='FLUX'
     fits_write,root+decomp+decomp_dir+'masked_flux/component2_1D.fits',bulge_1D,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D.fits',0,h0
@@ -464,7 +477,10 @@ step=sxpar(h0,'CD3_3')
 ;    fits_write,root+decomp+decomp_dir+'masked_flux/comp2_1D_small.fits',bulge_1D_small,h0;extname='FLUX'
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D_small.fits',0,h0
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_1D_small.fits',1,h_flux,extname='FLUX'
-    fits_write,root+decomp+decomp_dir+'masked_flux/component2_Re.fits',bulge_Re,h0;extname='FLUX'
+    if setup.bulge_type eq 'sersic' then begin
+      ;for j=9,n_elements(bulge_Re)-5,10 do bulge_Re[j]=0.5*(bulge_Re[j-1]+bulge_Re[j+1])
+      fits_write,root+decomp+decomp_dir+'masked_flux/component2_Re.fits',bulge_Re,h0;extname='FLUX'
+    endif
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_Re.fits',0,h0
 ;    modfits,root+decomp+decomp_dir+'masked_flux/bulge_Re.fits',1,h_flux,extname='FLUX'
   endif
@@ -698,5 +714,195 @@ if n_comp eq 1111 then al_legend,['Integrated spectrum from datacube','Comp1 + C
   
   ;!p.multi=0
   device,/close
+  
+  
+  
+  
+  
+
+
+
+
+
+  ;now repeat for GCs, if present
+  if keyword_set(GC) then begin
+    ;first, figure out how many components you have to deal with!!!!!
+    ;maybe best idea is to read in the detected_objects_psf file to see how
+    ;many PSF profiles are included there, then loop through after taking
+    ;into account the n_comp
+    readcol,root+decomp+binned_dir+'detected_objects_psf.reg',format='f,f',x_in,y_in,comment='#',/silent
+
+    set_plot,'ps'
+    device,file=root+decomp+decomp_dir+'Spectra_integrated_GC.eps';,/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+    !P.thick=3
+    !p.charthick=3
+    !p.charsize=1.0
+    !p.multi=[0,1,3]
+
+    ;for n=0,n_elements(x_in)-1,1 do begin
+    ;need to create a modified form of the read sersic results I think
+    ;to read in multiple components
+    if n_comp eq 1000 then n1=3  ;n1=first GC component number
+    if n_comp eq 1100 then n1=4
+    if n_comp eq 1110 then n1=5
+    if n_comp eq 1111 then n1=6
+    n2=n_elements(x_in)+n1-1   ;n2=final GC component number
+
+    ;    mag3=fltarr(no_slices)
+    ;    mag4=fltarr(no_slices)
+    ;    mag5=fltarr(no_slices)
+    ;    mag6=fltarr(no_slices)
+    ;    mag7=fltarr(no_slices)
+    ;    mag8=fltarr(no_slices)
+    ;    mag9=fltarr(no_slices)
+    mag=fltarr(npix,n2-n1+1)
+    no_slices=setup.no_slices
+    
+    
+    for m=0,nfiles-1,1 do begin
+      result=file_test(root+decomp+slices_dir+'imgblock_'+string(m,format='(I4.4)')+'_fit.fits')
+      if m ne nfiles-1 then nbands=no_slices else nbands=no_images_final
+      a=m*no_slices
+      b=a+nbands-1
+      if result eq 0 then begin
+
+        for p=a,b,1 do mag[p,k]=0
+      endif else begin
+
+        params=read_sersic_results_n(root+decomp+slices_dir+'imgblock_'+string(m,format='(I4.4)')+'_fit.fits', nband,n1,n2)
+
+        ;read in magnitudes for each GC component and plot
+        ;note- res is an array of structures.
+        for j=n1,n2,1 do begin
+          k=j-n1
+          if n1 eq 3 then mag[a:b,k]=params[k].mag_galfit_band_comp3
+          if n1 eq 4 then mag[a:b,k]=params[k].mag_galfit_band_comp4
+          if n1 eq 5 then mag[a:b,k]=params[k].mag_galfit_band_comp5
+          if n1 eq 6 then mag[a:b,k]=params[k].mag_galfit_band_comp6
+          if n1 eq 7 then mag[a:b,k]=params[k].mag_galfit_band_comp7
+          if n1 eq 8 then mag[a:b,k]=params[k].mag_galfit_band_comp8
+        endfor
+      endelse
+      ;      if n1 le 3 then mag3[a:b]=res.mag_galfit_band_comp3;[1:no_slices]
+      ;      if n1 le 4 and n1 ge 4 then mag4[a:b]=res.mag_galfit_band_comp4;[1:no_slices]
+      ;      if n1 le 5 and n1 ge 5 then mag5[a:b]=res.mag_galfit_band_comp5;[1:no_slices]
+      ;      if n1 le 6 and n1 ge 6 then mag6[a:b]=res.mag_galfit_band_comp6;[1:no_slices]
+      ;      if n1 le 7 and n1 ge 7 then mag7[a:b]=res.mag_galfit_band_comp7;[1:no_slices]
+      ;      if n1 le 8 and n1 ge 8 then mag8[a:b]=res.mag_galfit_band_comp8;[1:no_slices]
+      ;      if n1 le 9 and n1 ge 9 then mag9[a:b]=res.mag_galfit_band_comp9;[1:no_slices]
+
+    endfor
+
+    for k=n1,n2,1 do begin
+      h=k-n1
+      mag_in=mag[*,h]
+      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag_in[j]-8.9)/(-2.5))
+
+      plot,wavelength,mag_in/median(mag_in[0:100]),yrange=[-1,5],$
+        xrange=[start_wavelength-100,end_wavelength+100],$
+        ;        xrange=[start_wavelength-100,5500],$
+        /xstyle,/ystyle,xthick=3,ythick=3,xcharsize=2,ycharsize=2,$;ytickinterval=30,$
+        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+
+    endfor
+
+    mag2=10^((mag-8.9)/(-2.5))
+    for k=1,n_elements(mag[*,0])-1 do mag_in[k]=total(mag2[k,1:*])
+
+    plot,wavelength,mag_in/median(mag_in[0:100]),yrange=[-1,5],$
+      ;      xrange=[start_wavelength-100,5500],$
+      xrange=[start_wavelength-100,end_wavelength+100],$
+      /xstyle,/ystyle,xthick=3,ythick=3,xcharsize=2,ycharsize=2,$;ytickinterval=30,$
+      xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux',title='Summed Spectrum'
+
+    GC_spectra=[[mag2],[mag_in]]
+    fits_write,root+decomp+decomp_dir+'GC_flux.fits',GC_spectra,h0;extname='FLUX'
+
+
+
+    ;    if n1 le 3 then begin
+    ;      mag_in=mag3
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag3[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 4 and n2 ge 4 then begin
+    ;      mag_in=mag4
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag4[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 5 and n2 ge 5 then begin
+    ;      mag_in=mag5
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag5[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 6 and n2 ge 6 then begin
+    ;      mag_in=mag6
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag6[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 7 and n2 ge 7 then begin
+    ;      mag_in=mag7
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag7[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 8 and n2 ge 8 then begin
+    ;      mag_in=mag8
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag8[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+    ;
+    ;    if n1 le 9 and n2 ge 9 then begin
+    ;      mag_in=mag9
+    ;      for j=0,n_elements(mag_in)-1,1 do mag_in[j]=10^((mag9[j]-8.9)/(-2.5))
+    ;
+    ;      plot,wavelength,mag_in/median(mag_in),yrange=[0,1.8],$
+    ;        xrange=[start_wavelength-100,end_wavelength+100],$
+    ;        /xstyle,/ystyle,xthick=3,ythick=3,$;ytickinterval=30,$
+    ;        xtitle='Wavelength ('+cgSymbol("angstrom")+')',ytitle='Relative Flux';,title=galaxy_ref
+    ;    endif
+
+
+
+    ;for j=9,n_elements(disk_mag)-5,10 do disk_mag[j]=0.5*(disk_mag[j-1]+disk_mag[j+1])
+
+    ;endfor
+
+
+
+    device,/close
+  endif
+
+
+
+
 end
 

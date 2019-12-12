@@ -34,18 +34,18 @@ IF file_test(obj[0]) THEN BEGIN
                                  'pa_galfit_cheb_d', res_cheb.COMP2_PA, 'paerr_galfit_cheb_d', res_cheb.COMP2_PA_ERR, $
                                  'x_galfit_cheb_d', res_cheb.COMP2_XC, 'xerr_galfit_cheb_d', res_cheb.COMP2_XC_ERR, $
                                  'y_galfit_cheb_d', res_cheb.COMP2_YC, 'yerr_galfit_cheb_d', res_cheb.COMP2_YC_ERR, $
-                                 'x_galfit_band_comp3', result.COMP3_XC, 'xerr_galfit_band_comp3',result.COMP3_XC_ERR, $
-                                 'y_galfit_band_comp3', result.COMP3_YC, 'yerr_galfit_band_comp3',result.COMP3_YC_ERR, $
-                                 'mag_galfit_band_comp3', result.COMP3_MAG, 'magerr_galfit_band_comp3',result.COMP3_MAG_ERR, $
-                                 'x_galfit_cheb_comp3', res_cheb.COMP3_XC, 'xerr_galfit_cheb_comp3',res_cheb.COMP3_XC_ERR, $
-                                 'y_galfit_cheb_comp3', res_cheb.COMP3_YC, 'yerr_galfit_cheb_comp3',res_cheb.COMP3_YC_ERR, $
-                                 'mag_galfit_cheb_comp3', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_comp3',res_cheb.COMP3_MAG_ERR, $
-                                 'x_galfit_band_comp4', result.COMP4_XC, 'xerr_galfit_band_comp4',result.COMP4_XC_ERR, $
-                                 'y_galfit_band_comp4', result.COMP4_YC, 'yerr_galfit_band_comp4',result.COMP4_YC_ERR, $
-                                 'mag_galfit_band_comp4', result.COMP4_MAG, 'magerr_galfit_band_comp4',result.COMP4_MAG_ERR, $
-                                 'x_galfit_cheb_comp4', res_cheb.COMP4_XC, 'xerr_galfit_cheb_comp4',res_cheb.COMP4_XC_ERR, $
-                                 'y_galfit_cheb_comp4', res_cheb.COMP4_YC, 'yerr_galfit_cheb_comp4',res_cheb.COMP4_YC_ERR, $
-                                 'mag_galfit_cheb_comp4', res_cheb.COMP4_MAG, 'magerr_galfit_cheb_comp4',res_cheb.COMP4_MAG_ERR, $
+                                 'x_galfit_band_b', result.COMP3_XC, 'xerr_galfit_band_b',result.COMP3_XC_ERR, $
+                                 'y_galfit_band_b', result.COMP3_YC, 'yerr_galfit_band_b',result.COMP3_YC_ERR, $
+                                 'mag_galfit_band_b', result.COMP3_MAG, 'magerr_galfit_band_b',result.COMP3_MAG_ERR, $
+                                 'x_galfit_cheb_b', res_cheb.COMP3_XC, 'xerr_galfit_cheb_b',res_cheb.COMP3_XC_ERR, $
+                                 'y_galfit_cheb_b', res_cheb.COMP3_YC, 'yerr_galfit_cheb_b',res_cheb.COMP3_YC_ERR, $
+                                 'mag_galfit_cheb_b', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_b',res_cheb.COMP3_MAG_ERR, $
+                                 'x_galfit_band_comp3', result.COMP4_XC, 'xerr_galfit_band_comp3',result.COMP4_XC_ERR, $
+                                 'y_galfit_band_comp3', result.COMP4_YC, 'yerr_galfit_band_comp3',result.COMP4_YC_ERR, $
+                                 'mag_galfit_band_comp3', result.COMP4_MAG, 'magerr_galfit_band_comp3',result.COMP4_MAG_ERR, $
+                                 'x_galfit_cheb_comp3', res_cheb.COMP4_XC, 'xerr_galfit_cheb_comp3',res_cheb.COMP4_XC_ERR, $
+                                 'y_galfit_cheb_comp3', res_cheb.COMP4_YC, 'yerr_galfit_cheb_comp3',res_cheb.COMP4_YC_ERR, $
+                                 'mag_galfit_cheb_comp3', res_cheb.COMP4_MAG, 'magerr_galfit_cheb_comp3',res_cheb.COMP4_MAG_ERR, $
                                  'sky_galfit_cheb', res_cheb.COMP1_SKY, $
                                  'initfile', strtrim(fit_info.initfile,2), $
                                  'constrnt', strtrim(fit_info.constrnt,2), $
@@ -78,10 +78,10 @@ IF file_test(obj[0]) THEN BEGIN
                                  'x_galfit_d', result[0].COMP2_XC, 'xerr_galfit_d', result[0].COMP2_XC_ERR, $
                                  'y_galfit_d', result[0].COMP2_YC, 'yerr_galfit_d', result[0].COMP2_YC_ERR, $
                                  'mag_galfit_b', result[0].COMP3_MAG, 'magerr_galfit_b',result[0].COMP3_MAG_ERR, $
-                                 're_galfit_b', result[0].COMP3_RE, 'reerr_galfit_b', result[0].COMP3_RE_ERR, $
-                                 'n_galfit_b', result[0].COMP3_N, 'nerr_galfit_b' ,result[0].COMP3_N_ERR, $
-                                 'q_galfit_b', result[0].COMP3_AR, 'qerr_galfit_b', result[0].COMP3_AR_ERR, $
-                                 'pa_galfit_b', result[0].COMP3_PA, 'paerr_galfit_b', result[0].COMP3_PA_ERR, $
+;                                 're_galfit_b', result[0].COMP3_RE, 'reerr_galfit_b', result[0].COMP3_RE_ERR, $
+;                                 'n_galfit_b', result[0].COMP3_N, 'nerr_galfit_b' ,result[0].COMP3_N_ERR, $
+;                                 'q_galfit_b', result[0].COMP3_AR, 'qerr_galfit_b', result[0].COMP3_AR_ERR, $
+;                                 'pa_galfit_b', result[0].COMP3_PA, 'paerr_galfit_b', result[0].COMP3_PA_ERR, $
                                  'x_galfit_b', result[0].COMP3_XC, 'xerr_galfit_b', result[0].COMP3_XC_ERR, $
                                  'y_galfit_b', result[0].COMP3_YC, 'yerr_galfit_b', result[0].COMP3_YC_ERR, $
                                  'psf_galfit', strtrim(band_info[0].psf,2), 'sky_galfit', result[0].COMP1_SKY, $
@@ -93,42 +93,42 @@ IF file_test(obj[0]) THEN BEGIN
                                  'x_galfit_band_d', result.COMP2_XC, 'xerr_galfit_band_d', result.COMP2_XC_ERR, $
                                  'y_galfit_band_d', result.COMP2_YC, 'yerr_galfit_band_d', result.COMP2_YC_ERR, $
                                  'mag_galfit_band_b', result.COMP3_MAG, 'magerr_galfit_band_b',result.COMP3_MAG_ERR, $
-                                 're_galfit_band_b', result.COMP3_RE, 'reerr_galfit_band_b', result.COMP3_RE_ERR, $
-                                 'n_galfit_band_b', result.COMP3_N, 'nerr_galfit_band_b' ,result.COMP3_N_ERR, $
-                                 'q_galfit_band_b', result.COMP3_AR, 'qerr_galfit_band_b', result.COMP3_AR_ERR, $
-                                 'pa_galfit_band_b', result.COMP3_PA, 'paerr_galfit_band_b', result.COMP3_PA_ERR, $
-                                 'boxy_galfit_band_b', result.COMP3_C0, 'boxyerr_galfit_band_b', result.COMP3_C0_ERR, $
+;                                 're_galfit_band_b', result.COMP3_RE, 'reerr_galfit_band_b', result.COMP3_RE_ERR, $
+;                                 'n_galfit_band_b', result.COMP3_N, 'nerr_galfit_band_b' ,result.COMP3_N_ERR, $
+;                                 'q_galfit_band_b', result.COMP3_AR, 'qerr_galfit_band_b', result.COMP3_AR_ERR, $
+;                                 'pa_galfit_band_b', result.COMP3_PA, 'paerr_galfit_band_b', result.COMP3_PA_ERR, $
+;                                 'boxy_galfit_band_b', result.COMP3_C0, 'boxyerr_galfit_band_b', result.COMP3_C0_ERR, $
                                  'x_galfit_band_b', result.COMP3_XC, 'xerr_galfit_band_b', result.COMP3_XC_ERR, $
                                  'y_galfit_band_b', result.COMP3_YC, 'yerr_galfit_band_b', result.COMP3_YC_ERR, $
                                  'sky_galfit_band', result.COMP1_SKY, $
 ;                                 'mag_galfit_band_psf', result.COMP4_MAG, 'magerr_galfit_band_psf',result.COMP3_MAG_ERR, $
+;                                 'x_galfit_band_b', result.COMP4_XC, 'xerr_galfit_band_b',result.COMP4_XC_ERR, $
+;                                 'y_galfit_band_b', result.COMP4_YC, 'yerr_galfit_band_b',result.COMP4_YC_ERR, $
+;                                 'mag_galfit_band_b', result.COMP3_MAG, 'magerr_galfit_band_b',result.COMP3_MAG_ERR, $
                                  'x_galfit_band_comp3', result.COMP4_XC, 'xerr_galfit_band_comp3',result.COMP4_XC_ERR, $
                                  'y_galfit_band_comp3', result.COMP4_YC, 'yerr_galfit_band_comp3',result.COMP4_YC_ERR, $
                                  'mag_galfit_band_comp3', result.COMP4_MAG, 'magerr_galfit_band_comp3',result.COMP4_MAG_ERR, $
-                                 'x_galfit_band_comp4', result.COMP5_XC, 'xerr_galfit_band_comp4',result.COMP5_XC_ERR, $
-                                 'y_galfit_band_comp4', result.COMP5_YC, 'yerr_galfit_band_comp4',result.COMP5_YC_ERR, $
-                                 'mag_galfit_band_comp4', result.COMP5_MAG, 'magerr_galfit_band_comp4',result.COMP5_MAG_ERR, $
                                  'mag_galfit_cheb_d', res_cheb.COMP2_MAG, 'magerr_galfit_cheb_d',res_cheb.COMP2_MAG_ERR, $
-                                 're_galfit_cheb_d', res_cheb.COMP2_RE, 'reerr_galfit_cheb_d', res_cheb.COMP2_RE_ERR, $
-                                 'n_galfit_cheb_d', res_cheb.COMP2_N, 'nerr_galfit_cheb_d' ,res_cheb.COMP2_N_ERR, $
-                                 'q_galfit_cheb_d', res_cheb.COMP2_AR, 'qerr_galfit_cheb_d', res_cheb.COMP2_AR_ERR, $
-                                 'pa_galfit_cheb_d', res_cheb.COMP2_PA, 'paerr_galfit_cheb_d', res_cheb.COMP2_PA_ERR, $
+;                                 're_galfit_cheb_d', res_cheb.COMP2_RE, 'reerr_galfit_cheb_d', res_cheb.COMP2_RE_ERR, $
+;                                 'n_galfit_cheb_d', res_cheb.COMP2_N, 'nerr_galfit_cheb_d' ,res_cheb.COMP2_N_ERR, $
+;                                 'q_galfit_cheb_d', res_cheb.COMP2_AR, 'qerr_galfit_cheb_d', res_cheb.COMP2_AR_ERR, $
+;                                 'pa_galfit_cheb_d', res_cheb.COMP2_PA, 'paerr_galfit_cheb_d', res_cheb.COMP2_PA_ERR, $
                                  'x_galfit_cheb_d', res_cheb.COMP2_XC, 'xerr_galfit_cheb_d', res_cheb.COMP2_XC_ERR, $
                                  'y_galfit_cheb_d', res_cheb.COMP2_YC, 'yerr_galfit_cheb_d', res_cheb.COMP2_YC_ERR, $
                                  'mag_galfit_cheb_b', res_cheb.COMP3_MAG, 'magerr_galfit_cheb_b',res_cheb.COMP3_MAG_ERR, $
-                                 're_galfit_cheb_b', res_cheb.COMP3_RE, 'reerr_galfit_cheb_b', res_cheb.COMP3_RE_ERR, $
-                                 'n_galfit_cheb_b', res_cheb.COMP3_N, 'nerr_galfit_cheb_b' ,res_cheb.COMP3_N_ERR, $
-                                 'q_galfit_cheb_b', res_cheb.COMP3_AR, 'qerr_galfit_cheb_b', res_cheb.COMP3_AR_ERR, $
-                                 'pa_galfit_cheb_b', res_cheb.COMP3_PA, 'paerr_galfit_cheb_b', res_cheb.COMP3_PA_ERR, $
-                                 'boxy_galfit_cheb_b', res_cheb.COMP3_C0, 'boxyerr_galfit_cheb_b', res_cheb.COMP3_C0_ERR, $
+;                                 're_galfit_cheb_b', res_cheb.COMP3_RE, 'reerr_galfit_cheb_b', res_cheb.COMP3_RE_ERR, $
+;                                 'n_galfit_cheb_b', res_cheb.COMP3_N, 'nerr_galfit_cheb_b' ,res_cheb.COMP3_N_ERR, $
+;                                 'q_galfit_cheb_b', res_cheb.COMP3_AR, 'qerr_galfit_cheb_b', res_cheb.COMP3_AR_ERR, $
+;                                 'pa_galfit_cheb_b', res_cheb.COMP3_PA, 'paerr_galfit_cheb_b', res_cheb.COMP3_PA_ERR, $
+;                                 'boxy_galfit_cheb_b', res_cheb.COMP3_C0, 'boxyerr_galfit_cheb_b', res_cheb.COMP3_C0_ERR, $
                                  'x_galfit_cheb_b', res_cheb.COMP3_XC, 'xerr_galfit_cheb_b', res_cheb.COMP3_XC_ERR, $
                                  'y_galfit_cheb_b', res_cheb.COMP3_YC, 'yerr_galfit_cheb_b', res_cheb.COMP3_YC_ERR, $
+;                                 'x_galfit_cheb_b', res_cheb.COMP4_XC, 'xerr_galfit_cheb_b',res_cheb.COMP4_XC_ERR, $
+;                                 'y_galfit_cheb_b', res_cheb.COMP4_YC, 'yerr_galfit_cheb_b',res_cheb.COMP4_YC_ERR, $
+;                                 'mag_galfit_cheb_b', res_cheb.COMP4_MAG, 'magerr_galfit_cheb_b',res_cheb.COMP4_MAG_ERR, $
                                  'x_galfit_cheb_comp3', res_cheb.COMP4_XC, 'xerr_galfit_cheb_comp3',res_cheb.COMP4_XC_ERR, $
                                  'y_galfit_cheb_comp3', res_cheb.COMP4_YC, 'yerr_galfit_cheb_comp3',res_cheb.COMP4_YC_ERR, $
                                  'mag_galfit_cheb_comp3', res_cheb.COMP4_MAG, 'magerr_galfit_cheb_comp3',res_cheb.COMP4_MAG_ERR, $
-                                 'x_galfit_cheb_comp4', res_cheb.COMP5_XC, 'xerr_galfit_cheb_comp4',res_cheb.COMP5_XC_ERR, $
-                                 'y_galfit_cheb_comp4', res_cheb.COMP5_YC, 'yerr_galfit_cheb_comp4',res_cheb.COMP5_YC_ERR, $
-                                 'mag_galfit_cheb_comp4', res_cheb.COMP5_MAG, 'magerr_galfit_cheb_comp4',res_cheb.COMP5_MAG_ERR, $
                                  'sky_galfit_cheb', res_cheb.COMP1_SKY, $
                                  'initfile_bd', strtrim(fit_info.initfile,2), $
                                  'constrnt_bd', strtrim(fit_info.constrnt,2), $
@@ -172,12 +172,12 @@ ENDIF ELSE BEGIN
                                  'pa_galfit_band', fltarr(nband), 'paerr_galfit_band', fltarr(nband)+99999., $
                                  'x_galfit_band', fltarr(nband), 'xerr_galfit_band', fltarr(nband)+99999., $
                                  'y_galfit_band', fltarr(nband), 'yerr_galfit_band', fltarr(nband)+99999., $ 
-                                 'x_galfit_band_comp4', fltarr(nband), 'xerr_galfit_band_comp4', fltarr(nband)+99999., $
-                                 'y_galfit_band_comp4', fltarr(nband), 'yerr_galfit_band_comp4', fltarr(nband)+99999., $ 
-                                 'mag_galfit_band_comp4', fltarr(nband), 'magerr_galfit_band_comp4', fltarr(nband)+99999., $ 
                                  'x_galfit_band_comp3', fltarr(nband), 'xerr_galfit_band_comp3', fltarr(nband)+99999., $
                                  'y_galfit_band_comp3', fltarr(nband), 'yerr_galfit_band_comp3', fltarr(nband)+99999., $ 
                                  'mag_galfit_band_comp3', fltarr(nband), 'magerr_galfit_band_comp3', fltarr(nband)+99999., $ 
+                                 'x_galfit_band_b', fltarr(nband), 'xerr_galfit_band_b', fltarr(nband)+99999., $
+                                 'y_galfit_band_b', fltarr(nband), 'yerr_galfit_band_b', fltarr(nband)+99999., $ 
+                                 'mag_galfit_band_b', fltarr(nband), 'magerr_galfit_band_b', fltarr(nband)+99999., $ 
                                  'sky_galfit_band', fltarr(nband)-999., $
                                  'mag_galfit_cheb', fltarr(nband)-999., 'magerr_galfit_cheb',fltarr(nband)+99999., $
                                  're_galfit_cheb', fltarr(nband)-99., 'reerr_galfit_cheb', fltarr(nband)+99999., $
@@ -186,12 +186,12 @@ ENDIF ELSE BEGIN
                                  'pa_galfit_cheb', fltarr(nband), 'paerr_galfit_cheb', fltarr(nband)+99999., $
                                  'x_galfit_cheb', fltarr(nband), 'xerr_galfit_cheb', fltarr(nband)+99999., $
                                  'y_galfit_cheb', fltarr(nband), 'yerr_galfit_cheb', fltarr(nband)+99999., $
-                                 'x_galfit_cheb_comp4', fltarr(ncheb), 'xerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $
-                                 'y_galfit_cheb_comp4', fltarr(ncheb), 'yerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $ 
-                                 'mag_galfit_cheb_comp4', fltarr(ncheb), 'magerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $ 
                                  'x_galfit_cheb_comp3', fltarr(ncheb), 'xerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $
                                  'y_galfit_cheb_comp3', fltarr(ncheb), 'yerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $ 
                                  'mag_galfit_cheb_comp3', fltarr(ncheb), 'magerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $ 
+                                 'x_galfit_cheb_b', fltarr(ncheb), 'xerr_galfit_cheb_b', fltarr(ncheb)+99999., $
+                                 'y_galfit_cheb_b', fltarr(ncheb), 'yerr_galfit_cheb_b', fltarr(ncheb)+99999., $ 
+                                 'mag_galfit_cheb_b', fltarr(ncheb), 'magerr_galfit_cheb_b', fltarr(ncheb)+99999., $ 
                                  'sky_galfit_cheb', fltarr(nband)-999., $
                                  'initfile_bd', ' ', $
                                  'constrnt_bd', ' ', $
@@ -244,16 +244,16 @@ ENDIF ELSE BEGIN
                                  'x_galfit_band_b', fltarr(nband), 'xerr_galfit_band_b', fltarr(nband)+99999., $
                                  'y_galfit_band_b', fltarr(nband), 'yerr_galfit_band_b', fltarr(nband)+99999., $ 
                                  'sky_galfit_band', fltarr(nband)-999., $
-                                 'x_galfit_band_comp4', fltarr(nband), 'xerr_galfit_band_comp4', fltarr(nband)+99999., $
-                                 'y_galfit_band_comp4', fltarr(nband), 'yerr_galfit_band_comp4', fltarr(nband)+99999., $ 
-                                 'mag_galfit_band_comp4', fltarr(nband), 'magerr_galfit_band_comp4', fltarr(nband)+99999., $ 
                                  'x_galfit_band_comp3', fltarr(nband), 'xerr_galfit_band_comp3', fltarr(nband)+99999., $
                                  'y_galfit_band_comp3', fltarr(nband), 'yerr_galfit_band_comp3', fltarr(nband)+99999., $ 
                                  'mag_galfit_band_comp3', fltarr(nband), 'magerr_galfit_band_comp3', fltarr(nband)+99999., $ 
-                                 're_galfit_band_comp3', fltarr(nband)-99., 'reerr_galfit_band_comp3', fltarr(nband)+99999., $
-                                 'n_galfit_band_comp3', fltarr(nband)-99., 'nerr_galfit_band_comp3' ,fltarr(nband)+99999., $
-                                 'q_galfit_band_comp3', fltarr(nband)-99., 'qerr_galfit_band_comp3', fltarr(nband)+99999., $
-                                 'pa_galfit_band_comp3', fltarr(nband), 'paerr_galfit_band_comp3', fltarr(nband)+99999., $
+                                 'x_galfit_band_b', fltarr(nband), 'xerr_galfit_band_b', fltarr(nband)+99999., $
+                                 'y_galfit_band_b', fltarr(nband), 'yerr_galfit_band_b', fltarr(nband)+99999., $ 
+                                 'mag_galfit_band_b', fltarr(nband), 'magerr_galfit_band_b', fltarr(nband)+99999., $ 
+                                 're_galfit_band_b', fltarr(nband)-99., 'reerr_galfit_band_b', fltarr(nband)+99999., $
+                                 'n_galfit_band_b', fltarr(nband)-99., 'nerr_galfit_band_b' ,fltarr(nband)+99999., $
+                                 'q_galfit_band_b', fltarr(nband)-99., 'qerr_galfit_band_b', fltarr(nband)+99999., $
+                                 'pa_galfit_band_b', fltarr(nband), 'paerr_galfit_band_b', fltarr(nband)+99999., $
                                  'mag_galfit_cheb_d', fltarr(nband)-999., 'magerr_galfit_cheb_d',fltarr(nband)+99999., $
                                  're_galfit_cheb_d', fltarr(nband)-99., 'reerr_galfit_cheb_d', fltarr(nband)+99999., $
                                  'n_galfit_cheb_d', fltarr(nband)-99., 'nerr_galfit_cheb_d' ,fltarr(nband)+99999., $
@@ -268,16 +268,16 @@ ENDIF ELSE BEGIN
                                  'pa_galfit_cheb_b', fltarr(nband), 'paerr_galfit_cheb_b', fltarr(nband)+99999., $
                                  'x_galfit_cheb_b', fltarr(nband), 'xerr_galfit_cheb_b', fltarr(nband)+99999., $
                                  'y_galfit_cheb_b', fltarr(nband), 'yerr_galfit_cheb_b', fltarr(nband)+99999., $
-                                 'x_galfit_cheb_comp4', fltarr(ncheb), 'xerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $
-                                 'y_galfit_cheb_comp4', fltarr(ncheb), 'yerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $ 
-                                 'mag_galfit_cheb_comp4', fltarr(ncheb), 'magerr_galfit_cheb_comp4', fltarr(ncheb)+99999., $ 
                                  'x_galfit_cheb_comp3', fltarr(ncheb), 'xerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $
                                  'y_galfit_cheb_comp3', fltarr(ncheb), 'yerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $ 
                                  'mag_galfit_cheb_comp3', fltarr(ncheb), 'magerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $ 
-                                 're_galfit_cheb_comp3', fltarr(ncheb)-99., 'reerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $
-                                 'n_galfit_cheb_comp3', fltarr(ncheb)-99., 'nerr_galfit_cheb_comp3' ,fltarr(ncheb)+99999., $
-                                 'q_galfit_cheb_comp3', fltarr(ncheb)-99., 'qerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $
-                                 'pa_galfit_cheb_comp3', fltarr(ncheb), 'paerr_galfit_cheb_comp3', fltarr(ncheb)+99999., $
+                                 'x_galfit_cheb_b', fltarr(ncheb), 'xerr_galfit_cheb_b', fltarr(ncheb)+99999., $
+                                 'y_galfit_cheb_b', fltarr(ncheb), 'yerr_galfit_cheb_b', fltarr(ncheb)+99999., $ 
+                                 'mag_galfit_cheb_b', fltarr(ncheb), 'magerr_galfit_cheb_b', fltarr(ncheb)+99999., $ 
+                                 're_galfit_cheb_b', fltarr(ncheb)-99., 'reerr_galfit_cheb_b', fltarr(ncheb)+99999., $
+                                 'n_galfit_cheb_b', fltarr(ncheb)-99., 'nerr_galfit_cheb_b' ,fltarr(ncheb)+99999., $
+                                 'q_galfit_cheb_b', fltarr(ncheb)-99., 'qerr_galfit_cheb_b', fltarr(ncheb)+99999., $
+                                 'pa_galfit_cheb_b', fltarr(ncheb), 'paerr_galfit_cheb_b', fltarr(ncheb)+99999., $
                                  'sky_galfit_cheb', fltarr(ncheb)-999., $
                                  'initfile_bd', ' ', $
                                  'constrnt_bd', ' ', $

@@ -129,7 +129,7 @@ END
 ;##############################################################
 ;##############################################################
 ;##############################################################
-pro BUDDI,input_file,KEEP_CUBES=keep_cubes
+pro BUDDI,input_file,KEEP_CUBES=keep_cubes,GC=gc
 
 ;***read in necessary information
 ;input_file='IFU_wrapper_input.txt'
@@ -176,7 +176,7 @@ no_slices=setup.no_slices
 n_comp=setup.n_comp
 constraints=setup.constraint
 
-if n_comp lt 1000 then message,'You must have at least one component (F1*)'
+if n_comp lt 1000 then message,'You must have at least one component (parameter F00)'
 
 ;for consistency, change bulge and disk types to all small letters
 if setup.disk_type eq 'Sersic' then setup.disk_type='sersic' 
@@ -305,7 +305,7 @@ if setup.bin_data eq 'y' then begin
   ;========================================================
   ; *** Calculate S/N for each element in the array
   cont_array=datacube[*,*,sample]
-  limit=2           ;only include pixels with S/N above this value in the binning
+  limit=3           ;only include pixels with S/N above this value in the binning
   
   ;mask regions covered by backgorund/foreground object
   xy=[-100,-100]
@@ -413,12 +413,14 @@ endelse
 ; Read in galaxy spectrum.
 ; The spectrum should already be log rebinned.
 ;Start by measuring the kinematics of the central bin
+gas='y'
 
 if setup.measure_kinematics eq 'y' then begin
   print,'############################'
   print,'# Measuring the kienmatics #
   print,'############################'
-
+  
+  
   a=(Redshift+1)*(Redshift+1)
   Velocity=c*((a-1)/(a+1))
   
@@ -426,7 +428,7 @@ if setup.measure_kinematics eq 'y' then begin
   result = FILE_TEST(output+'_kinematics.txt') 
   if result eq 1 then begin
     spawn,'mv '+output+'_kinematics.txt '+output+'_old_kinematics.txt'
-;    spawn,'mv '+output+'_kinematics_gas.txt '+output+'_old_kinematics_gas.txt'
+    if gas eq 'y' then spawn,'mv '+output+'_kinematics_gas.txt '+output+'_old_kinematics_gas.txt'
 ;    spawn,'mv '+output+'_emission_info.txt '+output+'_old_emission_info.txt'
   endif
 
@@ -465,7 +467,7 @@ if setup.measure_kinematics eq 'y' then begin
   if end_wavelength-start_wavelength le stellib_wave2-stellib_wave1 then $
       sample = where(wavelength gt alog10(start_wavelength+10) and wavelength lt alog10(end_wavelength-10)) $
       else sample = where(wavelength gt alog10(stellib_wave1+350) and wavelength lt alog10(stellib_wave2-300)) 
-  sample = where(wavelength gt alog10(4800) and wavelength lt alog10(6000))
+  sample = where(wavelength gt alog10(4800) and wavelength lt alog10(7000))
 ;  sample = where(wavelength gt alog10(4800) and wavelength lt alog10(6700))
 
   galaxy = flux[sample]/median(flux[sample])  ; normalize spectrum to avoid numerical issues
@@ -601,21 +603,51 @@ if setup.measure_kinematics eq 'y' then begin
     start = [Velocity, 2*velScale] ; (km/s), starting guess for [V,sigma]
 
     output=root+kinematics+galaxy_ref
+    
+    
+    if gas eq 'y' then begin
+      start=[[start],[Velocity, velScale]]
+      noise[*]=0.01
+      lamRange_gal = [min(wave), max(wave)]/(1 + Redshift)
+      gas_templates = ppxf_emission_lines(logLam2, lamRange_gal, FWHM_gal, LINE_NAMES=line_names, LINE_WAVE=line_wave)
+      ngas = (size(gas_templates,/DIM))[1] ; number of gas emission line templates
+      templates = [[stars_templates], [gas_templates]]
+      component = [replicate(0,nfiles), replicate(1,ngas)]
+      moments = [2, 2] ; fit (V,sig,h3,h4) for the stars and (V,sig) for the gas
+      degree=4
+      
+      
+    ppxf_v479, templates, galaxy, noise, velScale, start, sol,$
+      GOODPIXELS=goodPixels, MOMENTS=moments, DEGREE=degree, COMPONENT=component,$
+      VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit,MATRIX=matrix,WEIGHTS=weights;,MDEGREE=6, /PLOT
+      
+    endif else begin
+      noise[*]=0.01
+          ppxf, stars_templates, galaxy, noise, velScale, start, sol,$
+              GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
+              VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
 
+    endelse
 
-;;;;Original verison of code, no gas measurements  
-noise[*]=0.01
-    ppxf, stars_templates, galaxy, noise, velScale, start, sol,$
-        GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
-        VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
-
+;;;;;Original verison of code, no gas measurements  
+;noise[*]=0.01
+;    ppxf, stars_templates, galaxy, noise, velScale, start, sol,$
+;        GOODPIXELS=goodPixels, MOMENTS=2, DEGREE=4, $
+;        VSYST=dv, ERROR=error, BIAS=Bias, BESTFIT=bestfit;,MDEGREE=6, /PLOT
+    
     close,50
     openw,50,output+'_kinematics.txt',/APPEND
-      
       
     if run eq 0 then printf,50, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
     printf,50, run,sol[0:5,0], FORMAT='(i5,f10.1,4f10.3,A10)'
     close,50
+
+    if gas eq 'y' then begin
+      openw,51,output+'_kinematics_gas.txt',/APPEND
+      if run eq 0 then printf,51, '#', 'bin','V', 'sigma', 'h3', 'h4', 'h5', 'h6', FORMAT='(8A10)'
+      printf,51, run,sol[0:5,1], FORMAT='(i5,f10.1,4f10.3,A10)'
+      close,51
+   endif
 
     set_plot,'ps'
     !p.multi=0
@@ -817,6 +849,7 @@ if setup.plot_kinematics eq 'y' then begin
   
   ;read in kinematics
   readcol,root+kinematics+galaxy_ref+'_kinematics.txt',format='D,D,D,D,D,X,X',bin_n,vel_in,sigma_in,h3_in,h4_in,comment='#',/SILENT
+  if gas eq 'y' then readcol,root+kinematics+galaxy_ref+'_kinematics_gas.txt',format='D,D,D,D,D,X,X',bin_gas,vel_in_gas,sigma_in_gas,h3_in_gas,h4_in_gas,comment='#',/SILENT
   ;read in positions of each bin on the ccd image
   readcol,root+galaxy_ref+'_bin_centers.txt',format='D,D,D',bin_n_in,xbar,ybar,/silent
   
@@ -848,12 +881,23 @@ kinematics_temp1[2,*]=sigma_in
 kinematics_temp1[3,*]=h3_in
 kinematics_temp1[4,*]=h4_in
 kinematics_temp1[5,*]=radius
-
 sort_by=1   ;use 1 to sort by line-of-sight velocity
 kinematics_temp2=colsort(kinematics_temp1,sort_by)
-
 kinematics_temp3=dblarr(8,n_bins)
 new_central_bin=where(kinematics_temp2[1,*] eq vel_centre)   ;central bin after sorting
+
+if gas eq 'y' then begin
+  kinematics_gas=dblarr(8,n_bins)
+  kinematics_gas[0,*]=bin_gas
+  kinematics_gas[1,*]=vel_in_gas
+  kinematics_gas[2,*]=sigma_in_gas
+  kinematics_gas[3,*]=h3_in_gas
+  kinematics_gas[4,*]=h4_in_gas
+  kinematics_gas[5,*]=radius
+  kinematics_gas2=colsort(kinematics_gas,sort_by)
+  kinematics_gas3=dblarr(8,n_bins)
+endif
+
 
 ;identify any outlying points, and remove from fit
   ;outliers include those values where sigma=sigma_in or sigma_max (=1000)
@@ -866,6 +910,7 @@ for n=0,new_central_bin[0],1 do begin
   if n gt new_central_bin[0]-3 then offset=-3 else offset=3
   if (kinematics_temp2[1,n+offset]-kinematics_temp2[1,n]) lt 300 then begin 
         kinematics_temp3[*,m]=kinematics_temp2[*,n]
+        if gas eq 'y' then kinematics_gas3[*,m]=kinematics_gas2[*,n]
         m+=1
   endif
   if (kinematics_temp2[1,n+offset]-kinematics_temp2[1,n]) ge 300 then begin
@@ -883,6 +928,7 @@ endfor
 for n2=new_central_bin[0]+1,n_bins-1,1 do begin
   if (kinematics_temp2[1,n2]-kinematics_temp2[1,n2-10]) lt 300 then begin 
         kinematics_temp3[*,m]=kinematics_temp2[*,n2]
+        if gas eq 'y' then kinematics_gas3[*,m]=kinematics_gas2[*,n2]
         m+=1
   endif 
   if (kinematics_temp2[1,n2]-kinematics_temp2[1,n2-10]) ge 300 then begin
@@ -947,6 +993,36 @@ velmin=min((kinematics_sorted[1,*]))-50
   
   device,/close
 
+  if gas eq 'y' then begin
+    kinematics_sorted_gas=kinematics_gas3[*,0:count-1]
+    
+    device,file=root+kinematics+galaxy_ref+'_kinematics_gas.eps',xoffset=0,yoffset=0,xsize=18,ysize=13
+    !p.multi=[0,2,2]
+    !p.symsize=0.7
+    ;  -130 for
+    xmin=min((kinematics_sorted_gas[5,*]))-2;5
+    xmax=max((kinematics_sorted_gas[5,*]))+2;5
+    velmax=max((kinematics_sorted_gas[1,*]))+50
+    velmin=min((kinematics_sorted_gas[1,*]))-50
+    ;print,velmin,velmax
+
+    plot,kinematics_sorted_gas[5,*],kinematics_sorted_gas[1,*],psym=sym(1),yrange=[velmin,velmax],ytitle='V!ILOS!N (km/s)',$
+      xtitle='distance (arcsec)',xrange=[xmin,xmax],xmargin=[10,3],ytickformat='(i6)',symsize=0.5,/ystyle,/xstyle
+    ;  oplot,[-100,100],[velocity_NED,velocity_NED],linestyle=1
+    xyouts,-24,(2*y_range)*0.9+vel_centre-y_range,galaxy_ref, charsize=0.7
+    plot,kinematics_sorted_gas[5,*],kinematics_sorted_gas[2,*],psym=sym(1),yrange=[0,max_sigma],ytitle=greek('sigma')+' (km/s)',$
+      xtitle='distance (arcsec)',xrange=[xmin,xmax],xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
+    xyouts,-24,0.9*(max_sigma),galaxy_ref, charsize=0.7
+
+    plot,kinematics_sorted_gas[5,*],kinematics_sorted_gas[3,*],psym=sym(1),xrange=[xmin,xmax],yrange=[-0.3,0.3],ytitle='h!I3!N',$
+      xtitle='distance (arcsec)',xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
+    xyouts,-24,0.9*0.6-0.3,galaxy_ref, charsize=0.7
+    plot,kinematics_sorted_gas[5,*],kinematics_sorted_gas[4,*],psym=sym(1),xrange=[xmin,xmax],yrange=[-0.3,0.3],ytitle='h!I4!N',$
+      xtitle='distance (arcsec)',xmargin=[10,3],/ystyle,/xstyle,symsize=0.5
+    xyouts,-24,0.9*0.6-0.3,galaxy_ref, charsize=0.7
+
+    device,/close
+  endif
 
 ; *** Plot kinematics maps
 ; need to first create new kinematics arrays for each pixel
@@ -958,6 +1034,9 @@ velmin=min((kinematics_sorted[1,*]))-50
   x_new=dblarr(n_elements(x_in))
   y_new=dblarr(n_elements(x_in))
   m=double(0.)
+
+  vel_new_gas=dblarr(n_elements(x_in))
+  sigma_new_gas=dblarr(n_elements(x_in))
 
   ;make array for whole image, and assign velocity values to each pixel
   for n=0,n_elements(x_in)-1,1 do begin 
@@ -972,12 +1051,19 @@ velmin=min((kinematics_sorted[1,*]))-50
       x_new[m]=x_in[n]*x_scale
       y_new[m]=y_in[n]*y_scale
       ;if vel_new[m] gt 100 then print,n,m,vel_new[m]
+      
+      if gas eq 'y' then begin
+        vel_new_gas[m]=kinematics_sorted_gas[1,new_element]-vel_centre
+        sigma_new_gas[m]=kinematics_sorted_gas[2,new_element]
+       
+      endif
       m+=1
     endif 
     ;if n eq 28541 then stop
   endfor
 
   count=double(where(sigma_new ne 0 and sigma_new ne 1000,countx))
+;  count=double(where(sigma_new ne 0 and sigma_new lt 200 and abs(vel_new) lt 20,countx))
 ;  count=double(where(x_new gt -5 and x_new lt 5 and y_new gt -5 and y_new lt 5,countx))
 ;  count1=where(sigma_new[0:65500] ne 0,countx)
 ;  count2=where(sigma_new[65501:125000] ne 0,countx)
@@ -986,7 +1072,7 @@ velmin=min((kinematics_sorted[1,*]))-50
 ;  for n=0,n_elements(count1)-1,1 do count[n]=count1[n]
 ;  for n=n_elements(count1),n_elements(count1+count2)-1,1 do count[n]=count2[n-n_elements(count1)]
 ;  for n=n_elements(count1+count2),n_elements(count1+count2+count3),1 do count[n]=count2[n-n_elements(count1+count2)]
-  
+  ;print,vel_new[count]
   set_plot,'ps'
   cgloadct,33 
   device,file=root+kinematics+galaxy_ref+'_kinematics_maps.eps',/color,xoffset=0,yoffset=0,xsize=18,ysize=13
@@ -997,7 +1083,7 @@ velmin=min((kinematics_sorted[1,*]))-50
 
     
     bin2d_display_pixels, x_new[count], y_new[count], vel_new[count], pixelSize
-     cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(vel_new),maxrange=max(vel_new),title='V!ILOS!N (km/s)',position=[0.40,0.61,0.42,0.945],format='(i5)'
+     cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(vel_new[count]),maxrange=max(vel_new[count]),title='V!ILOS!N (km/s)',position=[0.40,0.61,0.42,0.945],format='(i5)'
     bin2d_display_pixels, x_new[count], y_new[count], sigma_new[count], pixelSize
      cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(sigma_new[count]),maxrange=max(sigma_new[count]),title=greek('sigma')+' (km/s)',position=[0.93,0.61,0.95,0.945],format='(i5)'
     ;bin2d_display_pixels, x_new[count], y_new[count], h3_new[count], pixelSize
@@ -1007,6 +1093,32 @@ velmin=min((kinematics_sorted[1,*]))-50
     !p.multi=0
 
   device,/close
+
+  
+  
+  if gas eq 'y' then begin
+    device,file=root+kinematics+galaxy_ref+'_kinematics_maps_gas.eps',/color,xoffset=0,yoffset=0,xsize=18,ysize=13
+    !p.multi=[0,2,1]
+    !X.MARGIN=[10,0]
+    pixelSize=x_scale;1
+
+
+    count=double(where(sigma_new ne 0 and sigma_new ne 1000 and vel_new_gas gt -100 and vel_new_gas lt 100,countx))
+
+    bin2d_display_pixels, x_new[count], y_new[count], vel_new_gas[count], pixelSize
+;    cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(vel_new_gas),maxrange=max(vel_new_gas),title='V!ILOS!N (km/s)',position=[0.40,0.61,0.42,0.945],format='(i5)'
+    cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=-50,maxrange=50,title='V!ILOS!N (km/s)',position=[0.40,0.61,0.42,0.945],format='(i5)'
+    bin2d_display_pixels, x_new[count], y_new[count], sigma_new_gas[count], pixelSize
+    cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(sigma_new_gas[count]),maxrange=max(sigma_new_gas[count]),title=greek('sigma')+' (km/s)',position=[0.93,0.61,0.95,0.945],format='(i5)'
+    ;bin2d_display_pixels, x_new[count], y_new[count], h3_new[count], pixelSize
+    ;cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(h3_new),maxrange=max(h3_new),title='h!I3!N',position=[0.37,0.11,0.39,0.445];,format='(f3.1)'
+    ;bin2d_display_pixels, x_new[count], y_new[count], h4_new[count], pixelSize
+    ;cgCOLORBAR, NCOLORS=251,/right,/vertical,charsize=0.8,minrange=min(h4_new),maxrange=max(h4_new),title='h!I4!N',position=[0.87,0.11,0.89,0.445];,format='(f3.1)'
+    !p.multi=0
+
+    device,/close
+  endif
+
   
   device,file=root+kinematics+galaxy_ref+'_kinematics_temp.eps',/color,xoffset=0,yoffset=0,xsize=15,ysize=20
   !p.multi=0;[0,2,2]
@@ -1339,7 +1451,7 @@ if setup.decompose_median_image eq 'y' then begin
   for j=0,x-1,1 do begin
     for k=0,y-1,1 do begin
       if corrected_IFU[j,k,100] eq 0 then mean=0 $
-          else RESISTANT_Mean,corrected_IFU[j,k,info[0]+500:info[1]-500], 3, mean,/SILENT
+          else RESISTANT_Mean,corrected_IFU[j,k,info[0]+100:info[1]-100], 3, mean,/SILENT
       median_image[j,k]=mean
     endfor
   endfor
@@ -1492,7 +1604,7 @@ if setup.decompose_binned_images eq 'y' then begin
       print,'For the starting parameters, do you want to use: '
       print,'  a) results from the input file'
       print,'  b) results from the free binned fit'
-      print,'  c) results from the median fit (not yet incorporated)'
+      print,'  c) results from the median fit'
       print,'  d) Manual Input'
       print,'  q) quit'
       while decision ne 'a' and decision ne 'b' and decision ne 'c' and decision ne 'd' and decision ne 'q' do $
@@ -1532,6 +1644,7 @@ if setup.decompose_binned_images eq 'y' then begin
         
       endif else if decision eq 'c' then begin
         setup=orig_setup
+        setup.median_dir=orig_setup.median_dir
         galfitm_multiband,setup,info,x_centre,$
           y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
           rep,/binned,/header
@@ -1594,7 +1707,7 @@ if setup.decompose_binned_images eq 'y' then begin
       CD,root+decomp+binned_dir
       spawn,'pwd'
       print,'*Now running Galfitm on multi-band images*'
-      
+;      stop
       spawn,galfitm+' galfitm.feedme'
       
       ;save free fits
@@ -1627,14 +1740,26 @@ if setup.decompose_binned_images eq 'y' then begin
         else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
         else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
         
+        else if n_comp eq 1110  and setup.bulge_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
 ;        else if n_comp eq 1010  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
 ;        else if n_comp eq 1010  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+;        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+;        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+
+        else if n_comp eq 1111 and setup.bulge_type eq 'psf' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'psf' then res=read_sersic_results_4psf_p_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'psf' then res=read_sersic_results_4psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' and setup.comp4_type eq 'psf' then res=read_sersic_results_4sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1,boxy=boxy_yn) $
+
+
+;        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=1) $
         else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
         else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
         else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock.fits', nband, bd=0) $
@@ -1655,16 +1780,16 @@ if setup.decompose_binned_images eq 'y' then begin
             q_bulge=res.Q_GALFIT_BAND_B
           endif
         endif
-        if n_comp eq 1010 then begin
-          mag_bulge=res.MAG_GALFIT_BAND_COMP3
-          if setup.comp3_type eq 'sersic' then begin
-            Re_bulge=res.RE_GALFIT_BAND_COMP3
-            n_bulge=res.N_GALFIT_BAND_COMP3
-            pa_bulge=res.PA_GALFIT_BAND_COMP3
-            q_bulge=res.Q_GALFIT_BAND_COMP3
-          endif
-        endif
-        if n_comp gt 1100 and n_comp ne 1101 then begin
+;        if n_comp eq 1010 then begin
+;          mag_bulge=res.MAG_GALFIT_BAND_COMP3
+;          if setup.comp3_type eq 'sersic' then begin
+;            Re_bulge=res.RE_GALFIT_BAND_COMP3
+;            n_bulge=res.N_GALFIT_BAND_COMP3
+;            pa_bulge=res.PA_GALFIT_BAND_COMP3
+;            q_bulge=res.Q_GALFIT_BAND_COMP3
+;          endif
+;        endif
+        if n_comp ge 1110 then begin
           mag_comp3=res.MAG_GALFIT_BAND_COMP3
           if setup.comp3_type eq 'sersic' then begin
             Re_comp3=res.RE_GALFIT_BAND_COMP3
@@ -1695,12 +1820,25 @@ if setup.decompose_binned_images eq 'y' then begin
         else if n_comp eq 1001 and setup.comp4_type eq 'psf' then res=read_sersic_results_3psf(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         else if n_comp eq 1001 and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         
-        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
-        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1110  and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+;        else if n_comp eq 1110  and setup.comp3_type eq 'psf' then res=read_sersic_results_2comp_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+;        else if n_comp eq 1110  and setup.comp3_type eq 'sersic' then res=read_sersic_results_2comp_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+
+
+        else if n_comp eq 1111 and setup.bulge_type eq 'psf' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'psf' then res=read_sersic_results_4psf_p_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'psf' then res=read_sersic_results_4psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'psf' and setup.comp4_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' and setup.comp4_type eq 'psf' then res=read_sersic_results_4sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+        else if n_comp eq 1111 and setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' and setup.comp4_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1,boxy=boxy_yn) $
+
+
+;        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
+;        else if n_comp eq 1111 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3sersic_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=1) $
         else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'psf' then res=read_sersic_results_3psf_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         else if n_comp eq 1011 and setup.comp4_type eq 'psf' and setup.comp3_type eq 'sersic' then res=read_sersic_results_3psf_s(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
         else if n_comp eq 1011 and setup.comp4_type eq 'sersic' and setup.comp3_type eq 'psf' then res=read_sersic_results_3sersic_p(root+decomp+binned_dir+'imgblock_free.fits', nband, bd=0) $
@@ -1721,16 +1859,16 @@ if setup.decompose_binned_images eq 'y' then begin
             q_bulge1=res.Q_GALFIT_BAND_B
           endif 
         endif
-        if n_comp eq 1010 then begin
-          mag_bulge1=res.MAG_GALFIT_BAND_COMP3
-          if setup.comp3_type eq 'sersic' then begin
-            Re_bulge1=res.RE_GALFIT_BAND_COMP3
-            n_bulge1=res.N_GALFIT_BAND_COMP3
-            pa_bulge1=res.PA_GALFIT_BAND_COMP3
-            q_bulge1=res.Q_GALFIT_BAND_COMP3
-          endif
-        endif
-       if n_comp gt 1100 and n_comp ne 1101 then begin
+;        if n_comp eq 1010 then begin
+;          mag_bulge1=res.MAG_GALFIT_BAND_COMP3
+;          if setup.comp3_type eq 'sersic' then begin
+;            Re_bulge1=res.RE_GALFIT_BAND_COMP3
+;            n_bulge1=res.N_GALFIT_BAND_COMP3
+;            pa_bulge1=res.PA_GALFIT_BAND_COMP3
+;            q_bulge1=res.Q_GALFIT_BAND_COMP3
+;          endif
+;        endif
+       if n_comp ge 1110 then begin
           mag_comp3_1=res.MAG_GALFIT_BAND_COMP3          
           if setup.comp3_type eq 'sersic' then begin
             Re_comp3_1=res.RE_GALFIT_BAND_COMP3
@@ -1765,8 +1903,8 @@ if setup.decompose_binned_images eq 'y' then begin
         wave_short[xxx]=sxpar(h_temp,'WAVELENG')
       endfor
       
-      if n_comp eq 1110 or n_comp eq 1101 then number=3  $
-        else if n_comp eq 1100 or n_comp eq 1010 then number=2 $
+      if n_comp eq 1110 then number=3  $
+        else if n_comp eq 1100 then number=2 $
         else if n_comp eq 1000 then number=1 $
         else if n_comp eq 1111 then number=4
       multiplot, [number,5],  mXtitle='Wavelength ('+cgSymbol("angstrom")+')'
@@ -1774,7 +1912,7 @@ if setup.decompose_binned_images eq 'y' then begin
     
       x1=3500
       x2=10500
-      if n_comp ge 1100 then begin
+      if n_comp eq 1100 then begin
         mag_max=max([mag_bulge1[1:-2],mag_disk1[1:-2]])+1.5
         mag_min=min([mag_bulge1[1:-2],mag_disk1[1:-2]])-1.5
         if setup.bulge_type eq 'sersic' then begin
@@ -1789,13 +1927,52 @@ if setup.decompose_binned_images eq 'y' then begin
           PA_max=max(pa_disk1[1:-2])+10
         endelse
       endif else if n_comp ge 1110 then begin
-          mag_max=max([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3[1:-2]])+1.5
-          mag_min=min([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3[1:-2]])-1.5
-          if setup.bulge_type eq 'sersic' then begin
-            Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2],Re_comp3[1:-2]])+4
-            n_max=max([n_bulge1[1:-2],n_disk1[1:-2],n_comp3[1:-2]])+1
-            PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3[1:-2]])-10
-            PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3[1:-2]])+10
+          mag_max=max([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3_1[1:-2]])+1.5
+          mag_min=min([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3_1[1:-2]])-1.5
+          if setup.bulge_type eq 'sersic' and  setup.comp3_type eq 'sersic' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2],Re_comp3_1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_disk1[1:-2],n_comp3_1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3_1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3_1[1:-2]])+10
+          endif
+          if setup.bulge_type eq 'sersic' and  setup.comp3_type eq 'psf' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_disk1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10
+          endif
+          if setup.bulge_type eq 'psf' and  setup.comp3_type eq 'sersic' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_comp3_1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_comp3_1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_comp3_1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_comp3_1[1:-2]])+10
+          endif
+          if setup.bulge_type eq 'psf' and  setup.comp3_type eq 'psf' then begin
+            Re_max=max(Re_disk1[1:-2])+4
+            n_max=max(n_disk1[1:-2])+1
+            PA_min=min(pa_disk1[1:-2])-10
+            PA_max=max(pa_disk1[1:-2])+10
+          endif
+      endif else if n_comp eq 1111 then begin
+          mag_max=max([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3_1[1:-2],mag_comp4_1[1:-2]])+1.5
+          mag_min=min([mag_bulge1[1:-2],mag_disk1[1:-2],mag_comp3_1[1:-2],mag_comp4_1[1:-2]])-1.5
+          if setup.bulge_type eq 'sersic' and setup.comp3_type eq 'sersic' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2],Re_comp3_1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_disk1[1:-2],n_comp3_1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3_1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2],pa_comp3_1[1:-2]])+10
+          endif
+          if setup.bulge_type eq 'sersic'  and setup.comp3_type eq 'psf' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_disk1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_disk1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_disk1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_disk1[1:-2]])+10
+          endif
+          if setup.bulge_type eq 'psf'  and setup.comp3_type eq 'sersic' then begin
+            Re_max=max([Re_bulge1[1:-2],Re_comp3_1[1:-2]])+4
+            n_max=max([n_bulge1[1:-2],n_comp3_1[1:-2]])+1
+            PA_min=min([pa_bulge1[1:-2],pa_comp3_1[1:-2]])-10
+            PA_max=max([pa_bulge1[1:-2],pa_comp3_1[1:-2]])+10
           endif
       endif else begin
         mag_max=max(mag_disk1[1:-2])+1.5
@@ -1856,7 +2033,7 @@ if setup.decompose_binned_images eq 'y' then begin
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize
         if rep gt 1 then oplot,wave_short,Re_comp3,linestyle=0
         multiplot
-      endif else if n_comp ge 1110 and setup.bulge_type eq 'psf' then multiplot; $
+      endif else if n_comp ge 1110 and setup.comp3_type eq 'psf' then multiplot; $
        ;else if n_comp eq 1110 and setup.comp3_type eq 'psf' then multiplot
       if n_comp eq 1111 and setup.comp4_type eq 'sersic' then begin
          plot,wave_short,Re_comp4_1,yrange=[0,Re_max],xrange=[x1,x2],$
@@ -1873,7 +2050,7 @@ if setup.decompose_binned_images eq 'y' then begin
       multiplot
       if n_comp ge 1100 and setup.bulge_type eq 'sersic' then begin
         plot,wave_short,n_bulge1,yrange=[0,n_max],xrange=[x1,x2],$
-          /xstyle,/ystyle,psym=sym(1),$
+          /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,$
           ytickinterval=1
          if rep gt 1 then oplot,wave_short,n_bulge,linestyle=0
          multiplot
@@ -1883,7 +2060,7 @@ if setup.decompose_binned_images eq 'y' then begin
           /xstyle,/ystyle,psym=sym(1),symsize=symbolsize,ytickinterval=1
         if rep gt 1 then oplot,wave_short,n_comp3,linestyle=0
         multiplot
-      endif else if n_comp eq 1110 and setup.comp3_type eq 'psf' then multiplot ;$
+      endif else if n_comp ge 1110 and setup.comp3_type eq 'psf' then multiplot ;$
 ;       else if n_comp eq 1110 and setup.comp3_type eq 'psf' then multiplot
       if n_comp eq 1111 and setup.comp4_type eq 'sersic' then begin
          plot,wave_short,n_comp4_1,yrange=[0,n_max],xrange=[x1,x2],$
@@ -1904,7 +2081,7 @@ if setup.decompose_binned_images eq 'y' then begin
          if rep gt 1 then oplot,wave_short,pa_bulge,linestyle=0
          multiplot
        endif else if n_comp ge 1100 and setup.bulge_type eq 'psf' then multiplot
-       if n_comp gt 1110 and setup.comp3_type eq 'sersic' then begin
+       if n_comp ge 1110 and setup.comp3_type eq 'sersic' then begin
          plot,wave_short,pa_comp3_1,yrange=[PA_min,PA_max],xrange=[x1,x2],$
            /xstyle,/ystyle,ytickinterval=20,psym=sym(1),symsize=symbolsize
          if rep gt 1 then oplot,wave_short,pa_comp3,linestyle=0
@@ -1982,6 +2159,56 @@ endif
 
 
 
+;add GC positions if the user requests them
+if setup.add_GCs eq 'y' and keyword_set(GC) then begin
+  ;read in residual images from previous binned fit, stack them and
+  ;ask user to identify the GCs they want to include in the fit.
+  ;Then create Galfitm start file using best result from previous fit.
+  ;**note- will use galfit.0X with maximum number
+
+  sextractor_executable = setup.sextractor_executable
+  sextractor_setup = root+decomp+binned_dir+setup.sextractor_setup
+  ds9_executable = setup.ds9_executable
+
+  ;detect_and_add, galfit_fits_output, new_output_filename, name_add, nostop=nostop
+  ;.run /home/ejohnsto/GitHub/BUDDI-GC/detect_and_add.pro
+  detect_and_add, root+decomp+binned_dir+'imgblock.fits', 'imgblock_GC.fits', 'GCinput'$
+    ,setup.sextractor_executable,setup.sextractor_setup,setup.ds9_executable
+
+
+  ;Run the new fit with the GCs
+  ; find the latest galfit restart file
+  ; find all matching galfit.??.band files and select newest
+
+  spawn, 'ls '+strmid(root+decomp+binned_dir+'imgblock.fits',0,strpos(root+decomp+binned_dir+'imgblock.fits','.fits'))+'.galfit.*', list
+
+  ;; throw away all the files ending in 'band' or 'output'
+  list = list[where(strmid(list,4,/reverse_offset) NE '.band')]
+  list = list[where(strmid(list,6,/reverse_offset) NE '_output')]
+  list = list[where(strmid(list,5,/reverse_offset,4) EQ 'fit.')]
+
+  list2 = list
+  ; isolate counting number
+  FOR i=0,n_elements(list)-1 DO list2[i] = strmid(list[i],strpos(list[i],'.',/reverse_search)+1)
+
+  list2 = fix(list2)
+  ; select latest file (file with highest number)
+  wh = where(list2 EQ max(list2))
+  obj = list[wh]
+  new_name = obj+'_GCinput'
+
+  ;Need to repeat the binned fits again, but without letting
+  ;the user modify the values etc.
+  cd,root+decomp+binned_dir,current=current_dir
+  spawn,galfitm+' '+obj+'_GCinput'
+  cd,current_dir
+endif
+
+
+
+
+
+
 
 ;4a. Read in the imgblock for the binned images to get chebychev polynomials.
 ;4b. Prepare galfitm readme file and run galfitm with all free parameters
@@ -1993,22 +2220,33 @@ if setup.decompose_image_slices eq 'y' then begin
 
   output=root+decomp
   comp3_poly=[comp3_re_polynomial,comp3_mag_polynomial,comp3_n_polynomial]
-  galfitm_multiband,setup,info,x_centre,$
+;  galfitm_multiband,setup,info,x_centre,$
+;    y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+;    1,/slices
+
+  if keyword_set(GC) then galfitm_multiband,setup,info,x_centre,$
+    y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
+    1,/slices,/GC $
+  else galfitm_multiband,setup,info,x_centre,$
     y_centre,scale,estimates_bulge,estimates_disk,estimates_comp3,estimates_comp4, $
     1,/slices
 
 
-  result = FILE_TEST(root+decomp+slices_dir+'galfit.*') 
-  if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
+
+  result = FILE_TEST(root+decomp+slices_dir+'*galfit.01*') 
+;  if result eq 1 then spawn,'rm '+root+decomp+slices_dir+'galfit.*'
   
   
   CD,root+decomp+slices_dir;decomp+median_dir
   
   spawn,'pwd'
   print,'*Now running Galfitm on image_slices*'
-  spawn,'rm *galfit.01*'
-  spawn,'chmod a+x run_galfitm.sh'
+  if result eq 1 then begin
+    spawn,'mkdir old_fits'
+    spawn,'mv *galfit.01* old_fits/'
+  endif
   
+  spawn,'chmod a+x run_galfitm.sh'
   spawn,'./run_galfitm.sh'
   
   CD,root
@@ -2029,6 +2267,7 @@ if setup.create_subcomps eq 'y' then begin
   spawn,'pwd'
   print,'*Now running Galfitm -o3 to get subcomps*'
   spawn,'chmod a+x run_subcomps.sh'
+  
   spawn,'./run_subcomps.sh'
   
   CD,root
@@ -2042,24 +2281,32 @@ if setup.visualise_results eq 'y' then begin
   print,'###################'
 
   fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  if keyword_set(keep_cubes) then datacube_creator,setup,info,wavelength,$
+
+  datacube_creator,setup,info,wavelength,$
     original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-    residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,/MANGA,/KEEP_CUBES $
-  else datacube_creator,setup,info,wavelength,$
-    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
-    residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,/MANGA 
+    residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,/MANGA,/KEEP_CUBES
 
   ;fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',corrected_IFU, header_IFU
-  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
+;  result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
+;    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+;    residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,/MANGA
+
+    
+  if keyword_set(GC) then result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
+    original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
+    residual_sky_datacube,bulge_datacube,comp3_datacube,/MANGA,/GC $
+  else result_visualiser,setup,info,start_wavelength,end_wavelength,wavelength,$
     original_datacube,bestfit_datacube,residual_datacube,disk_datacube,$
     residual_sky_datacube,bulge_datacube,comp3_datacube,comp4_datacube,/MANGA
+
+
   
  ;  result_visualiser_2,root,decomp,galaxy_ref,slices_dir,info,x_centre,y_centre,start_wavelength,end_wavelength,wavelength,Redshift,n_comp,comp3_type,comp4_type,comp4_x,comp4_y,no_slices,MANGA=manga,CALIFA=califa
 
   
   delvarx,datacube
   delvarx,original_datacube,bestfit_datacube,residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,comp3_datacube
-  if keyword_set(~keep_cubes) then spawn,'rm '+root+decomp+decomp_dir+'component1_flux.fits'
+;  if keyword_set(~keep_cubes) then spawn,'rm '+root+decomp+decomp_dir+'component1_flux.fits'
 endif
 
 

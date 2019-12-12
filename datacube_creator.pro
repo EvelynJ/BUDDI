@@ -30,7 +30,6 @@ end_wavelength=info[5]
 total_images=final_image-first_image+1
 x1=(total_images mod no_slices)     ;total number of images in the last feedme file
 
-
 ;fits_read,root+kinematics+file+'_counts.fits',temp_input,h
 fits_read,root+decomp+galaxy_ref+'_smoothed_FLUX.fits',temp_input,h
 side1=sxpar(h,'NAXIS1')
@@ -82,8 +81,9 @@ if galfit_or_galfitm eq 'galfitm' then begin
             fits_read,subcomps,sky_in,header_in,EXTNAME='COMPONENT_1_sky _'+string(m,format='(I3.3)')
             residual_sky_datacube[*,*,j]=sky_in
 
-            if n_comp ge 1100 then begin
-              fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
+            if n_comp ge 1100  then begin
+              if setup.bulge_type eq 'sersic' then fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)') $
+                else fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)') 
               bulge_datacube[*,*,j]=bulge_in 
 
             endif
@@ -115,8 +115,8 @@ if galfit_or_galfitm eq 'galfitm' then begin
 
             endif
               
-              
-               
+
+               ;print,n,nfiles,m,no_images
             fits_read,imgblock,original_in,header_in,EXTNAME='INPUT_'+string(m,format='(I3.3)')
             fits_read,imgblock,bestfit_in,header_in,EXTNAME='MODEL_'+string(m,format='(I3.3)')
             fits_read,imgblock,residuals_in,header_in,EXTNAME='RESIDUAL_'+string(m,format='(I3.3)')
@@ -263,12 +263,12 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       if n eq nfiles-1 then z=x1 else z=no_images
       
       fits_open,root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'.fits',imgblock
-      print,'loop, run ',n
+      ;print,'loop, run ',n
       
       for m=a,z,1 do begin
   ;    ;For best fit and residuals, need to read in batches of 50, after 
   ;    ;the first 50, which are blank.
-  ;    
+
         fits_read,imgblock,original_in,header_in,EXTNAME='INPUT_'+string(m,format='(I3.3)')
         fits_read,imgblock,bestfit_in,header_in,EXTNAME='MODEL_'+string(m,format='(I3.3)')
         fits_read,imgblock,residuals_in,header_in,EXTNAME='RESIDUAL_'+string(m,format='(I3.3)')
@@ -281,7 +281,7 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       fits_close,imgblock
       
   endfor
-  
+
   fits_Read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempy,h_temp
 ;  h_temp = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
   wavelength0=sxpar(h_temp,'WAVELENG')
@@ -304,9 +304,9 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       if n eq nfiles-1 then z=x1 else z=no_images
       
       fits_open,root+decomp+slices_dir+'models/subcomps_'+string(n+first_image,format='(I4.4)')+'.fits',sub_comps
-      print,'loop2, run ',n
+      ;print,'loop2, run ',n
       
-      
+
       fits_read,sub_comps,disk_in,header_in,EXTEN_NO=2;EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
       disk_datacube[*,*,n]=disk_in
       if n_comp eq 110 or n_comp eq 111 then begin

@@ -779,6 +779,7 @@ if n_elements(moments1) eq 1 then $
     moments = replicate(moments1,ncomp) $ ; all LOSVD have the same number of G-H moments
 else $
     moments = moments1
+;print,n_elements(moments),ncomp
 if n_elements(moments) ne ncomp then $
     message, 'MOMENTS must be an array of length NCOMP'
 absmom = abs(moments)
