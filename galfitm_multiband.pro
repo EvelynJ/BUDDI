@@ -684,7 +684,7 @@ if keyword_set(binned) then begin
         endif
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
-          printf, 60, 'C0) '+boxy+'         1      # traditional diskyness(-)/boxyness(+)'
+          printf, 60, 'C0) '+boxy+'         1    band   # traditional diskyness(-)/boxyness(+)'
         ;printf, 60, 'C0) 1.2         1      # traditional diskyness(-)/boxyness(+)'
     
         printf, 60, ' '
@@ -696,9 +696,9 @@ if keyword_set(binned) then begin
       if n_comp ge 1110  then begin
         
         printf, 60, ' 0) '+comp3_type+'                # object type'
-        printf, 60, ' 1) '+x_comp3+'   1   #  position x, y'
-        printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2)+'       # total magnitude   '  
+        printf, 60, ' 1) '+x_comp3+'   1  band  #  position x, y'
+        printf, 60, ' 2) '+y_comp3+'   1  band  #  position x, y'
+        printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2)+'    band    # total magnitude   '  
         if comp3_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp3+'   '+string(comp3_re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp3+'    '+string(comp3_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -714,9 +714,9 @@ if keyword_set(binned) then begin
   
       if n_comp eq 1111then begin
         printf, 60, ' 0) '+comp4_type+'                # object type'
-        printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
-        printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
-        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2)+'       # total magnitude   '  
+        printf, 60, ' 1) '+x_comp4+'   1  band  #  position x, y'
+        printf, 60, ' 2) '+y_comp4+'   1   band #  position x, y'
+        printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2)+'    band    # total magnitude   '  
         if comp4_type eq 'sersic' then begin
           printf, 60, ' 4) '+Re_comp4+'    '+string(comp4_Re_polynomial,format='(I2)')+' band  #  R_e (half-light radius)   [pix]'
           printf, 60, ' 5) '+n_comp4+'              '+string(comp4_n_polynomial,format='(I2)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
@@ -830,12 +830,14 @@ if keyword_set(binned) then begin
       printf, 60, ' 2) '+y_D+'   1 band  #  position x, y'
       printf, 60, ' 3) '+mag_D+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
   ;   k_n_polynomial=0
-      if disk_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-      if disk_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
-      printf, 60, ' 4) '+Re_D+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+n_D+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+Q_D+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+PA_D+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+      if disk_Re_polynomial eq 0 then a=0 else a=no_bins-2
+      if disk_n_polynomial eq 0 then b=0 else b=no_bins-2
+      if disk_pa_polynomial eq 0 then c=0 else c=no_bins-2
+      if disk_q_polynomial eq 0 then d=0 else d=no_bins-2
+      printf, 60, ' 4) '+Re_D+'   '+string(a,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+n_D+'             '+string(b,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 9) '+Q_D+'        '+string(c,format='(I3)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+PA_D+'   '+string(d,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
      
@@ -850,13 +852,15 @@ if keyword_set(binned) then begin
         printf, 60, ' 1) '+x_B+'   1 band  #  position x, y'
         printf, 60, ' 2) '+y_B+'   1 band  #  position x, y'
         printf, 60, ' 3) '+mag_B+'        '+string(no_bins-2,format='(I3)')+' band  #  Integrated magnitude' 
-        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
         if bulge_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_B+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_B+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_B+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_B+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+          if bulge_Re_polynomial eq 0 then a=0 else a=no_bins-2
+          if bulge_n_polynomial eq 0 then b=0 else b=no_bins-2
+          if bulge_pa_polynomial eq 0 then c=0 else c=no_bins-2
+          if bulge_q_polynomial eq 0 then d=0 else d=no_bins-2
+          printf, 60, ' 4) '+Re_B+'   '+string(a,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_B+'             '+string(b,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_B+'        '+string(c,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_B+'   '+string(d,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
         if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' or setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D'then $
@@ -875,12 +879,14 @@ if keyword_set(binned) then begin
         printf, 60, ' 2) '+y_comp3+'   1   #  position x, y'
         printf, 60, ' 3) '+mag_comp3+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
         if comp3_type eq 'sersic' then begin
-          if comp3_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-          if comp3_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
-          printf, 60, ' 4) '+Re_comp3+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp3+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp3+'        '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp3+'   '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+          if comp3_Re_polynomial eq 0 then a=0 else a=no_bins-2
+          if comp3_n_polynomial eq 0 then b=0 else b=no_bins-2
+          if comp3_pa_polynomial eq 0 then c=0 else c=no_bins-2
+          if comp3_q_polynomial eq 0 then d=0 else d=no_bins-2
+          printf, 60, ' 4) '+Re_comp3+'   '+string(a,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp3+'             '+string(b,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp3+'        '+string(c,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp3+'   '+string(d,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '
@@ -893,13 +899,15 @@ if keyword_set(binned) then begin
         printf, 60, ' 1) '+x_comp4+'   1   #  position x, y'
         printf, 60, ' 2) '+y_comp4+'   1   #  position x, y'
         printf, 60, ' 3) '+mag_comp4+'       '+string(no_bins-2,format='(I3)')+'       # total magnitude   '  
-        if bulge_n_polynomial eq 0 then xx=0 else xx=no_bins-2
-        if bulge_Re_polynomial eq 0 then yy=0 else yy=no_bins-2
         if comp4_type eq 'sersic' then begin
-          printf, 60, ' 4) '+Re_comp4+'   '+string(yy,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
-          printf, 60, ' 5) '+n_comp4+'             '+string(xx,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-          printf, 60, ' 9) '+q_comp4+'         '+string(no_bins-2,format='(I3)')+' band  #  axis ratio (b/a)  '
-          printf, 60, '10) '+pa_comp4+'    '+string(no_bins-2,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
+          if comp4_Re_polynomial eq 0 then a=0 else a=no_bins-2
+          if comp4_n_polynomial eq 0 then b=0 else b=no_bins-2
+          if comp4_pa_polynomial eq 0 then c=0 else c=no_bins-2
+          if comp4_q_polynomial eq 0 then d=0 else d=no_bins-2
+          printf, 60, ' 4) '+Re_comp4+'   '+string(a,format='(I3)')+' band  #  R_e (half-light radius)   [pix]'
+          printf, 60, ' 5) '+n_comp4+'             '+string(b,format='(I3)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+          printf, 60, ' 9) '+q_comp4+'         '+string(c,format='(I3)')+' band  #  axis ratio (b/a)  '
+          printf, 60, '10) '+pa_comp4+'    '+string(d,format='(I3)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
         endif
         printf, 60, ' Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
         printf, 60, ' '

@@ -5,7 +5,6 @@ pro datacube_creator,setup,info,wavelength,original_datacube,bestfit_datacube,$
   residual_datacube,disk_datacube,residual_sky_datacube,bulge_datacube,$
   comp3_datacube,comp4_datacube,MANGA=manga,CALIFA=califa,KEEP_CUBES=keep_cubes
 
-
   root=setup.root
   decomp=setup.decomp
   decomp_dir=setup.decomp_dir
@@ -27,7 +26,10 @@ start_wavelength=info[4]
 end_wavelength=info[5]
 ;no_images=no_slices
 
-total_images=final_image-first_image+1
+temp= file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles)
+total_images=(nfiles-1)*no_slices
+
+;total_images=final_image-first_image+1
 x1=(total_images mod no_slices)     ;total number of images in the last feedme file
 
 ;fits_read,root+kinematics+file+'_counts.fits',temp_input,h
@@ -59,75 +61,64 @@ if galfit_or_galfitm eq 'galfitm' then begin
   result_subcomps = file_search(root+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles_subcomps)
   result_feedme = file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles_feedme)
 ;  result = file_search(root+decomp+slices_dir+'subcomps*.fits',COUNT=nfiles1)
-  
+
   nfiles=nfiles_feedme
   for n=0,nfiles-1,1 do begin
       ;For bulge and disc, read in the fits file, the try to select every 
       ;third image (change when I include the PSF fit) after the first
       ;50 to go into the bulge or disc arrays. 
       tempy=file_search(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits',COUNT=nfiles_subcomps)
-      result=file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
-      
-      if result eq 1 then begin
+      result =file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(i4.4)')+'.fits')
+      result2=file_test(root+decomp+slices_dir+'imgblock_'+string(n,format='(i4.4)')+'_fit.fits')
+;print,n,root+decomp+slices_dir+'imgblock_'+string(n,format='(i4.4)')+'.fits',result,result2
+     
+      if result eq 1 and result2 eq 1 then begin
         fits_open,root+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits',subcomps
         fits_open,root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'_fit.fits',imgblock
         if n ne nfiles-1 then no_images=no_slices else no_images=x1
         if no_images gt 1 then begin
           for m=0,no_images-1,1 do begin
-            fits_read,subcomps,disk_in,header_in,EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
+            fits_read,subcomps,disk_in,header_in,EXTNAME='COMPONENT_2_sersic_'+string(m,format='(I3.3)')
             disk_datacube[*,*,j]=disk_in
 
-
-            fits_read,subcomps,sky_in,header_in,EXTNAME='COMPONENT_1_sky _'+string(m,format='(I3.3)')
+            fits_read,subcomps,sky_in,header_in,EXTNAME='COMPONENT_1_sky_'+string(m,format='(I3.3)')
             residual_sky_datacube[*,*,j]=sky_in
 
             if n_comp ge 1100  then begin
-              if setup.bulge_type eq 'sersic' then fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)') $
-                else fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)') 
+              if setup.bulge_type eq 'sersic' then fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_sersic_'+string(m,format='(I3.3)') $
+                else fits_read,subcomps,bulge_in,header_in,EXTNAME='COMPONENT_3_psf_'+string(m,format='(I3.3)') 
               bulge_datacube[*,*,j]=bulge_in 
-
+              
             endif
-          
-          
+
             if  n_comp eq 1110 or n_comp eq 1111 then begin
               if comp3_type eq 'sersic' then begin
-;                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
-                if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_sersic _'+string(m,format='(I3.3)')
+                if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_sersic_'+string(m,format='(I3.3)')
               endif else begin
-;                if n_comp eq 1010 or n_comp eq 1011 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
-                if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
+                if n_comp eq 1110 or n_comp eq 1111 then fits_read,subcomps,comp3_in,header_in,EXTNAME='COMPONENT_4_psf_'+string(m,format='(I3.3)')
               endelse
               comp3_datacube[*,*,j]=comp3_in
 
             endif
-          
+
+
             if n_comp eq 1111 then begin
               if comp4_type eq 'sersic' then begin
-;                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
-;                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_sersic _'+string(m,format='(I3.3)')
-                if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_sersic _'+string(m,format='(I3.3)')
+                if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_sersic_'+string(m,format='(I3.3)')
               endif else begin
-;                if n_comp eq 1001 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_3_psf _'+string(m,format='(I3.3)')
-;                if n_comp eq 1101 or n_comp eq 1011 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_4_psf _'+string(m,format='(I3.3)')
-                if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_psf _'+string(m,format='(I3.3)')
+                if n_comp eq 1111 then fits_read,subcomps,comp4_in,header_in,EXTNAME='COMPONENT_5_psf_'+string(m,format='(I3.3)')
               endelse  
               comp4_datacube[*,*,j]=comp4_in
 
             endif
-              
 
-               ;print,n,nfiles,m,no_images
             fits_read,imgblock,original_in,header_in,EXTNAME='INPUT_'+string(m,format='(I3.3)')
             fits_read,imgblock,bestfit_in,header_in,EXTNAME='MODEL_'+string(m,format='(I3.3)')
             fits_read,imgblock,residuals_in,header_in,EXTNAME='RESIDUAL_'+string(m,format='(I3.3)')
             
             original_datacube[*,*,j]=original_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
             bestfit_datacube[*,*,j]=bestfit_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
-            residual_datacube[*,*,j]=residuals_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]
-            
-
-            
-            
+            residual_datacube[*,*,j]=residuals_in;[*,*,a+(n*tot_images)-1:z+(n*tot_images)-1]            
             
 ;            if n ne 0 and m eq 0 then begin
 ;;              original_datacube[*,*,j-1]=0.5*(original_datacube[*,*,j-2]+original_datacube[*,*,j])
@@ -163,7 +154,8 @@ if galfit_or_galfitm eq 'galfitm' then begin
         
       endelse 
   endfor
-  
+
+
   h_temp=headfits(root+file+'.fits')
   h_tempy = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
 ;  fits_read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempycrap,h
@@ -264,7 +256,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       
       fits_open,root+decomp+slices_dir+'imgblock_'+string(n,format='(I4.4)')+'.fits',imgblock
       ;print,'loop, run ',n
-      
+
+
       for m=a,z,1 do begin
   ;    ;For best fit and residuals, need to read in batches of 50, after 
   ;    ;the first 50, which are blank.
@@ -282,7 +275,8 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       
   endfor
 
-  fits_Read,root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits',tempy,h_temp
+  fits_Read,root+decomp+slices_dir+'imgblock_0000_fit.fits',tempy,h_temp,EXTNAME='INPUT_000'
+;  h_temp= headfits(root+decomp+slices_dir+'imgblock_000_fit.fits',EXTEN=1);EXTNAME='INPUT_000')
 ;  h_temp = headfits(root+decomp+slices_dir+'image_'+string(first_image,format='(I4.4)')+'.fits')
   wavelength0=sxpar(h_temp,'WAVELENG')
   sxaddpar,h,'CRVAL3',alog10(wavelength0)
@@ -307,10 +301,11 @@ endif else if galfit_or_galfitm eq 'galfit' then begin
       ;print,'loop2, run ',n
       
 
-      fits_read,sub_comps,disk_in,header_in,EXTEN_NO=2;EXTNAME='COMPONENT_2_sersic _'+string(m,format='(I3.3)')
+
+      fits_read,sub_comps,disk_in,header_in,EXTEN_NO=2;EXTNAME='COMPONENT_2_sersic_'+string(m,format='(I3.3)')
       disk_datacube[*,*,n]=disk_in
       if n_comp eq 110 or n_comp eq 111 then begin
-        fits_read,sub_comps,bulge_in,header_in,EXTEN_NO=3;EXTNAME='COMPONENT_3_sersic _'+string(m,format='(I3.3)')
+        fits_read,sub_comps,bulge_in,header_in,EXTEN_NO=3;EXTNAME='COMPONENT_3_sersic_'+string(m,format='(I3.3)')
         bulge_datacube[*,*,n]=bulge_in
       endif
         

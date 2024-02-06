@@ -291,9 +291,19 @@ if keyword_set(galaxy) then begin
 ;      modfits,directory+decomp+slices_dir+sigma_name+string(n,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
      endif
     
+    index = WHERE(spec_in[*,*,n] EQ 0)
+;    s = SIZE(spec_in[*,*,n])
+;    ncol = s(1)
+;    col = index MOD ncol
+;    row = index / ncol
+;    badpix_in[col,row,n]=max(badpix_in[*,*,n])
+    badpix_slice=badpix_in[*,*,n]
+    new_val=max(badpix_slice)
+    badpix_slice[index]=new_val
+    badpix_in[*,*,n]=badpix_slice
     sxaddpar,h_bp,'Wavelength',10^(wavelength_arr[n])
     sxaddpar,h_bp,'CRVAL3',wavelength_arr[n]
-    fits_write,directory+decomp+slices_dir+'badpix/'+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_in[*,*,n],hdr0
+    fits_write,directory+decomp+slices_dir+'badpix/'+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_slice,hdr0
 ;      fits_write,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',badpix_in[*,*,n],extname='BADPIX'
 ;      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',0,h_temp
 ;      modfits,directory+decomp+slices_dir+badpix_name+string(n,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
@@ -400,13 +410,13 @@ if keyword_set(galaxy) then begin
         for y=0,side2-1,1 do begin
             ;binned_image[x,y]=total(image[x,y,*])
             
-            RESISTANT_Mean,image[x,y,*],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
+            RESISTANT_Mean,image[x,y,*],3,mean_temp;,/SILENT     ;don't include pixels with values >3sigma from mean
             binned_image[x,y]=mean_temp
             
             if sigma_TF eq 'T' then begin
               temp_val=where(finite(sig[x,y,*]))
               if n_elements(temp_val) eq 1 then temp_val=[0,1,2]
-              if n_elements(temp_val) gt 1 then RESISTANT_Mean,sig[x,y,temp_val],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
+              if n_elements(temp_val) gt 1 then RESISTANT_Mean,sig[x,y,temp_val],3,mean_temp;,/SILENT     ;don't include pixels with values >3sigma from mean
               binned_sigma[x,y]=mean_temp
             endif
             
@@ -416,10 +426,13 @@ if keyword_set(galaxy) then begin
 ;            if total(bp[x,y,*]) gt val then mean_temp=1 else mean_temp=0
 ;            if run eq 3 then stop
 
-            NaN=where(image[150,150,*] eq 0)
-            if n_elements(NaN) gt 1 then val=n_elements(NaN)+3 else val=3
-            val=b-a-3;3
-            if total(bp[x,y,*]) gt val then mean_temp=1 else mean_temp=0
+;            NaN=where(image[setup.x_centre,setup.y_centre,*] eq 0)
+;            if n_elements(NaN) gt 1 then val=n_elements(NaN)+3 else val=3
+            val=b-a-5;3
+            ;if total(bp[x,y,*]) gt val then mean_temp=1 else mean_temp=0
+
+            temp=where(bp[x,y,*] gt 0)
+            if n_elements(temp) gt val then mean_temp=1 else mean_temp=0
             ;if binned_image[x,y] gt 0 then mean_temp=1 else mean_temp=0
             binned_badpix[x,y]=mean_temp
         endfor
@@ -444,8 +457,17 @@ if keyword_set(galaxy) then begin
 ;        modfits,directory+decomp+binned_dir+sigma_name+string(run+1,format='(i4.4)')+'.fits',1,h_sig,extname='SIGMA'
       endif
       
+      index = WHERE(binned_image EQ 0)
+;      s = SIZE(binned_image)
+;      ncol = s(1)
+;      col = index MOD ncol
+;      row = index / ncol
+      badpix_slice=binned_badpix
+      new_val=max(binned_badpix)
+      badpix_slice[index]=new_val
+      ;binned_badpix[col,row]=max(binned_badpix)
       sxaddpar,h_bp,'Wavelength',wavelength
-      fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,hdr0
+      fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', badpix_slice,hdr0
 ;        fits_write,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits', binned_badpix,extname='BADPIX'
 ;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',0,h_temp
 ;        modfits,directory+decomp+binned_dir+badpix_name+string(run+1,format='(i4.4)')+'.fits',1,h_bp,extname='BADPIX'
@@ -518,7 +540,7 @@ sxaddpar,h_bp,'Wavelength',wavelength
 
 for x=0,side1-1,1 do begin
   for y=0,side2-1,1 do begin
-    RESISTANT_Mean,spec_in[x,y,first_image+50:final_image-50],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
+    RESISTANT_Mean,spec_in[x,y,first_image+50:final_image-50],3,mean_temp;,/SILENT     ;don't include pixels with values >3sigma from mean
     binned_image[x,y]=mean_temp
   endfor
 endfor
@@ -528,26 +550,41 @@ fits_write,directory+decomp+median_dir+'image.fits', binned_image,hdr0;,extname=
 ;fits_write,directory+decomp+median_dir+'image.fits', binned_image,extname='FLUX'
 ;modfits,directory+decomp+median_dir+'image.fits',0,h_temp
 ;modfits,directory+decomp+median_dir+'image.fits',1,h_flux,extname='FLUX'
-
-
+  
+  s=size(binned_image)
+  binned_badpix=fltarr(s[1],s[2])
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
-      NaN=where(badpix_in[150,150,first_image+50:final_image-50] eq 1)
+      ;NaN=where(badpix_in[40,40,first_image+50:final_image-50] eq 1)
       
       ;if total(badpix_in[x,y,first_image+50:final_image-50]) gt n_elements(NaN)+2 then mean_temp=1 else mean_temp=0
-      val=(final_image-50)-(first_image+50)-10
-      if total(badpix_in[x,y,first_image+50:final_image-50]) gt val then mean_temp=1 else mean_temp=0
+      val=(final_image-50)-(first_image+50)-100
+      temp=where(badpix_in[x,y,first_image+50:final_image-50] gt 0)
+      if n_elements(temp) gt val then mean_temp=1 else mean_temp=0
+      ;stop
+      ;if total(badpix_in[x,y,first_image+50:final_image-50]) gt val then mean_temp=1 else mean_temp=0
       binned_badpix[x,y]=mean_temp
     endfor
   endfor
-  fits_write,directory+decomp+median_dir+'badpix.fits', binned_badpix,hdr0;,extname='BADPIX'
+  ;need to mask out 0-value pixels. Particularly a problem with MaNGA data for some reason.
+  index = WHERE(binned_image EQ 0)
+;  s = SIZE(binned_image)
+;  ncol = s(1)
+;  col = index MOD ncol
+;  row = index / ncol
+;  binned_badpix[col,row]=max(binned_badpix)
+  badpix_slice=binned_badpix
+  new_val=max(binned_badpix)
+  badpix_slice[index]=new_val
+
+  fits_write,directory+decomp+median_dir+'badpix.fits', badpix_slice,hdr0;,extname='BADPIX'
   ;fits_write,directory+decomp+median_dir+'badpix.fits', binned_badpix,extname='BADPIX'
   ;modfits,directory+decomp+median_dir+'badpix.fits',0,h_temp
   ;modfits,directory+decomp+median_dir+'badpix.fits',1,h_bp,extname='BADPIX'
 if sigma_TF eq 'T' then begin
   for x=0,side1-1,1 do begin
     for y=0,side2-1,1 do begin
-      RESISTANT_Mean,sigma_in[x,y,first_image:final_image],3,mean_temp,/SILENT     ;don't include pixels with values >3sigma from mean
+      RESISTANT_Mean,sigma_in[x,y,first_image:final_image],3,mean_temp;,/SILENT     ;don't include pixels with values >3sigma from mean
       binned_sigma[x,y]=mean_temp
     endfor
   endfor

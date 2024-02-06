@@ -136,9 +136,11 @@ endelse
 ;  wavelength_log=alog(wavelength)
 ;endif
 
-temp = file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles)
+;temp = file_search(root+decomp+slices_dir+'galfitm_*.feedme',COUNT=nfiles)
+temp= file_search(root+decomp+slices_dir+'imgblock*.fits',COUNT=nfiles)
+;nfiles=(files-1)*no_slices
 
-for n=0,nfiles-1,1 do begin
+for n=0,nfiles-2,1 do begin
   result=file_test(root+decomp+slices_dir+'subcomps_'+string(n,format='(I4.4)')+'.fits')
   if n ne nfiles-1 then nbands=no_slices else nbands=no_images_final   
   a=n*no_slices
@@ -262,7 +264,7 @@ result = FILE_TEST(root+decomp+decomp_dir+'masked_flux/', /DIRECTORY)
 if result eq 0 then file_mkdir,root+decomp+decomp_dir+'masked_flux/'
 
 set_plot,'ps'
-device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated.eps';,/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=2
 !p.charthick=3
 !p.charsize=1.3
@@ -490,7 +492,7 @@ step=sxpar(h0,'CD3_3')
 
 set_plot,'ps'
 ;device,file='/Users/ejohnsto/Dropbox/papers/Paper4/decomposed_spectra_1D.eps',xsize=19.5,ysize=10,/portrait;,/landscape
-device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated_2.eps',/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
+device,file=root+decomp+decomp_dir+'masked_flux/Spectra_integrated_2.eps';,/landscape;,xsize=11,ysize=8,/inches,/color;,/landscape
 !P.thick=3
 !p.charthick=3
 !p.charsize=1.0

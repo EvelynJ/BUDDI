@@ -21,11 +21,11 @@ END
 
 pro model_image
 ;dir1='/raid/ejohnston/double_nucleated/0338/BUDDI/IFU_decomp/'
-;dir1='/raid/ejohnston/FCC306/BUDDI/IFU_decomp/'
+dir1='/raid/ejohnston/FCC211/BUDDI/IFU_decomp_Macarena/'
 ;dir1='/data2/ejohnston/Fornax_new_sample/FCC182/BUDDI/IFU_decomp/'
-dir1='/raid/ejohnston/MUSE_S0s/2MIG1814/IFU_decomp/'
-dir=dir1+'decomposed_data5/'
-binned_dir='binned_images5/'
+;dir1='/raid/ejohnston/MUSE_S0s/CCC137/IFU_decomp/'
+dir=dir1+'decomposed_data/'
+binned_dir='binned_images/'
 
 ncomp=1111
 bulge_type='sersic'

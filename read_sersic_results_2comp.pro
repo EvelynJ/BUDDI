@@ -216,29 +216,29 @@ ENDIF ELSE BEGIN
     for n=0,nband-1 do psf[n]='none'
     
     if not keyword_set(bd) then begin
-        feedback = create_struct('mag_galfit', -999., 'magerr_galfit',99999., $
-                                 're_galfit', -99., 'reerr_galfit', 99999., $
-                                 'n_galfit', -99., 'nerr_galfit' ,99999., $
-                                 'q_galfit', -99., 'qerr_galfit', 99999., $
-                                 'pa_galfit', 0., 'paerr_galfit', 99999., $
-                                 'x_galfit', 0., 'xerr_galfit', 99999., $
-                                 'y_galfit', 0., 'yerr_galfit', 99999., $
+        feedback = create_struct('mag_galfit_d', -999., 'magerr_galfit_d',99999., $
+                                 're_galfit_d', -99., 'reerr_galfit_d', 99999., $
+                                 'n_galfit_d', -99., 'nerr_galfit_d' ,99999., $
+                                 'q_galfit_d', -99., 'qerr_galfit_d', 99999., $
+                                 'pa_galfit_d', 0., 'paerr_galfit_d', 99999., $
+                                 'x_galfit_d', 0., 'xerr_galfit_d', 99999., $
+                                 'y_galfit_d', 0., 'yerr_galfit_d', 99999., $
                                  'psf_galfit', 'none', 'sky_galfit', -999., $
-                                 'mag_galfit_band', fltarr(nband)-999., 'magerr_galfit_band',fltarr(nband)+99999., $
-                                 're_galfit_band', fltarr(nband)-99., 'reerr_galfit_band', fltarr(nband)+99999., $
-                                 'n_galfit_band', fltarr(nband)-99., 'nerr_galfit_band' ,fltarr(nband)+99999., $
-                                 'q_galfit_band', fltarr(nband)-99., 'qerr_galfit_band', fltarr(nband)+99999., $
-                                 'pa_galfit_band', fltarr(nband), 'paerr_galfit_band', fltarr(nband)+99999., $
-                                 'x_galfit_band', fltarr(nband), 'xerr_galfit_band', fltarr(nband)+99999., $
-                                 'y_galfit_band', fltarr(nband), 'yerr_galfit_band', fltarr(nband)+99999., $ 
+                                 'mag_galfit_band_d', fltarr(nband)-999., 'magerr_galfit_band_d',fltarr(nband)+99999., $
+                                 're_galfit_band_d', fltarr(nband)-99., 'reerr_galfit_band_d', fltarr(nband)+99999., $
+                                 'n_galfit_band_d', fltarr(nband)-99., 'nerr_galfit_band_d' ,fltarr(nband)+99999., $
+                                 'q_galfit_band_d', fltarr(nband)-99., 'qerr_galfit_band_d', fltarr(nband)+99999., $
+                                 'pa_galfit_band_d', fltarr(nband), 'paerr_galfit_band_d', fltarr(nband)+99999., $
+                                 'x_galfit_band_d', fltarr(nband), 'xerr_galfit_band_d', fltarr(nband)+99999., $
+                                 'y_galfit_band_d', fltarr(nband), 'yerr_galfit_band_d', fltarr(nband)+99999., $ 
                                  'sky_galfit_band', fltarr(nband)-999., $
-                                 'mag_galfit_cheb', fltarr(nband)-999., 'magerr_galfit_cheb',fltarr(nband)+99999., $
-                                 're_galfit_cheb', fltarr(nband)-99., 'reerr_galfit_cheb', fltarr(nband)+99999., $
-                                 'n_galfit_cheb', fltarr(nband)-99., 'nerr_galfit_cheb' ,fltarr(nband)+99999., $
-                                 'q_galfit_cheb', fltarr(nband)-99., 'qerr_galfit_cheb', fltarr(nband)+99999., $
-                                 'pa_galfit_cheb', fltarr(nband), 'paerr_galfit_cheb', fltarr(nband)+99999., $
-                                 'x_galfit_cheb', fltarr(nband), 'xerr_galfit_cheb', fltarr(nband)+99999., $
-                                 'y_galfit_cheb', fltarr(nband), 'yerr_galfit_cheb', fltarr(nband)+99999., $
+                                 'mag_galfit_cheb_d', fltarr(nband)-999., 'magerr_galfit_cheb_d',fltarr(nband)+99999., $
+                                 're_galfit_cheb_d', fltarr(nband)-99., 'reerr_galfit_cheb_d', fltarr(nband)+99999., $
+                                 'n_galfit_cheb_d', fltarr(nband)-99., 'nerr_galfit_cheb_d' ,fltarr(nband)+99999., $
+                                 'q_galfit_cheb_d', fltarr(nband)-99., 'qerr_galfit_cheb_d', fltarr(nband)+99999., $
+                                 'pa_galfit_cheb_d', fltarr(nband), 'paerr_galfit_cheb_d', fltarr(nband)+99999., $
+                                 'x_galfit_cheb_d', fltarr(nband), 'xerr_galfit_cheb_d', fltarr(nband)+99999., $
+                                 'y_galfit_cheb_d', fltarr(nband), 'yerr_galfit_cheb_d', fltarr(nband)+99999., $
                                  'sky_galfit_cheb', fltarr(nband)-999., $
                                  'initfile_bd', ' ', $
                                  'constrnt_bd', ' ', $

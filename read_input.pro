@@ -52,6 +52,7 @@ PRO read_input, setup_file, setup
                         'PA', 0., $
                         'central_wavelength', 0., $
                         'FWHM_gal',0.,$
+                        'MUSE_mode','',$
                         'wave0', 0., $
                         'step', 0., $
                         'start_wavelength', 0., $
@@ -189,6 +190,7 @@ PRO read_input, setup_file, setup
         'C06)': setup.PA = float(content)
         'C07)': setup.central_wavelength = float(content)
         'C08)': setup.FWHM_gal = float(content)
+        'C09)': setup.MUSE_mode = content
 
         'D00)': setup.wave0 = float(content)
         'D01)': setup.step = float(content)

@@ -26,7 +26,23 @@ pro Galfitm_single_band,setup,info,x,y,$
   bulge_n_poly=setup.bulge_n_polynomial
   stars_file=setup.stars_file
   
-  
+  disk_re_polynomial=setup.disk_re_polynomial
+  disk_q_polynomial=setup.disk_q_polynomial
+  disk_n_polynomial=setup.disk_n_polynomial
+  disk_pa_polynomial=setup.disk_pa_polynomial
+  bulge_re_polynomial=setup.bulge_re_polynomial
+  bulge_q_polynomial=setup.bulge_q_polynomial
+  bulge_n_polynomial=setup.bulge_n_polynomial
+  bulge_pa_polynomial=setup.bulge_pa_polynomial
+  comp3_re_polynomial=setup.comp3_re_polynomial
+  comp3_q_polynomial=setup.comp3_q_polynomial
+  comp3_n_polynomial=setup.comp3_n_polynomial
+  comp3_pa_polynomial=setup.comp3_pa_polynomial
+  comp4_re_polynomial=setup.comp4_re_polynomial
+  comp4_q_polynomial=setup.comp4_q_polynomial
+  comp4_n_polynomial=setup.comp4_n_polynomial
+  comp4_pa_polynomial=setup.comp4_pa_polynomial
+
 
 
 output=root+decomp
@@ -111,16 +127,21 @@ if keyword_set(median) then begin
       printf, 60, ' '
       printf, 60, ' '
       printf, 60, ' '
-       
+      
+      if disk_Re_polynomial gt 0 then a=1 else a=0
+      if disk_n_polynomial gt 0 then b=1 else b=0
+      if disk_q_polynomial gt 0 then c=1 else c=0
+      if disk_PA_polynomial gt 0 then d=1 else d=0
+
       printf, 60, '# Object number: 2'    ;disc
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+string(x_centre)+'   1 band  #  position x'
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_disk[1])+'   1 band  #  Integrated magnitude' 
-      printf, 60, ' 4) '+string(estimates_disk[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+string(estimates_disk[3])+'   '+string(disc_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+string(estimates_disk[4])+'   1 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+string(estimates_disk[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 4) '+string(estimates_disk[2])+'   '+string(a,format='(I1.1)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+string(estimates_disk[3])+'   '+string(b,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 9) '+string(estimates_disk[4])+'   '+string(c,format='(I1.1)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+string(estimates_disk[5])+'   '+string(d,format='(I1.1)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       ;printf, 60, '#C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'
 
@@ -140,17 +161,21 @@ if keyword_set(median) then begin
       printf, 60, ' '
       printf, 60, ' '
        
-  
+      if disk_Re_polynomial gt 0 then a=1 else a=0
+      if disk_n_polynomial gt 0 then b=1 else b=0
+      if disk_q_polynomial gt 0 then c=1 else c=0
+      if disk_PA_polynomial gt 0 then d=1 else d=0
+ 
   
       printf, 60, '# Object number: 2'    ;disc
       printf, 60, ' 0) '+disk_type+'                 #  object type'
       printf, 60, ' 1) '+string(x_centre)+'   1 band  #  position x'
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_disk[1])+'   1 band  #  Integrated magnitude' 
-      printf, 60, ' 4) '+string(estimates_disk[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+string(estimates_disk[3])+'   '+string(disc_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+string(estimates_disk[4])+'   1 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+string(estimates_disk[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 4) '+string(estimates_disk[2])+'   '+string(a,format='(I1.1)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+string(estimates_disk[3])+'   '+string(b,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 9) '+string(estimates_disk[4])+'   '+string(c,format='(I1.1)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+string(estimates_disk[5])+'   '+string(d,format='(I1.1)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
 
       printf, 60, ' '
@@ -159,15 +184,19 @@ if keyword_set(median) then begin
       printf, 60, ' '
        
     if n_comp ge 1100 then begin
+      if bulge_Re_polynomial gt 0 then a=1 else a=0
+      if bulge_n_polynomial gt 0 then b=1 else b=0
+      if bulge_q_polynomial gt 0 then c=1 else c=0
+      if bulge_PA_polynomial gt 0 then d=1 else d=0
       printf, 60, ' # Object number: 3   '    ;bulge
       printf, 60, '   0) '+bulge_type+'                 #  object type'
       printf, 60, ' 1) '+string(x_centre)+'   1 band  #  position x'
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_bulge[1])+'   1 band  #  Integrated magnitude' 
-      printf, 60, ' 4) '+string(estimates_bulge[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-      printf, 60, ' 5) '+string(estimates_bulge[3])+'   '+string(bulge_n_poly,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
-      printf, 60, ' 9) '+string(estimates_bulge[4])+'   1 band  #  axis ratio (b/a)  '
-      printf, 60, '10) '+string(estimates_bulge[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+      printf, 60, ' 4) '+string(estimates_bulge[2])+'   '+string(a,format='(I1.1)')+' band  #  R_e (half-light radius)   [pix]'
+      printf, 60, ' 5) '+string(estimates_bulge[3])+'   '+string(b,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+      printf, 60, ' 9) '+string(estimates_bulge[4])+'   '+string(c,format='(I1.1)')+' band  #  axis ratio (b/a)  '
+      printf, 60, '10) '+string(estimates_bulge[5])+'   '+string(d,format='(I1.1)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       if setup.boxy_disky eq 'b' or setup.boxy_disky eq 'B' then printf, 60, 'C0) 0.1         1      # traditional diskyness(-)/boxyness(+)'  $
       else if setup.boxy_disky eq 'd' or setup.boxy_disky eq 'D' then printf, 60, 'C0) -0.1         1      # traditional diskyness(-)/boxyness(+)'  $
@@ -185,10 +214,14 @@ if keyword_set(median) then begin
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, ' 3) '+string(estimates_comp3[1])+'   1 band  #  Integrated magnitude' 
       if comp3_type eq 'sersic' then begin
-        printf, 60, ' 4) '+string(estimates_comp3[2])+'   1 band  #  R_e (half-light radius)   [pix]'
-        printf, 60, ' 5) '+string(estimates_comp3[3])+'   1 band  #  Sersic index n (de Vaucouleurs n=4) '
-        printf, 60, ' 9) '+string(estimates_comp3[4])+'   1 band  #  axis ratio (b/a)  '
-        printf, 60, '10) '+string(estimates_comp3[5])+'   1 band  #  position angle (PA) [deg: Up=0, Left=90]'
+        if comp3_Re_polynomial gt 0 then a=1 else a=0
+        if comp3_n_polynomial gt 0 then b=1 else b=0
+        if comp3_q_polynomial gt 0 then c=1 else c=0
+        if comp3_PA_polynomial gt 0 then d=1 else d=0
+        printf, 60, ' 4) '+string(estimates_comp3[2])+'   '+string(a,format='(I1.1)')+' band  #  R_e (half-light radius)   [pix]'
+        printf, 60, ' 5) '+string(estimates_comp3[3])+'   '+string(b,format='(I1.1)')+' band  #  Sersic index n (de Vaucouleurs n=4) '
+        printf, 60, ' 9) '+string(estimates_comp3[4])+'   '+string(c,format='(I1.1)')+' band  #  axis ratio (b/a)  '
+        printf, 60, '10) '+string(estimates_comp3[5])+'   '+string(d,format='(I1.1)')+' band  #  position angle (PA) [deg: Up=0, Left=90]'
       endif 
       printf, 60, ' Z) 0                      #  output option (0 = resid., 1 = Dont subtract)' 
       printf, 60, ' '
@@ -204,10 +237,14 @@ if keyword_set(median) then begin
       printf, 60, ' 2) '+string(y_centre)+'   1 band  #  position y'
       printf, 60, '3) '+string(estimates_comp4[1],format='(f5.2)')+'      1  band     # Integrated magnitude   '  
       if comp4_type eq 'sersic' then begin
-        printf, 60, '4) '+string(estimates_comp4[2],format='(f5.2)')+'      1  band     # R_e (half-light radius)   [pix] '  
-        printf, 60, '5) '+string(estimates_comp4[3],format='(f5.2)')+'      1  band     # Sersic index n (de Vaucouleurs n=4)  '  
-        printf, 60, '9) '+string(estimates_comp4[4],format='(f5.2)')+'      1  band     # axis ratio (b/a)    '  
-        printf, 60, '10) '+string(estimates_comp4[5])+'      1  band     # position angle (PA) [deg: Up=0, Left=90]  '  
+        if comp4_Re_polynomial gt 0 then a=1 else a=0
+        if comp4_n_polynomial gt 0 then b=1 else b=0
+        if comp4_q_polynomial gt 0 then c=1 else c=0
+        if comp4_PA_polynomial gt 0 then d=1 else d=0
+        printf, 60, '4) '+string(estimates_comp4[2])+'      '+string(a,format='(I1.1)')+'  band     # R_e (half-light radius)   [pix] '  
+        printf, 60, '5) '+string(estimates_comp4[3])+'      '+string(b,format='(I1.1)')+'  band     # Sersic index n (de Vaucouleurs n=4)  '  
+        printf, 60, '9) '+string(estimates_comp4[4])+'      '+string(c,format='(I1.1)')+'  band     # axis ratio (b/a)    '  
+        printf, 60, '10) '+string(estimates_comp4[5])+'      '+string(d,format='(I1.1)')+'  band     # position angle (PA) [deg: Up=0, Left=90]  '  
       endif
       printf, 60, 'Z) 0                  #  Skip this model in output image?  (yes=1, no=0)'
     endif  
